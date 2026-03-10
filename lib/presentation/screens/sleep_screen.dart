@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/adaptive_modal.dart';
 import '../../core/utils/responsive.dart';
+import '../../data/services/openrouter_service.dart';
 import '../../domain/entities/sleep_log_entity.dart';
 import '../../domain/services/sleep_diagnosis_service.dart';
 import '../viewmodels/sleep_viewmodel.dart';
@@ -187,8 +188,6 @@ class _TodayView extends StatelessWidget {
       );
     }
 
-    final diagnosis = SleepDiagnosisService.diagnose(log);
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -231,10 +230,8 @@ class _TodayView extends StatelessWidget {
               ),
             ],
           ),
-          if (diagnosis != null) ...[
-            const SizedBox(height: 20),
-            _DiagnosisCard(diagnosis: diagnosis),
-          ],
+          const SizedBox(height: 20),
+          _DiagnosisCard(log: log),
         ],
       ),
     );
@@ -543,9 +540,9 @@ class _PhasesSegmentedBar extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 
 class _DiagnosisCard extends StatefulWidget {
-  final SleepDiagnosis diagnosis;
+  final SleepLogEntity log;
 
-  const _DiagnosisCard({required this.diagnosis});
+  const _DiagnosisCard({required this.log});
 
   @override
   State<_DiagnosisCard> createState() => _DiagnosisCardState();
@@ -553,11 +550,33 @@ class _DiagnosisCard extends StatefulWidget {
 
 class _DiagnosisCardState extends State<_DiagnosisCard> {
   bool _expanded = false;
+  bool _loading = true;
+  SleepDiagnosis? _diagnosis;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final d = await OpenRouterService.analyzeSleep(widget.log);
+      if (mounted) setState(() => _diagnosis = d);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.diagnosis;
-
     return Card(
       color: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -569,10 +588,14 @@ class _DiagnosisCardState extends State<_DiagnosisCard> {
             // Cabecera
             Row(
               children: [
-                const Icon(Icons.auto_awesome, color: AppColors.sleep, size: 18),
+                const Icon(
+                  Icons.smart_toy_outlined,
+                  color: AppColors.sleep,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 const Text(
-                  'Diagnóstico de tu noche',
+                  'Diagnóstico IA de tu noche',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -580,100 +603,164 @@ class _DiagnosisCardState extends State<_DiagnosisCard> {
                     letterSpacing: 0.5,
                   ),
                 ),
+                if (_loading) ...[
+                  const Spacer(),
+                  const SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: CircularProgressIndicator(
+                      color: AppColors.sleep,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ],
+                if (!_loading && _diagnosis != null) ...[
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _load,
+                    child: const Icon(
+                      Icons.refresh,
+                      color: AppColors.textSecondary,
+                      size: 16,
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
 
-            // Titular
-            Text(
-              d.title,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Consejo destacado
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.sleep.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.sleep.withValues(alpha: 0.3),
+            // Cargando
+            if (_loading)
+              const Text(
+                'Analizando tu sueño…',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.tips_and_updates_outlined,
-                    color: AppColors.sleep,
-                    size: 16,
+
+            // Error
+            if (_error != null && !_loading) ...[
+              const Text(
+                'No se pudo obtener el análisis.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _load,
+                icon: const Icon(Icons.refresh, size: 15),
+                label: const Text('Reintentar'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.sleep,
+                  side: const BorderSide(color: AppColors.sleep, width: 0.8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      d.advice,
-                      style: const TextStyle(
-                        color: AppColors.sleep,
-                        fontSize: 13,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+
+            // Resultado
+            if (_diagnosis != null && !_loading) ...[
+              Text(
+                _diagnosis!.title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Consejo destacado
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.sleep.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.sleep.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.tips_and_updates_outlined,
+                      color: AppColors.sleep,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _diagnosis!.advice,
+                        style: const TextStyle(
+                          color: AppColors.sleep,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            // Detalles expandibles
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () => setState(() => _expanded = !_expanded),
-              child: Row(
-                children: [
-                  Text(
-                    _expanded ? 'Ver menos' : 'Ver análisis completo',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
+              // Detalles expandibles
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () => setState(() => _expanded = !_expanded),
+                child: Row(
+                  children: [
+                    Text(
+                      _expanded ? 'Ver menos' : 'Ver análisis completo',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: AppColors.textSecondary,
-                    size: 16,
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Icon(
+                      _expanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: AppColors.textSecondary,
+                      size: 16,
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            if (_expanded) ...[
-              const SizedBox(height: 12),
-              const Divider(color: AppColors.divider, height: 1),
-              const SizedBox(height: 12),
-              _diagRow(
-                Icons.fitness_center_outlined,
-                'Físico',
-                d.physicalAnalysis,
-              ),
-              const SizedBox(height: 10),
-              _diagRow(
-                Icons.psychology_outlined,
-                'Mental',
-                d.mentalAnalysis,
-              ),
-              const SizedBox(height: 10),
-              _diagRow(
-                Icons.help_outline,
-                '¿Por qué?',
-                d.reason,
-              ),
+              if (_expanded) ...[
+                const SizedBox(height: 12),
+                const Divider(color: AppColors.divider, height: 1),
+                const SizedBox(height: 12),
+                _diagRow(
+                  Icons.fitness_center_outlined,
+                  'Físico',
+                  _diagnosis!.physicalAnalysis,
+                ),
+                const SizedBox(height: 10),
+                _diagRow(
+                  Icons.psychology_outlined,
+                  'Mental',
+                  _diagnosis!.mentalAnalysis,
+                ),
+                const SizedBox(height: 10),
+                _diagRow(
+                  Icons.help_outline,
+                  '¿Por qué?',
+                  _diagnosis!.reason,
+                ),
+              ],
             ],
           ],
         ),
