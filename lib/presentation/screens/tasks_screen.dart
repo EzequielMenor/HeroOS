@@ -59,7 +59,7 @@ class _TasksScreenState extends State<TasksScreen> {
       );
     }
 
-    if (context.isWeb) {
+    if (context.isDesktopWeb) {
       return _buildWebLayout(vm);
     }
     return _buildMobileLayout(vm);
@@ -400,7 +400,7 @@ class _TasksScreenState extends State<TasksScreen> {
     int difficulty = 1;
     // En web el calendario siempre está visible → preasignar día seleccionado
     DateTime? dueDate =
-        (context.isWeb || _showCalendar) ? _selectedDay : null;
+        (context.isDesktopWeb || _showCalendar) ? _selectedDay : null;
 
     showAdaptiveModal<void>(
       context,

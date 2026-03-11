@@ -9,11 +9,18 @@ import '../../domain/entities/profile_entity.dart';
 class RpgHud extends StatelessWidget {
   final ProfileEntity profile;
   final bool compact;
+  final bool strip;
 
-  const RpgHud({super.key, required this.profile, this.compact = false});
+  const RpgHud({
+    super.key,
+    required this.profile,
+    this.compact = false,
+    this.strip = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (strip) return _buildStrip();
     if (compact) return _buildCompact();
     return _buildFull();
   }
@@ -193,6 +200,89 @@ class RpgHud extends StatelessWidget {
             progress: profile.hpProgress,
             color: hpColor,
             icon: Icons.favorite_outline,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Strip mode for mobile web: 44px horizontal bar replacing the AppBar.
+  /// Shows level badge | XP+HP bars stacked | XP total.
+  Widget _buildStrip() {
+    final hpColor = profile.currentHp < profile.maxHp * 0.3
+        ? AppColors.danger
+        : AppColors.habits;
+
+    return Container(
+      height: 44,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          bottom: BorderSide(color: AppColors.divider),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Level badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.rpg.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.rpg.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Text(
+              'Lvl ${profile.level}',
+              style: const TextStyle(
+                color: AppColors.rpg,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // XP + HP bars stacked
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: profile.xpProgress,
+                    backgroundColor: AppColors.divider.withValues(alpha: 0.15),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(AppColors.rpg),
+                    minHeight: 5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: profile.hpProgress,
+                    backgroundColor: AppColors.divider.withValues(alpha: 0.15),
+                    valueColor: AlwaysStoppedAnimation<Color>(hpColor),
+                    minHeight: 5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // XP total
+          Text(
+            '${profile.currentXp} XP',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

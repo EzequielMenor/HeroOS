@@ -25,6 +25,8 @@ dependencies:
   fl_chart: ^0.70.2
   image_picker: ^1.1.2
   http: ^1.2.0
+  shared_preferences: ^2.3.0
+  web: ^1.0.0  # promote from transitive to direct dependency; used for JS interop in InstallBanner
 
 dev_dependencies:
   flutter_test:

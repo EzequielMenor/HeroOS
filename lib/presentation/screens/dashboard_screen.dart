@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive.dart';
+import '../widgets/install_banner.dart';
 import '../widgets/rpg_hud.dart';
 import '../viewmodels/stats_viewmodel.dart';
 import 'habits_screen.dart';
@@ -290,8 +291,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final statsVm = context.watch<StatsViewModel>();
 
-    if (context.isWeb) {
+    if (context.isDesktopWeb) {
       return _buildWebLayout(statsVm);
+    }
+    if (context.isMobileWeb) {
+      return _buildMobileWebLayout(statsVm);
     }
     return _buildMobileLayout(statsVm);
   }
@@ -360,6 +364,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   BottomNavigationBarItem(icon: Icon(t.icon), label: t.label),
             )
             .toList(),
+      ),
+    );
+  }
+  // ── MOBILE WEB LAYOUT ────────────────────────────────────────────────────────
+
+  Widget _buildMobileWebLayout(StatsViewModel statsVm) {
+    return Scaffold(
+      body: SafeArea(
+        bottom: false, // BottomNav has its own SafeArea
+        child: Column(
+          children: [
+            // Compact strip replaces AppBar (hidden on Profile tab)
+            if (_currentIndex != 4)
+              if (statsVm.isLoading)
+                const LinearProgressIndicator(
+                  backgroundColor: AppColors.surface,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.rpg),
+                )
+              else if (statsVm.profile != null)
+                RpgHud(profile: statsVm.profile!, strip: true),
+
+            // PWA install hint (self-hides when not applicable)
+            const InstallBanner(),
+
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          type: BottomNavigationBarType.fixed,
+          items: _tabs
+              .map(
+                (t) => BottomNavigationBarItem(
+                  icon: Icon(t.icon),
+                  label: t.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }

@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final goalsVm = context.watch<GoalsViewModel>();
     final profile = statsVm.profile;
 
-    if (context.isWeb) {
+    if (context.isDesktopWeb) {
       return _buildWebLayout(profile, goalsVm, statsVm.recentEvents, statsVm);
     }
     return _buildMobileLayout(profile, goalsVm, statsVm.recentEvents, statsVm);
@@ -212,7 +212,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     List<RpgEventEntity> events,
     StatsViewModel statsVm,
   ) {
-    return SingleChildScrollView(
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -250,6 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _ActivityFeed(events: events),
         ],
       ),
+    ),
     );
   }
 

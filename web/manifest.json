@@ -1,11 +1,11 @@
 {
-    "name": "heroos",
-    "short_name": "heroos",
+    "name": "HeroOS",
+    "short_name": "HeroOS",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#1a1a2e",
-    "theme_color": "#1a1a2e",
-    "description": "A new Flutter project.",
+    "background_color": "#0d0d1a",
+    "theme_color": "#0d0d1a",
+    "description": "Tu vida como RPG",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
