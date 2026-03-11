@@ -24,6 +24,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create secrets.dart
+        run: |
+          cat > lib/core/config/secrets.dart << 'EOF'
+          class Secrets {
+            static const String groqApiKey = String.fromEnvironment(
+              'GROQ_API_KEY',
+              defaultValue: '',
+            );
+          }
+          EOF
+
       - name: Build web
         run: flutter build web --release --pwa-strategy offline-first --base-href /HeroOS/ --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
 
