@@ -1,18 +1,15 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/habit_entity.dart';
 import '../../domain/entities/habit_log_entity.dart';
-import '../../domain/repositories/i_habit_repository.dart';
 import '../models/habit_model.dart';
 import '../models/habit_log_model.dart';
-import '../services/supabase_service.dart';
 
 /// Implementación Supabase del repositorio de hábitos.
-class HabitRepository implements IHabitRepository {
-  final SupabaseClient _client = SupabaseService.client;
+class HabitRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  @override
   Future<List<HabitEntity>> getHabits() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final data = await _client
@@ -25,19 +22,16 @@ class HabitRepository implements IHabitRepository {
     return data.map((json) => HabitModel.fromJson(json).toEntity()).toList();
   }
 
-  @override
   Future<void> createHabit(HabitEntity habit) async {
     final model = HabitModel.fromEntity(habit);
     await _client.from('habits').insert(model.toJson());
   }
 
-  @override
   Future<void> updateHabit(HabitEntity habit) async {
     final model = HabitModel.fromEntity(habit);
     await _client.from('habits').update(model.toJson()).eq('id', habit.id);
   }
 
-  @override
   Future<void> archiveHabit(String habitId) async {
     await _client
         .from('habits')
@@ -45,9 +39,8 @@ class HabitRepository implements IHabitRepository {
         .eq('id', habitId);
   }
 
-  @override
   Future<void> logHabitCompletion(String habitId, DateTime date) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     await _client.from('habit_logs').insert({
@@ -62,9 +55,8 @@ class HabitRepository implements IHabitRepository {
     await _client.rpc('increment_streak', params: {'habit_id_param': habitId});
   }
 
-  @override
   Future<List<String>> getCompletedHabitIds(DateTime date) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final dateStr =
@@ -80,14 +72,12 @@ class HabitRepository implements IHabitRepository {
     return data.map<String>((row) => row['habit_id'] as String).toList();
   }
 
-  @override
   Future<void> deleteHabit(String habitId) async {
     await _client.from('habits').delete().eq('id', habitId);
   }
 
-  @override
   Future<void> uncompleteHabitLog(String habitId, DateTime date) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final dateStr =
@@ -104,12 +94,11 @@ class HabitRepository implements IHabitRepository {
     await _client.rpc('decrement_streak', params: {'habit_id_param': habitId});
   }
 
-  @override
   Future<List<HabitLogEntity>> getHabitLogsInRange(
     DateTime from,
     DateTime to,
   ) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final fromStr =

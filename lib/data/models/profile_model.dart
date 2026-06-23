@@ -10,7 +10,6 @@ class ProfileModel {
   final int maxHp;
   final double currentGold;
   final String? avatarUrl;
-  final DateTime createdAt;
 
   const ProfileModel({
     required this.id,
@@ -22,7 +21,6 @@ class ProfileModel {
     required this.maxHp,
     required this.currentGold,
     this.avatarUrl,
-    required this.createdAt,
   });
 
   /// Deserializa desde un Map (respuesta JSON de Supabase).
@@ -37,7 +35,6 @@ class ProfileModel {
       maxHp: json['max_hp'] as int? ?? 100,
       currentGold: (json['current_gold'] as num?)?.toDouble() ?? 0.0,
       avatarUrl: json['avatar_url'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
 

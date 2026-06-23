@@ -1,17 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/user_goals_entity.dart';
-import '../../domain/repositories/i_goals_repository.dart';
 import '../models/user_goals_model.dart';
-import '../services/supabase_service.dart';
 
-/// Implementación concreta de [IGoalsRepository] con Supabase.
-class GoalsRepository implements IGoalsRepository {
-  final SupabaseClient _client = SupabaseService.client;
+/// Implementación concreta con Supabase.
+class GoalsRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  @override
   Future<UserGoalsEntity> getGoals() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) throw Exception('No hay usuario autenticado');
 
     final response = await _client
@@ -38,7 +35,6 @@ class GoalsRepository implements IGoalsRepository {
     return UserGoalsModel.fromJson(response).toEntity();
   }
 
-  @override
   Future<void> updateGoals(UserGoalsEntity goals) async {
     await _client
         .from('user_goals')

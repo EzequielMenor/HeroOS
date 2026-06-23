@@ -1,0 +1,13 @@
+schema: change-state
+name: cleanup-overengineering
+created: 2026-06-23
+status: tasks-ready
+phases:
+  exploration: done
+  proposal: done
+  spec: done
+  design: done
+  tasks: done
+  apply: pending
+  verify: pending
+  archive: pending

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../core/utils/date_utils.dart';
 import 'sleep_log_entity.dart';
 
 /// Motor de analíticas de sueño — clase pura sin dependencias externas.
@@ -17,15 +18,12 @@ class SleepAnalytics {
 
   // ─── Helpers privados ───
 
-  static DateTime _normalizeDate(DateTime d) =>
-      DateTime(d.year, d.month, d.day);
-
   List<SleepLogEntity> _logsInLastDays(int days) {
-    final cutoff = _normalizeDate(
+    final cutoff = normalizeDate(
       DateTime.now().subtract(Duration(days: days)),
     );
     return logs
-        .where((l) => !_normalizeDate(l.endTime).isBefore(cutoff))
+        .where((l) => !normalizeDate(l.endTime).isBefore(cutoff))
         .toList();
   }
 
@@ -89,7 +87,7 @@ class SleepAnalytics {
           '${weekStart.year}-W${_isoWeekNumber(weekStart).toString().padLeft(2, '0')}';
 
       final weekLogs = logs.where((l) {
-        final d = _normalizeDate(l.endTime);
+        final d = normalizeDate(l.endTime);
         return !d.isBefore(weekStart) && d.isBefore(weekEnd);
       }).toList();
 

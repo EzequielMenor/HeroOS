@@ -1,16 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/profile_entity.dart';
-import '../../domain/repositories/i_profile_repository.dart';
 import '../models/profile_model.dart';
-import '../services/supabase_service.dart';
 
-/// Implementación concreta de [IProfileRepository] con Supabase.
-class ProfileRepository implements IProfileRepository {
-  final SupabaseClient _client = SupabaseService.client;
+/// Implementación concreta con Supabase.
+class ProfileRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  @override
   Future<ProfileEntity?> getProfile() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return null;
 
     final response = await _client
@@ -25,7 +22,6 @@ class ProfileRepository implements IProfileRepository {
     return _modelToEntity(model);
   }
 
-  @override
   Future<void> updateProfile(ProfileEntity profile) async {
     await _client
         .from('profiles')

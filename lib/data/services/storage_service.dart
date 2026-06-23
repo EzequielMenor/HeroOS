@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_service.dart';
 
 /// Gestiona la selección y subida de imágenes a Supabase Storage.
 class StorageService {
@@ -21,7 +20,7 @@ class StorageService {
   /// Sube [file] al bucket `avatars` bajo la subcarpeta del usuario autenticado.
   /// Devuelve la URL pública del archivo subido.
   Future<String> uploadAvatar(XFile file) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) throw Exception('No authenticated user');
 
     final ts = DateTime.now().millisecondsSinceEpoch;
@@ -30,15 +29,15 @@ class StorageService {
 
     if (kIsWeb) {
       final bytes = await file.readAsBytes();
-      await SupabaseService.client.storage
+      await Supabase.instance.client.storage
           .from(_bucket)
           .uploadBinary(path, bytes, fileOptions: opts);
     } else {
-      await SupabaseService.client.storage
+      await Supabase.instance.client.storage
           .from(_bucket)
           .upload(path, File(file.path), fileOptions: opts);
     }
 
-    return SupabaseService.client.storage.from(_bucket).getPublicUrl(path);
+    return Supabase.instance.client.storage.from(_bucket).getPublicUrl(path);
   }
 }

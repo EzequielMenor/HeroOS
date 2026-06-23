@@ -3,21 +3,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
-import '../../domain/repositories/i_finance_repository.dart';
 import '../models/account_model.dart';
 import '../models/transaction_model.dart';
 import '../models/category_model.dart';
-import '../services/supabase_service.dart';
 
 /// Implementación Supabase del repositorio de finanzas.
-class FinanceRepository implements IFinanceRepository {
-  final SupabaseClient _client = SupabaseService.client;
+class FinanceRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
   // ─── Accounts ───
 
-  @override
   Future<List<AccountEntity>> getAccounts() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final data = await _client
@@ -29,22 +26,19 @@ class FinanceRepository implements IFinanceRepository {
     return data.map((j) => AccountModel.fromJson(j).toEntity()).toList();
   }
 
-  @override
   Future<void> createAccount(AccountEntity account) async {
     final model = AccountModel.fromEntity(account);
     await _client.from('accounts').insert(model.toJson());
   }
 
-  @override
   Future<void> deleteAccount(String accountId) async {
     await _client.from('accounts').delete().eq('id', accountId);
   }
 
   // ─── Transactions ───
 
-  @override
   Future<List<TransactionEntity>> getTransactions({String? accountId}) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     var query = _client.from('transactions').select().eq('user_id', userId);
@@ -56,7 +50,6 @@ class FinanceRepository implements IFinanceRepository {
     return data.map((j) => TransactionModel.fromJson(j).toEntity()).toList();
   }
 
-  @override
   Future<void> createTransaction(TransactionEntity txn) async {
     final model = TransactionModel.fromEntity(txn);
     await _client.from('transactions').insert(model.toJson());
@@ -74,7 +67,6 @@ class FinanceRepository implements IFinanceRepository {
         .eq('id', txn.accountId);
   }
 
-  @override
   Future<void> deleteTransaction(String txnId) async {
     // Obtener transacción antes de borrar para revertir balance
     final txnData = await _client
@@ -101,7 +93,6 @@ class FinanceRepository implements IFinanceRepository {
 
   // ─── Transfers ───
 
-  @override
   Future<void> createTransfer({
     required String userId,
     required String fromAccountId,
@@ -171,9 +162,8 @@ class FinanceRepository implements IFinanceRepository {
 
   // ─── Categories ───
 
-  @override
   Future<List<CategoryEntity>> getCategories() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final data = await _client
@@ -197,7 +187,6 @@ class FinanceRepository implements IFinanceRepository {
     await _client.from('finance_categories').insert(json);
   }
 
-  @override
   Future<void> updateCategory(CategoryEntity category) async {
     final model = CategoryModel.fromEntity(category);
     await _client
@@ -206,7 +195,6 @@ class FinanceRepository implements IFinanceRepository {
         .eq('id', category.id);
   }
 
-  @override
   Future<void> deleteCategory(String categoryId) async {
     await _client.from('finance_categories').delete().eq('id', categoryId);
   }

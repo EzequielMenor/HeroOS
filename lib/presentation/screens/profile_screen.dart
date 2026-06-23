@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final goalsVm = context.watch<GoalsViewModel>();
     final profile = statsVm.profile;
 
-    if (context.isDesktopWeb) {
+    if (context.isWeb) {
       return _buildWebLayout(profile, goalsVm, statsVm.recentEvents, statsVm);
     }
     return _buildMobileLayout(profile, goalsVm, statsVm.recentEvents, statsVm);

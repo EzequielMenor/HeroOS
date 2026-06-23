@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import 'habit_entity.dart';
 import 'habit_log_entity.dart';
 
@@ -16,10 +17,6 @@ class HabitAnalytics {
 
   // ─── Helpers privados ───
 
-  /// Normaliza una fecha a solo año/mes/día (sin hora).
-  static DateTime _normalizeDate(DateTime d) =>
-      DateTime(d.year, d.month, d.day);
-
   /// Logs completados filtrados por hábito.
   List<HabitLogEntity> _logsFor(String habitId) => logs
       .where((l) => l.habitId == habitId && l.status == 'completed')
@@ -27,7 +24,7 @@ class HabitAnalytics {
 
   /// Set de fechas completadas para un hábito.
   Set<DateTime> _completedDatesFor(String habitId) =>
-      _logsFor(habitId).map((l) => _normalizeDate(l.date)).toSet();
+      _logsFor(habitId).map((l) => normalizeDate(l.date)).toSet();
 
   /// Busca el HabitEntity por id.
   HabitEntity? _habitById(String habitId) {
@@ -48,7 +45,7 @@ class HabitAnalytics {
     if (habit == null) return 0.0;
 
     final completed = _completedDatesFor(habitId);
-    final now = _normalizeDate(DateTime.now());
+    final now = normalizeDate(DateTime.now());
     int scheduled = 0;
     int done = 0;
 
@@ -96,7 +93,7 @@ class HabitAnalytics {
     if (habit == null) return [];
 
     final completed = _completedDatesFor(habitId);
-    final now = _normalizeDate(DateTime.now());
+    final now = normalizeDate(DateTime.now());
     final streaks = <int>[];
     int currentStreak = 0;
 
@@ -133,7 +130,7 @@ class HabitAnalytics {
     if (habit == null) return 0;
 
     final completed = _completedDatesFor(habitId);
-    final now = _normalizeDate(DateTime.now());
+    final now = normalizeDate(DateTime.now());
     int streak = 0;
 
     for (int i = 0; i < 365; i++) {
@@ -196,7 +193,7 @@ class HabitAnalytics {
     if (habit == null) return {};
 
     final completed = _completedDatesFor(habitId);
-    final now = _normalizeDate(DateTime.now());
+    final now = normalizeDate(DateTime.now());
     final map = <DateTime, bool>{};
 
     for (int i = 0; i < days; i++) {

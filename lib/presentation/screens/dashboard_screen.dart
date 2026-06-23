@@ -291,7 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final statsVm = context.watch<StatsViewModel>();
 
-    if (context.isDesktopWeb) {
+    if (context.isWeb) {
       return _buildWebLayout(statsVm);
     }
     if (context.isMobileWeb) {

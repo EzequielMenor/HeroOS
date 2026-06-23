@@ -1,0 +1,23 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Flutter 3.x, Dart 3.x, Supabase, Provider, GoRouter
+  Architecture: Repository pattern, Provider-based state, screen-per-feature
+  Testing: Not found
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+  design:
+    - Include risks for each change
+  tasks:
+    - Group by file, keep tasks completable in one session
+  apply:
+    - Follow existing code patterns
+    - Remove unused imports when deleting files
+    tdd: false
+  verify:
+    test_command: ""
+    build_command: "flutter pub get && flutter analyze"

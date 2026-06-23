@@ -35,7 +35,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
   Widget build(BuildContext context) {
     final vm = context.watch<HabitsViewModel>();
 
-    if (context.isDesktopWeb) {
+    if (context.isWeb) {
       return _buildWebLayout(vm);
     }
     return _buildMobileLayout(vm);

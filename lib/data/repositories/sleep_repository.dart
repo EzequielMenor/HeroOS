@@ -1,16 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/sleep_log_entity.dart';
-import '../../domain/repositories/i_sleep_repository.dart';
 import '../models/sleep_log_model.dart';
-import '../services/supabase_service.dart';
 
-class SleepRepository implements ISleepRepository {
-  final SupabaseClient _client = SupabaseService.client;
+class SleepRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  @override
   Future<List<SleepLogEntity>> getSleepLogs() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final data = await _client
@@ -22,9 +19,8 @@ class SleepRepository implements ISleepRepository {
     return data.map((j) => SleepLogModel.fromJson(j).toEntity()).toList();
   }
 
-  @override
   Future<SleepLogEntity?> getTodayLog() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return null;
 
     final today = DateTime.now();
@@ -45,7 +41,6 @@ class SleepRepository implements ISleepRepository {
     return SleepLogModel.fromJson(data).toEntity();
   }
 
-  @override
   Future<void> createSleepLog(SleepLogEntity log) async {
     final model = SleepLogModel.fromEntity(log);
     final json = model.toJson();
@@ -53,13 +48,11 @@ class SleepRepository implements ISleepRepository {
     await _client.from('sleep_logs').insert(json);
   }
 
-  @override
   Future<void> updateSleepLog(SleepLogEntity log) async {
     final model = SleepLogModel.fromEntity(log);
     await _client.from('sleep_logs').update(model.toJson()).eq('id', log.id);
   }
 
-  @override
   Future<void> deleteSleepLog(String logId) async {
     await _client.from('sleep_logs').delete().eq('id', logId);
   }

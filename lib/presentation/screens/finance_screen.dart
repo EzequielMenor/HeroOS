@@ -72,7 +72,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildContent(BuildContext context, FinanceViewModel vm) {
-    if (context.isDesktopWeb) {
+    if (context.isWeb) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

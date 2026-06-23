@@ -12,7 +12,4 @@ extension ResponsiveContext on BuildContext {
 
   /// Mobile web: running in a browser at <900px (phone/tablet browser).
   bool get isMobileWeb => kIsWeb && screenWidth < kWebBreakpoint;
-
-  /// Desktop web: explicit alias for clarity alongside isMobileWeb.
-  bool get isDesktopWeb => kIsWeb && screenWidth >= kWebBreakpoint;
 }

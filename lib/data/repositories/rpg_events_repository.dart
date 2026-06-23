@@ -1,15 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/rpg_event_entity.dart';
-import '../../domain/repositories/i_rpg_events_repository.dart';
-import '../services/supabase_service.dart';
 
 /// Implementación Supabase del repositorio de eventos RPG.
-class RpgEventsRepository implements IRpgEventsRepository {
-  final SupabaseClient _client = SupabaseService.client;
+class RpgEventsRepository {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  @override
   Future<void> log(RpgEventType type, int amount, String description) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     await _client.from('rpg_events').insert({
@@ -20,9 +17,8 @@ class RpgEventsRepository implements IRpgEventsRepository {
     });
   }
 
-  @override
   Future<List<RpgEventEntity>> getRecentEvents({int limit = 20}) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return [];
 
     final data = await _client

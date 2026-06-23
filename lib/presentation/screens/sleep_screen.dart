@@ -1371,7 +1371,7 @@ class _StatsViewState extends State<_StatsView> {
           const SizedBox(height: 20),
 
           // ── PieChart + BarChart ──
-          if (context.isDesktopWeb)
+          if (context.isWeb)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
