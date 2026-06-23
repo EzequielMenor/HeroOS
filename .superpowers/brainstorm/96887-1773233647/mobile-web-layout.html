@@ -1,0 +1,163 @@
+<h2>Layout Mobile Web — Opción B en detalle</h2>
+<p class="subtitle">3 breakpoints: móvil nativo (&lt;600px) / móvil web (600–900px + kIsWeb) / desktop web (≥900px). Aquí el mockup del nuevo layout para móvil web.</p>
+
+<div class="split" style="gap:24px; align-items:flex-start; margin-bottom:32px;">
+
+  <!-- Mobile Web NEW -->
+  <div>
+    <div style="color:#a78bfa; font-size:11px; font-weight:700; letter-spacing:1px; margin-bottom:8px; text-align:center;">✅ NUEVO — Móvil Web</div>
+    <div style="width:260px; margin:0 auto; background:#0f0f1a; border-radius:16px; overflow:hidden; border:2px solid #7c3aed55; box-shadow:0 0 24px #7c3aed22;">
+      <!-- Browser URL bar (thin, no content overlap) -->
+      <div style="background:#111; height:36px; display:flex; align-items:center; padding:0 10px; gap:8px; border-bottom:1px solid #222;">
+        <div style="background:#222; border-radius:4px; height:22px; flex:1; display:flex; align-items:center; padding:0 8px;">
+          <span style="color:#555; font-size:10px;">heroos.github.io</span>
+        </div>
+      </div>
+      <!-- Compact RpgHud strip (no AppBar) -->
+      <div style="background:#1a1a2e; padding:8px 12px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #2a2a3e;">
+        <div style="background:#7c3aed22; border-radius:6px; padding:3px 8px; border:1px solid #7c3aed44;">
+          <span style="color:#a78bfa; font-size:10px; font-weight:700;">⚔ LVL 12</span>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+          <div style="background:#0f0f1a; height:5px; border-radius:3px;">
+            <div style="background:#7c3aed; height:100%; width:65%; border-radius:3px;"></div>
+          </div>
+          <div style="background:#0f0f1a; height:5px; border-radius:3px;">
+            <div style="background:#ef4444; height:100%; width:80%; border-radius:3px;"></div>
+          </div>
+        </div>
+        <span style="color:#fbbf24; font-size:10px; font-weight:700;">2400 XP</span>
+      </div>
+      <!-- Content area — more space -->
+      <div style="padding:10px; min-height:300px; display:flex; flex-direction:column; gap:8px;">
+        <div style="color:#e0e0e0; font-size:12px; font-weight:600; margin-bottom:2px;">Dashboard</div>
+        <div style="background:#1e1e30; border-radius:8px; padding:10px; border:1px solid #2a2a3e;">
+          <div style="color:#9ca3af; font-size:11px; margin-bottom:6px;">TAREAS HOY</div>
+          <div style="background:#0f0f1a; height:28px; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; padding:0 8px; gap:6px;">
+            <div style="width:12px; height:12px; border:1.5px solid #7c3aed; border-radius:3px;"></div>
+            <span style="color:#e0e0e0; font-size:11px;">Estudiar Flutter</span>
+          </div>
+          <div style="background:#0f0f1a; height:28px; border-radius:4px; display:flex; align-items:center; padding:0 8px; gap:6px;">
+            <div style="width:12px; height:12px; border:1.5px solid #22c55e; border-radius:3px; background:#22c55e22;"></div>
+            <span style="color:#6b7280; font-size:11px; text-decoration:line-through;">Revisar PRs</span>
+          </div>
+        </div>
+        <div style="background:#1e1e30; border-radius:8px; padding:10px; border:1px solid #2a2a3e;">
+          <div style="color:#9ca3af; font-size:11px; margin-bottom:6px;">HÁBITOS</div>
+          <div style="display:flex; gap:4px;">
+            <div style="flex:1; background:#22c55e22; border:1px solid #22c55e44; border-radius:4px; height:28px; display:flex; align-items:center; justify-content:center;"><span style="font-size:14px;">🔥</span></div>
+            <div style="flex:1; background:#1e1e30; border:1px solid #2a2a3e; border-radius:4px; height:28px; display:flex; align-items:center; justify-content:center;"><span style="font-size:14px;">📚</span></div>
+            <div style="flex:1; background:#22c55e22; border:1px solid #22c55e44; border-radius:4px; height:28px; display:flex; align-items:center; justify-content:center;"><span style="font-size:14px;">💪</span></div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+      </div>
+      <!-- BottomNav with safe-area padding -->
+      <div style="background:#1a1a2e; border-top:1px solid #2a2a3e; padding-bottom:8px;">
+        <div style="display:flex; height:48px;">
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <span style="font-size:14px;">🏠</span><span style="color:#7c3aed; font-size:8px;">Dashboard</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <span style="font-size:14px;">✅</span><span style="color:#555; font-size:8px;">Tareas</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <span style="font-size:14px;">🔥</span><span style="color:#555; font-size:8px;">Hábitos</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <span style="font-size:14px;">💰</span><span style="color:#555; font-size:8px;">Finanzas</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+            <span style="font-size:14px;">😴</span><span style="color:#555; font-size:8px;">Sueño</span>
+          </div>
+        </div>
+        <!-- safe-area padding visual -->
+        <div style="height:8px; background:#1a1a2e;"></div>
+      </div>
+      <!-- Browser bottom chrome — content does NOT overlap -->
+      <div style="background:#111; height:40px; display:flex; align-items:center; justify-content:space-around; padding:0 20px; border-top:1px solid #222;">
+        <span style="color:#555; font-size:16px;">←</span>
+        <span style="color:#555; font-size:16px;">→</span>
+        <span style="color:#555; font-size:16px;">⊕</span>
+        <span style="color:#555; font-size:16px;">⋯</span>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:8px;">
+      <span style="background:#22c55e22; color:#22c55e; font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid #22c55e44;">Sin superposición ✓</span>
+    </div>
+  </div>
+
+  <!-- Detalles del nuevo layout -->
+  <div style="flex:1; display:flex; flex-direction:column; gap:14px;">
+
+    <div style="background:#1e1e30; border-radius:8px; padding:14px; border-left:3px solid #7c3aed;">
+      <div style="color:#a78bfa; font-size:11px; font-weight:700; margin-bottom:8px;">NUEVO EN responsive.dart</div>
+      <code style="color:#e0e0e0; font-size:12px; line-height:1.8; display:block;">
+        kMobileWebBreakpoint = 600.0<br>
+        kWebBreakpoint = 900.0<br><br>
+        context.isNative → width &lt; 600 || !kIsWeb<br>
+        context.isMobileWeb → kIsWeb &amp;&amp; width &lt; 900<br>
+        context.isDesktopWeb → kIsWeb &amp;&amp; width ≥ 900
+      </code>
+    </div>
+
+    <div style="background:#1e1e30; border-radius:8px; padding:14px; border-left:3px solid #22c55e;">
+      <div style="color:#4ade80; font-size:11px; font-weight:700; margin-bottom:8px;">CAMBIOS POR SCREEN</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #2a2a3e;">
+          <span style="color:#e0e0e0; font-size:12px;">dashboard_screen</span>
+          <span style="color:#fbbf24; font-size:11px;">RpgHud → compact strip</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #2a2a3e;">
+          <span style="color:#e0e0e0; font-size:12px;">Todas las screens</span>
+          <span style="color:#fbbf24; font-size:11px;">AppBar eliminado en isMobileWeb</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #2a2a3e;">
+          <span style="color:#e0e0e0; font-size:12px;">BottomNav</span>
+          <span style="color:#fbbf24; font-size:11px;">+ padding-bottom dinámico</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0;">
+          <span style="color:#e0e0e0; font-size:12px;">adaptive_modal</span>
+          <span style="color:#fbbf24; font-size:11px;">isMobileWeb → Dialog pequeño</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#1e1e30; border-radius:8px; padding:14px; border-left:3px solid #3b82f6;">
+      <div style="color:#60a5fa; font-size:11px; font-weight:700; margin-bottom:6px;">BREAKPOINTS FINALES</div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div style="width:12px; height:12px; background:#3b82f6; border-radius:3px; flex-shrink:0;"></div>
+          <span style="color:#9ca3af; font-size:12px;"><strong style="color:#e0e0e0;">Nativo</strong> — app instalada (iOS/Android)</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div style="width:12px; height:12px; background:#7c3aed; border-radius:3px; flex-shrink:0;"></div>
+          <span style="color:#9ca3af; font-size:12px;"><strong style="color:#e0e0e0;">Móvil web</strong> — kIsWeb + &lt;900px</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div style="width:12px; height:12px; background:#22c55e; border-radius:3px; flex-shrink:0;"></div>
+          <span style="color:#9ca3af; font-size:12px;"><strong style="color:#e0e0e0;">Desktop web</strong> — kIsWeb + ≥900px (sin cambios)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<h3 style="margin-bottom:12px;">¿El mockup refleja lo que tienes en mente?</h3>
+<div class="options">
+  <div class="option" data-choice="yes" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Sí, adelante</h3>
+      <p>Este layout es lo que quiero para móvil web. Proceder con el diseño detallado.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="tweak" onclick="toggleSelect(this)">
+    <div class="letter">~</div>
+    <div class="content">
+      <h3>Casi, ajustar algo</h3>
+      <p>El concepto es correcto pero quiero cambiar algún detalle.</p>
+    </div>
+  </div>
+</div>

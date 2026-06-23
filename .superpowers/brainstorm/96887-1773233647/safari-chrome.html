@@ -1,0 +1,188 @@
+<h2>Las barras de Safari — qué se puede hacer</h2>
+<p class="subtitle">Las apps que "llenan la pantalla" son PWAs instaladas. En Safari navegando normal, se puede hacer que las barras sean del mismo color que la app para que se fundan. Aquí las 3 situaciones:</p>
+
+<div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-bottom:32px;">
+
+  <!-- A: Ahora mismo -->
+  <div style="text-align:center;">
+    <div style="color:#ef4444; font-size:11px; font-weight:700; margin-bottom:8px;">😬 AHORA — barras que chocan</div>
+    <div style="width:200px; background:#0f0f1a; border-radius:20px; overflow:hidden; border:2px solid #ef444455; box-shadow:0 4px 20px #ef444422;">
+      <!-- Status bar -->
+      <div style="background:#f5f5f5; height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 12px;">
+        <span style="color:#000; font-size:10px; font-weight:600;">9:41</span>
+        <span style="color:#000; font-size:10px;">●●●</span>
+      </div>
+      <!-- URL bar Safari (gray/white) -->
+      <div style="background:#f0f0f0; padding:6px 8px; border-bottom:1px solid #ddd;">
+        <div style="background:white; border-radius:8px; height:28px; display:flex; align-items:center; padding:0 8px; gap:4px;">
+          <span style="color:#007aff; font-size:10px;">🔒</span>
+          <span style="color:#000; font-size:10px;">heroos.github.io</span>
+        </div>
+      </div>
+      <!-- App content -->
+      <div style="background:#0f0f1a; min-height:280px; padding:10px;">
+        <div style="background:#1e1e30; border-radius:6px; padding:8px; margin-bottom:6px;">
+          <span style="color:#a78bfa; font-size:11px;">⚔ Dashboard</span>
+        </div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px;"></div>
+      </div>
+      <!-- Bottom nav -->
+      <div style="background:#1a1a2e; border-top:1px solid #2a2a3e; height:44px; display:flex; align-items:center; justify-content:space-around; padding:0 10px;">
+        <span style="font-size:12px;">🏠</span>
+        <span style="font-size:12px;">✅</span>
+        <span style="font-size:12px;">🔥</span>
+        <span style="font-size:12px;">💰</span>
+        <span style="font-size:12px;">😴</span>
+      </div>
+      <!-- Safari bottom toolbar (white, choca) -->
+      <div style="background:#f0f0f0; height:44px; display:flex; align-items:center; justify-content:space-around; border-top:1px solid #ddd;">
+        <span style="color:#007aff; font-size:16px;">←</span>
+        <span style="color:#007aff; font-size:16px;">→</span>
+        <span style="color:#007aff; font-size:16px;">⊕</span>
+        <span style="color:#007aff; font-size:16px;">⋯</span>
+      </div>
+      <!-- Home indicator -->
+      <div style="background:#f0f0f0; height:20px; display:flex; align-items:center; justify-content:center;">
+        <div style="width:60px; height:4px; background:#999; border-radius:2px;"></div>
+      </div>
+    </div>
+    <div style="margin-top:8px; background:#ef444422; color:#f87171; font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid #ef444444; display:inline-block;">Choca visualmente</div>
+  </div>
+
+  <!-- B: theme-color matching -->
+  <div style="text-align:center;">
+    <div style="color:#fbbf24; font-size:11px; font-weight:700; margin-bottom:8px;">🎨 CON theme-color — se funde</div>
+    <div style="width:200px; background:#0f0f1a; border-radius:20px; overflow:hidden; border:2px solid #fbbf2455; box-shadow:0 4px 20px #fbbf2422;">
+      <!-- Status bar (dark, mismo color) -->
+      <div style="background:#0d0d1a; height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 12px;">
+        <span style="color:#e0e0e0; font-size:10px; font-weight:600;">9:41</span>
+        <span style="color:#e0e0e0; font-size:10px;">●●●</span>
+      </div>
+      <!-- URL bar Safari (oscuro, mismo color) -->
+      <div style="background:#0d0d1a; padding:6px 8px; border-bottom:1px solid #1a1a2e;">
+        <div style="background:#1a1a2e; border-radius:8px; height:28px; display:flex; align-items:center; padding:0 8px; gap:4px; border:1px solid #2a2a3e;">
+          <span style="color:#a78bfa; font-size:10px;">🔒</span>
+          <span style="color:#9ca3af; font-size:10px;">heroos.github.io</span>
+        </div>
+      </div>
+      <!-- App content -->
+      <div style="background:#0f0f1a; min-height:280px; padding:10px;">
+        <div style="background:#1e1e30; border-radius:6px; padding:8px; margin-bottom:6px;">
+          <span style="color:#a78bfa; font-size:11px;">⚔ Dashboard</span>
+        </div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px;"></div>
+      </div>
+      <!-- Bottom nav -->
+      <div style="background:#1a1a2e; border-top:1px solid #2a2a3e; height:44px; display:flex; align-items:center; justify-content:space-around; padding:0 10px;">
+        <span style="font-size:12px;">🏠</span>
+        <span style="font-size:12px;">✅</span>
+        <span style="font-size:12px;">🔥</span>
+        <span style="font-size:12px;">💰</span>
+        <span style="font-size:12px;">😴</span>
+      </div>
+      <!-- Safari bottom toolbar (mismo color que app) -->
+      <div style="background:#0d0d1a; height:44px; display:flex; align-items:center; justify-content:space-around; border-top:1px solid #1a1a2e;">
+        <span style="color:#a78bfa; font-size:16px;">←</span>
+        <span style="color:#a78bfa; font-size:16px;">→</span>
+        <span style="color:#a78bfa; font-size:16px;">⊕</span>
+        <span style="color:#a78bfa; font-size:16px;">⋯</span>
+      </div>
+      <!-- Home indicator -->
+      <div style="background:#0d0d1a; height:20px; display:flex; align-items:center; justify-content:center;">
+        <div style="width:60px; height:4px; background:#444; border-radius:2px;"></div>
+      </div>
+    </div>
+    <div style="margin-top:8px; background:#fbbf2422; color:#fbbf24; font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid #fbbf2444; display:inline-block;">Se funde con la app</div>
+  </div>
+
+  <!-- C: PWA instalada -->
+  <div style="text-align:center;">
+    <div style="color:#22c55e; font-size:11px; font-weight:700; margin-bottom:8px;">✨ PWA INSTALADA — pantalla completa</div>
+    <div style="width:200px; background:#0f0f1a; border-radius:20px; overflow:hidden; border:2px solid #22c55e55; box-shadow:0 4px 20px #22c55e22;">
+      <!-- Status bar (solo iconos del sistema, sin barra Safari) -->
+      <div style="background:#0d0d1a; height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 12px;">
+        <span style="color:#e0e0e0; font-size:10px; font-weight:600;">9:41</span>
+        <span style="color:#e0e0e0; font-size:10px;">●●●</span>
+      </div>
+      <!-- NO URL bar — la app empieza directamente -->
+      <div style="background:#1a1a2e; padding:8px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #2a2a3e;">
+        <div style="background:#7c3aed22; border-radius:6px; padding:3px 8px; border:1px solid #7c3aed44;">
+          <span style="color:#a78bfa; font-size:10px; font-weight:700;">⚔ LVL 12</span>
+        </div>
+        <div style="flex:1;">
+          <div style="background:#0f0f1a; height:5px; border-radius:3px; margin-bottom:3px;">
+            <div style="background:#7c3aed; height:100%; width:65%; border-radius:3px;"></div>
+          </div>
+          <div style="background:#0f0f1a; height:5px; border-radius:3px;">
+            <div style="background:#ef4444; height:100%; width:80%; border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- App content full -->
+      <div style="background:#0f0f1a; min-height:300px; padding:10px;">
+        <div style="background:#1e1e30; border-radius:6px; padding:8px; margin-bottom:6px;">
+          <span style="color:#a78bfa; font-size:11px;">⚔ Dashboard</span>
+        </div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px; margin-bottom:6px;"></div>
+        <div style="background:#1e1e30; border-radius:6px; height:40px;"></div>
+      </div>
+      <!-- Bottom nav -->
+      <div style="background:#1a1a2e; border-top:1px solid #2a2a3e; height:44px; display:flex; align-items:center; justify-content:space-around; padding:0 10px;">
+        <span style="font-size:12px;">🏠</span>
+        <span style="font-size:12px;">✅</span>
+        <span style="font-size:12px;">🔥</span>
+        <span style="font-size:12px;">💰</span>
+        <span style="font-size:12px;">😴</span>
+      </div>
+      <!-- NO bottom toolbar de Safari — solo home indicator -->
+      <div style="background:#0d0d1a; height:20px; display:flex; align-items:center; justify-content:center;">
+        <div style="width:60px; height:4px; background:#444; border-radius:2px;"></div>
+      </div>
+    </div>
+    <div style="margin-top:8px; background:#22c55e22; color:#22c55e; font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid #22c55e44; display:inline-block;">Sin barra Safari ✓</div>
+  </div>
+</div>
+
+<div style="background:#1e1e30; border-radius:12px; padding:20px; border:1px solid #2a2a3e; margin-bottom:24px;">
+  <div style="color:#e0e0e0; font-size:13px; font-weight:600; margin-bottom:12px;">📋 Resumen: qué es posible en cada caso</div>
+  <div style="display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; gap:12px; align-items:flex-start; padding:8px; background:#0f0f1a; border-radius:8px;">
+      <span style="font-size:18px;">🎨</span>
+      <div>
+        <div style="color:#fbbf24; font-size:12px; font-weight:600;">theme-color + viewport-fit=cover</div>
+        <div style="color:#9ca3af; font-size:12px; line-height:1.5;">La barra de Safari se vuelve del color de la app. No desaparece, pero ya no choca. Funciona sin instalar. Solo añadir <code style="color:#a78bfa;">&lt;meta name="theme-color" content="#0d0d1a"&gt;</code> en index.html + safe-area-insets en Flutter.</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-start; padding:8px; background:#0f0f1a; border-radius:8px;">
+      <span style="font-size:18px;">✨</span>
+      <div>
+        <div style="color:#22c55e; font-size:12px; font-weight:600;">PWA instalada (EZE-144)</div>
+        <div style="color:#9ca3af; font-size:12px; line-height:1.5;">Safari desaparece completamente. El manifest.json ya tiene <code style="color:#a78bfa;">display: standalone</code> configurado. Solo falta el service worker y el hint para instalar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-bottom:12px;">¿Qué hacemos primero?</h3>
+<div class="options">
+  <div class="option" data-choice="both" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Las dos cosas</h3>
+      <p>theme-color para el Safari normal + PWA para cuando se instale. Así mejora en ambos casos.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="pwa" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Solo PWA</h3>
+      <p>Me interesa que lo instalen desde el principio. Enfocarse en hacer la PWA correcta.</p>
+    </div>
+  </div>
+</div>

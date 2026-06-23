@@ -142,10 +142,13 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.rpg,
-        onPressed: () => _showCreateSheet(context, vm),
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: Hero(
+        tag: 'fab-tasks-web',
+        child: FloatingActionButton(
+          backgroundColor: AppColors.rpg,
+          onPressed: () => _showCreateSheet(context, vm),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
@@ -184,10 +187,13 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.rpg,
-        onPressed: () => _showCreateSheet(context, vm),
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: Hero(
+        tag: 'fab-tasks-mobile',
+        child: FloatingActionButton(
+          backgroundColor: AppColors.rpg,
+          onPressed: () => _showCreateSheet(context, vm),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }

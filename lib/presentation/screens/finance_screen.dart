@@ -40,10 +40,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
       body: vm.accounts.isEmpty
           ? _buildEmptyState(context)
           : _buildContent(context, vm),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.finance,
-        onPressed: () => _showAddMenu(context, vm),
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: Hero(
+        tag: 'fab-finance',
+        child: FloatingActionButton(
+          backgroundColor: AppColors.finance,
+          onPressed: () => _showAddMenu(context, vm),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
