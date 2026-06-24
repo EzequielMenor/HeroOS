@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 /// Pantalla de Login / Register.
@@ -317,6 +318,36 @@ class _LoginScreenState extends State<LoginScreen> {
                             const TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
+
+                    // --- Acceso rápido desarrollador (solo en debug) ---
+                    if (AuthRepository.devQuickAccess) ...[
+                      const SizedBox(height: 24),
+                      const Divider(color: AppColors.textSecondary),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final vm = context.read<AuthViewModel>();
+                            final ok = await vm.devQuickLogin();
+                            if (!mounted) return;
+                            if (ok) {
+                              // El redirect en main.dart lleva a dashboard
+                            }
+                          },
+                          icon: const Icon(Icons.flash_on, size: 18),
+                          label: const Text('Acceso rápido (Dev)'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.habits,
+                            side: const BorderSide(color: AppColors.habits),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

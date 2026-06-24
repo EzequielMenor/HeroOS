@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:web/web.dart' as web;
 
 import '../../core/theme/app_colors.dart';
+import 'install_banner_stub.dart'
+    if (dart.library.js_interop) 'install_banner_web.dart';
 
 /// Banner that prompts the user to install HeroOS as a PWA.
 ///
@@ -30,8 +31,7 @@ class _InstallBannerState extends State<InstallBanner> {
 
   Future<void> _checkShouldShow() async {
     // Don't show if already running as installed PWA
-    final isStandalone =
-        web.window.matchMedia('(display-mode: standalone)').matches;
+    final isStandalone = getStandaloneMode();
     if (isStandalone) return;
 
     final prefs = await SharedPreferences.getInstance();
@@ -48,8 +48,8 @@ class _InstallBannerState extends State<InstallBanner> {
   }
 
   void _showInstallInstructions() {
-    final ua = web.window.navigator.userAgent.toLowerCase();
-    final isIos = ua.contains('iphone') || ua.contains('ipad');
+    // ponytail: isIos detection only matters on web, guard here
+    final isIos = kIsWeb ? getUserAgent().contains('iphone') || getUserAgent().contains('ipad') : false;
 
     showDialog<void>(
       context: context,

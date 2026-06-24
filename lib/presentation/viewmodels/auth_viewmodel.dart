@@ -73,6 +73,18 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Acceso rápido sin Supabase — solo para desarrollo.
+  Future<bool> devQuickLogin() async {
+    try {
+      await _repo.devQuickLogin();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    }
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
