@@ -37,10 +37,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
     }
 
     return Scaffold(
-      body: vm.accounts.isEmpty
-          ? _buildEmptyState(context)
-          : _buildContent(context, vm),
+      body: SafeArea(
+        child: vm.accounts.isEmpty
+            ? _buildEmptyState(context)
+            : _buildContent(context, vm),
+      ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'finance_fab', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
         backgroundColor: AppColors.finance,
         onPressed: () => _showAddMenu(context, vm),
         child: const Icon(Icons.add, color: Colors.white),

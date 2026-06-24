@@ -67,6 +67,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'habits_fab_web', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
         backgroundColor: AppColors.habits,
         onPressed: () => _showCreateSheet(context, vm),
         child: const Icon(Icons.add, color: Colors.white),
@@ -78,9 +79,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   Widget _buildMobileLayout(HabitsViewModel vm) {
     return Scaffold(
-      body: Column(
-        children: [
-          _ViewToggle(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _ViewToggle(
             showStats: _showStats,
             onToggle: (v) => setState(() => _showStats = v),
           ),
@@ -100,9 +102,11 @@ class _HabitsScreenState extends State<HabitsScreen> {
           ),
         ],
       ),
+      ),
       floatingActionButton: _showStats
           ? null
           : FloatingActionButton(
+              heroTag: 'habits_fab_mobile', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
               backgroundColor: AppColors.habits,
               onPressed: () => _showCreateSheet(context, vm),
               child: const Icon(Icons.add, color: Colors.white),
@@ -852,8 +856,8 @@ class _HabitTile extends StatelessWidget {
       ),
       subtitle: Text(
         habit.currentStreak > 0
-            ? '+${habit.xpReward} XP  •  🔥 ${habit.currentStreak} días'
-            : '+${habit.xpReward} XP',
+            ? '🔥 ${habit.currentStreak} días'
+            : 'Sin racha',
         style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       ),
       onLongPress: () => _showContextMenu(context),

@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/task_entity.dart';
-import 'stats_viewmodel.dart';
 
 /// ViewModel de Tareas (Misiones).
-/// CRUD + integración RPG: completar tarea → XP gain.
+/// CRUD for tasks.
 class TasksViewModel extends ChangeNotifier {
   final dynamic _repo;
-  final StatsViewModel _statsVm;
 
   List<TaskEntity> _tasks = [];
   bool _isLoading = false;
   String? _error;
 
-  TasksViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : TaskRepository();
+  TasksViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : TaskRepository();
 
   List<TaskEntity> get tasks => _tasks;
   List<TaskEntity> get pendingTasks => _tasks.where((t) => !t.isDone).toList();
@@ -38,7 +37,7 @@ class TasksViewModel extends ChangeNotifier {
     }
   }
 
-  /// Completa una tarea: marca is_done + XP gain.
+  /// Completa una tarea: marca is_done.
   Future<void> completeTask(TaskEntity task) async {
     if (task.isDone) return;
     try {
@@ -48,11 +47,6 @@ class TasksViewModel extends ChangeNotifier {
         _tasks[idx] = task.copyWith(isDone: true);
         notifyListeners();
       }
-      // Integración RPG
-      await _statsVm.applyXpGain(
-        task.xpValue,
-        description: 'Tarea completada: ${task.title}',
-      );
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -63,9 +57,9 @@ class TasksViewModel extends ChangeNotifier {
   Future<void> createTask({
     required String title,
     DateTime? dueDate,
-    int difficulty = 1,
+    Energy? energy,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final task = TaskEntity(
@@ -73,7 +67,7 @@ class TasksViewModel extends ChangeNotifier {
       userId: userId,
       title: title,
       dueDate: dueDate,
-      difficulty: difficulty,
+      energy: energy,
     );
     try {
       await _repo.createTask(task);
@@ -96,7 +90,7 @@ class TasksViewModel extends ChangeNotifier {
     }
   }
 
-  /// Actualiza una tarea (título, dificultad, fecha).
+  /// Actualiza una tarea (título, energía, fecha).
   Future<void> updateTask(TaskEntity task) async {
     try {
       await _repo.updateTask(task);
@@ -107,7 +101,7 @@ class TasksViewModel extends ChangeNotifier {
     }
   }
 
-  /// Desmarca una tarea completada → revierte XP.
+  /// Desmarca una tarea completada.
   Future<void> uncompleteTask(TaskEntity task) async {
     if (!task.isDone) return;
     try {
@@ -117,11 +111,6 @@ class TasksViewModel extends ChangeNotifier {
         _tasks[idx] = task.copyWith(isDone: false);
         notifyListeners();
       }
-      // Revertir XP
-      await _statsVm.applyXpLoss(
-        task.xpValue,
-        description: 'Tarea desmarcada: ${task.title}',
-      );
     } catch (e) {
       _error = e.toString();
       notifyListeners();

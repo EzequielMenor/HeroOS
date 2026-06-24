@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/habit_entity.dart';
 import '../../domain/entities/habit_analytics.dart';
-import 'stats_viewmodel.dart';
 
 /// ViewModel de Hábitos.
-/// Gestiona CRUD y la integración con el motor RPG via [StatsViewModel].
+/// Gestiona CRUD de hábitos.
 class HabitsViewModel extends ChangeNotifier {
   // En modo dev usa DevRepository, si no el de Supabase
   final dynamic _repo;
-  final StatsViewModel _statsVm;
 
   List<HabitEntity> _habits = [];
   Set<String> _completedTodayIds = {};
@@ -19,7 +18,7 @@ class HabitsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  HabitsViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : HabitRepository();
+  HabitsViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : HabitRepository();
 
   List<HabitEntity> get habits => _habits;
   Set<String> get completedTodayIds => _completedTodayIds;
@@ -54,17 +53,12 @@ class HabitsViewModel extends ChangeNotifier {
     await loadAnalytics();
   }
 
-  /// Completa un hábito: log + XP gain.
+  /// Completa un hábito: log + streak.
   Future<void> completeHabit(HabitEntity habit) async {
     try {
       await _repo.logHabitCompletion(habit.id, DateTime.now());
       _completedTodayIds.add(habit.id);
       notifyListeners();
-      // Integración RPG: ganar XP
-      await _statsVm.applyXpGain(
-        habit.xpReward,
-        description: 'Hábito completado: ${habit.title}',
-      );
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -75,10 +69,8 @@ class HabitsViewModel extends ChangeNotifier {
   Future<void> createHabit({
     required String title,
     required String frequencyMask,
-    int xpReward = 10,
-    int dmgPenalty = 5,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final habit = HabitEntity(
@@ -86,8 +78,6 @@ class HabitsViewModel extends ChangeNotifier {
       userId: userId,
       title: title,
       frequencyMask: frequencyMask,
-      xpReward: xpReward,
-      dmgPenalty: dmgPenalty,
     );
     try {
       await _repo.createHabit(habit);
@@ -149,17 +139,12 @@ class HabitsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Desmarca un hábito completado hoy → revierte XP y streak.
+  /// Desmarca un hábito completado hoy.
   Future<void> uncompleteHabit(HabitEntity habit) async {
     try {
       await _repo.uncompleteHabitLog(habit.id, DateTime.now());
       _completedTodayIds.remove(habit.id);
       notifyListeners();
-      // Revertir XP ganada
-      await _statsVm.applyXpLoss(
-        habit.xpReward,
-        description: 'Hábito desmarcado: ${habit.title}',
-      );
     } catch (e) {
       _error = e.toString();
       notifyListeners();

@@ -14,7 +14,7 @@ abstract final class AppColors {
   static const Color finance = Color(0xFF4CAF50); // 🟢 Oro / Ingresos
   static const Color habits = Color(0xFF2196F3); // 🔵 Racha / Hábitos
   static const Color sleep = Color(0xFF673AB7); // 🟣 Sueño / Descanso
-  static const Color rpg = Color(0xFF9C27B0); // 🟣 XP / Level Up
+  static const Color sageGreen = Color(0xFF8FBC8F); // 🟢 Accent para Zen OS
   static const Color danger = Color(0xFFF44336); // 🔴 HP Loss / Gastos
 
   // --- Neutral ---

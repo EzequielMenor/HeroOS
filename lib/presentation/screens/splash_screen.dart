@@ -22,12 +22,12 @@ class SplashScreen extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.rpg, width: 2),
+                border: Border.all(color: AppColors.sageGreen, width: 2),
               ),
               child: const Icon(
                 Icons.shield_outlined,
                 size: 40,
-                color: AppColors.rpg,
+                color: AppColors.sageGreen,
               ),
             ),
             const SizedBox(height: 24),

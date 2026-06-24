@@ -36,9 +36,10 @@ class _SleepScreenState extends State<SleepScreen> {
     final vm = context.watch<SleepViewModel>();
 
     return Scaffold(
-      body: Column(
-        children: [
-          _ViewToggle(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _ViewToggle(
             selectedIndex: _viewIndex,
             onSelect: (i) => setState(() => _viewIndex = i),
           ),
@@ -54,6 +55,7 @@ class _SleepScreenState extends State<SleepScreen> {
                   },
           ),
         ],
+      ),
       ),
     );
   }

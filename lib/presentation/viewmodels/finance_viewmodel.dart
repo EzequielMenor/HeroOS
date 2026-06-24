@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/finance_repository.dart';
 import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
-import 'stats_viewmodel.dart';
 
 /// ViewModel de Finanzas.
-/// Gestiona cuentas y transacciones + sincroniza gold via [StatsViewModel].
+/// Gestiona cuentas y transacciones.
 class FinanceViewModel extends ChangeNotifier {
   final dynamic _repo;
-  final StatsViewModel _statsVm;
 
   List<AccountEntity> _accounts = [];
   List<TransactionEntity> _transactions = [];
@@ -20,7 +18,7 @@ class FinanceViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  FinanceViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : FinanceRepository();
+  FinanceViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : FinanceRepository();
 
   List<AccountEntity> get accounts => _accounts;
   List<TransactionEntity> get transactions => _transactions;
@@ -55,7 +53,7 @@ class FinanceViewModel extends ChangeNotifier {
     String currency = 'EUR',
     double initialBalance = 0,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final account = AccountEntity(
@@ -69,8 +67,6 @@ class FinanceViewModel extends ChangeNotifier {
     try {
       await _repo.createAccount(account);
       await loadAll();
-      // Recargar perfil para sincronizar gold
-      await _statsVm.loadProfile();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -82,7 +78,6 @@ class FinanceViewModel extends ChangeNotifier {
     try {
       await _repo.deleteAccount(accountId);
       await loadAll();
-      await _statsVm.loadProfile();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -96,7 +91,7 @@ class FinanceViewModel extends ChangeNotifier {
     required String category,
     String? note,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final txn = TransactionEntity(
@@ -111,7 +106,6 @@ class FinanceViewModel extends ChangeNotifier {
     try {
       await _repo.createTransaction(txn);
       await loadAll();
-      await _statsVm.loadProfile();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -123,7 +117,6 @@ class FinanceViewModel extends ChangeNotifier {
     try {
       await _repo.deleteTransaction(txnId);
       await loadAll();
-      await _statsVm.loadProfile();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -137,7 +130,7 @@ class FinanceViewModel extends ChangeNotifier {
     required double amount,
     String? note,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
@@ -148,7 +141,6 @@ class FinanceViewModel extends ChangeNotifier {
         note: note,
       );
       await loadAll();
-      await _statsVm.loadProfile();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -173,7 +165,7 @@ class FinanceViewModel extends ChangeNotifier {
     required bool isExpense,
     String? accountType,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final category = CategoryEntity(

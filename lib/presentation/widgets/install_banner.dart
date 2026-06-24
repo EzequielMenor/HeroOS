@@ -73,7 +73,7 @@ class _InstallBannerState extends State<InstallBanner> {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Entendido',
-              style: TextStyle(color: AppColors.rpg),
+              style: TextStyle(color: AppColors.sageGreen),
             ),
           ),
           TextButton(
@@ -103,7 +103,7 @@ class _InstallBannerState extends State<InstallBanner> {
         children: [
           const Icon(
             Icons.install_mobile_outlined,
-            color: AppColors.rpg,
+            color: AppColors.sageGreen,
             size: 16,
           ),
           const SizedBox(width: 8),

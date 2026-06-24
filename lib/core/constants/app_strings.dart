@@ -8,11 +8,13 @@ abstract final class AppStrings {
   static const String routeSplash = '/';
   static const String routeDashboard = '/dashboard';
   static const String routeLogin = '/login';
+  static const String routeNotes = '/notes';
 
   // Modules
   static const String moduleFinance = 'Finanzas';
   static const String moduleHabits = 'Hábitos';
   static const String moduleTasks = 'Misiones';
   static const String moduleSleep = 'Sueño';
+  static const String moduleNotes = 'Notas';
   static const String moduleProfile = 'Perfil';
 }

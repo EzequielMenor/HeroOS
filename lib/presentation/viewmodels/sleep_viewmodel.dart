@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/sleep_repository.dart';
 import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/sleep_analytics.dart';
 import '../../domain/entities/sleep_log_entity.dart';
-import 'stats_viewmodel.dart';
 
 class SleepViewModel extends ChangeNotifier {
   final dynamic _repo;
-  final StatsViewModel _statsVm;
 
   List<SleepLogEntity> _logs = [];
   SleepLogEntity? _todayLog;
@@ -17,7 +15,7 @@ class SleepViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  SleepViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : SleepRepository();
+  SleepViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : SleepRepository();
 
   List<SleepLogEntity> get logs => _logs;
   SleepLogEntity? get todayLog => _todayLog;
@@ -56,7 +54,7 @@ class SleepViewModel extends ChangeNotifier {
     String? notes,
     int? avgHeartRate,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     // Si la hora de despertar es anterior a la de acostarse, el usuario
@@ -92,11 +90,6 @@ class SleepViewModel extends ChangeNotifier {
       }
 
       await loadLogs();
-
-      // Gamificación: +10 XP por dormir bien (≥7h + calidad ≥4)
-      if (totalHours >= 7 && (qualityRating ?? 0) >= 4) {
-        await _statsVm.applyXpGain(10);
-      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();

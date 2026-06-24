@@ -55,7 +55,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
     if (vm.isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.rpg),
+        child: CircularProgressIndicator(color: AppColors.sageGreen),
       );
     }
 
@@ -143,7 +143,8 @@ class _TasksScreenState extends State<TasksScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.rpg,
+          heroTag: 'tasks_fab', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
+          backgroundColor: AppColors.sageGreen,
           onPressed: () => _showCreateSheet(context, vm),
           child: const Icon(Icons.add, color: Colors.white),
         ),
@@ -154,9 +155,10 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Widget _buildMobileLayout(TasksViewModel vm) {
     return Scaffold(
-      body: Column(
-        children: [
-          Padding(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
               children: [
@@ -184,8 +186,10 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         ],
       ),
+      ),
       floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.rpg,
+          heroTag: 'tasks_fab', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
+          backgroundColor: AppColors.sageGreen,
           onPressed: () => _showCreateSheet(context, vm),
           child: const Icon(Icons.add, color: Colors.white),
         ),
@@ -337,7 +341,7 @@ class _TasksScreenState extends State<TasksScreen> {
           color: AppColors.textSecondary.withValues(alpha: 0.4),
         ),
         todayDecoration: BoxDecoration(
-          color: AppColors.rpg.withValues(alpha: 0.3),
+          color: AppColors.sageGreen.withValues(alpha: 0.3),
           shape: BoxShape.circle,
         ),
         todayTextStyle: const TextStyle(
@@ -345,7 +349,7 @@ class _TasksScreenState extends State<TasksScreen> {
           fontWeight: FontWeight.bold,
         ),
         selectedDecoration: const BoxDecoration(
-          color: AppColors.rpg,
+          color: AppColors.sageGreen,
           shape: BoxShape.circle,
         ),
         selectedTextStyle: const TextStyle(
@@ -353,7 +357,7 @@ class _TasksScreenState extends State<TasksScreen> {
           fontWeight: FontWeight.bold,
         ),
         markerDecoration: const BoxDecoration(
-          color: AppColors.rpg,
+          color: AppColors.sageGreen,
           shape: BoxShape.circle,
         ),
         markerSize: 6,
@@ -368,7 +372,7 @@ class _TasksScreenState extends State<TasksScreen> {
           final dotColor = hasOverdue
               ? AppColors.danger
               : hasPending
-              ? AppColors.rpg
+              ? AppColors.sageGreen
               : Colors.green;
           return Positioned(
             bottom: 1,
@@ -397,7 +401,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
   void _showCreateSheet(BuildContext context, TasksViewModel vm) {
     final titleCtrl = TextEditingController();
-    int difficulty = 1;
+    Energy energy = Energy.medium;
     // En web el calendario siempre está visible → preasignar día seleccionado
     DateTime? dueDate =
         (context.isWeb || _showCalendar) ? _selectedDay : null;
@@ -435,7 +439,7 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Dificultad',
+                'Energía',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -445,13 +449,12 @@ class _TasksScreenState extends State<TasksScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
-                children: List.generate(3, (i) {
-                  final d = i + 1;
-                  final labels = ['Fácil', 'Media', 'Difícil'];
-                  final isActive = difficulty == d;
+                children: Energy.values.map((e) {
+                  final labels = ['Baja', 'Media', 'Alta'];
+                  final isActive = energy == e;
                   return ChoiceChip(
                     label: Text(
-                      '${labels[i]} (+${d * 10} XP)',
+                      labels[e.index],
                       style: TextStyle(
                         color: isActive
                             ? Colors.white
@@ -460,11 +463,11 @@ class _TasksScreenState extends State<TasksScreen> {
                       ),
                     ),
                     selected: isActive,
-                    selectedColor: AppColors.rpg,
+                    selectedColor: AppColors.habits,
                     backgroundColor: AppColors.scaffold,
-                    onSelected: (_) => setSheetState(() => difficulty = d),
+                    onSelected: (_) => setSheetState(() => energy = e),
                   );
-                }),
+                }).toList(),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -501,14 +504,14 @@ class _TasksScreenState extends State<TasksScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.rpg,
+                    backgroundColor: AppColors.sageGreen,
                   ),
                   onPressed: () {
                     final title = titleCtrl.text.trim();
                     if (title.isEmpty) return;
                     vm.createTask(
                       title: title,
-                      difficulty: difficulty,
+                      energy: energy,
                       dueDate: dueDate,
                     );
                     Navigator.pop(ctx);
@@ -548,11 +551,11 @@ class _ViewToggle extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.rpg.withValues(alpha: 0.2)
+              ? AppColors.sageGreen.withValues(alpha: 0.2)
               : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? AppColors.rpg : AppColors.divider,
+            color: isActive ? AppColors.sageGreen : AppColors.divider,
             width: 1,
           ),
         ),
@@ -562,13 +565,13 @@ class _ViewToggle extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isActive ? AppColors.rpg : AppColors.textSecondary,
+              color: isActive ? AppColors.sageGreen : AppColors.textSecondary,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? AppColors.rpg : AppColors.textSecondary,
+                color: isActive ? AppColors.sageGreen : AppColors.textSecondary,
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -606,12 +609,12 @@ class _TaskTile extends StatelessWidget {
 
   const _TaskTile({required this.task, required this.vm});
 
-  static const _diffColors = [Colors.green, Colors.orange, Colors.redAccent];
-  static const _diffLabels = ['Fácil', 'Media', 'Difícil'];
+  static const _energyColors = [Colors.green, Colors.orange, Colors.redAccent];
+  static const _energyLabels = ['Baja', 'Media', 'Alta'];
 
   @override
   Widget build(BuildContext context) {
-    final diffIdx = (task.difficulty - 1).clamp(0, 2);
+    final energyIdx = task.energy?.index ?? 1;
 
     return Dismissible(
       key: ValueKey(task.id),
@@ -628,7 +631,7 @@ class _TaskTile extends StatelessWidget {
           icon: Icon(
             task.isDone ? Icons.task_alt : Icons.radio_button_unchecked,
             color: task.isDone
-                ? AppColors.rpg
+                ? AppColors.sageGreen
                 : AppColors.textSecondary.withValues(alpha: 0.5),
           ),
           onPressed: () {
@@ -656,22 +659,15 @@ class _TaskTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: _diffColors[diffIdx].withValues(alpha: 0.2),
+                color: _energyColors[energyIdx].withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                _diffLabels[diffIdx],
+                _energyLabels[energyIdx],
                 style: TextStyle(
-                  color: _diffColors[diffIdx],
+                  color: _energyColors[energyIdx],
                   fontSize: 11,
                 ),
-              ),
-            ),
-            Text(
-              '+${task.xpValue} XP',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11,
               ),
             ),
             if (task.dueDate != null)
@@ -706,7 +702,7 @@ class _TaskTile extends StatelessWidget {
 
   void _showEditSheet(BuildContext context) {
     final titleCtrl = TextEditingController(text: task.title);
-    int difficulty = task.difficulty;
+    Energy energy = task.energy ?? Energy.medium;
     DateTime? dueDate = task.dueDate;
 
     showAdaptiveModal<void>(
@@ -742,7 +738,7 @@ class _TaskTile extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Dificultad',
+                'Energía',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -752,13 +748,12 @@ class _TaskTile extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
-                children: List.generate(3, (i) {
-                  final d = i + 1;
-                  final labels = ['Fácil', 'Media', 'Difícil'];
-                  final isActive = difficulty == d;
+                children: Energy.values.map((e) {
+                  final labels = ['Baja', 'Media', 'Alta'];
+                  final isActive = energy == e;
                   return ChoiceChip(
                     label: Text(
-                      '${labels[i]} (+${d * 10} XP)',
+                      labels[e.index],
                       style: TextStyle(
                         color: isActive
                             ? Colors.white
@@ -767,11 +762,11 @@ class _TaskTile extends StatelessWidget {
                       ),
                     ),
                     selected: isActive,
-                    selectedColor: AppColors.rpg,
+                    selectedColor: AppColors.habits,
                     backgroundColor: AppColors.scaffold,
-                    onSelected: (_) => setSheetState(() => difficulty = d),
+                    onSelected: (_) => setSheetState(() => energy = e),
                   );
-                }),
+                }).toList(),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -808,7 +803,7 @@ class _TaskTile extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.rpg,
+                    backgroundColor: AppColors.sageGreen,
                   ),
                   onPressed: () {
                     final title = titleCtrl.text.trim();
@@ -816,7 +811,7 @@ class _TaskTile extends StatelessWidget {
                     vm.updateTask(
                       task.copyWith(
                         title: title,
-                        difficulty: difficulty,
+                        energy: energy,
                         dueDate: dueDate,
                       ),
                     );

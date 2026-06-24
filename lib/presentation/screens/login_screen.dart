@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.rpg),
+                  borderSide: const BorderSide(color: AppColors.sageGreen),
                 ),
               ),
             ),
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.rpg),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.sageGreen),
             onPressed: () async {
               final email = emailCtrl.text.trim();
               if (email.isEmpty || !email.contains('@')) return;
@@ -170,12 +170,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.rpg, width: 2),
+                        border: Border.all(color: AppColors.sageGreen, width: 2),
                       ),
                       child: const Icon(
                         Icons.shield_outlined,
                         size: 36,
-                        color: AppColors.rpg,
+                        color: AppColors.sageGreen,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -264,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: FilledButton(
                         onPressed: vm.isLoading ? null : _submit,
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.rpg,
+                          backgroundColor: AppColors.sageGreen,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -376,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.rpg),
+        borderSide: const BorderSide(color: AppColors.sageGreen),
       ),
     );
   }
