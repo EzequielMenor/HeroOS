@@ -1,12 +1,16 @@
-/// Entidad de dominio pura para Tareas (Misiones).
-/// xpValue se calcula como difficulty × 10 → single source of truth.
+/// Domain entity for tasks.
+/// Energy enum replaces difficulty for Zen OS pivot.
+/// XP mechanics removed.
+enum Energy { low, medium, high }
+
+/// Domain entity for tasks (missions).
 class TaskEntity {
   final String id;
   final String userId;
   final String title;
   final bool isDone;
   final DateTime? dueDate;
-  final int difficulty; // 1=Easy, 2=Medium, 3=Hard
+  final Energy? energy;
 
   const TaskEntity({
     required this.id,
@@ -14,13 +18,10 @@ class TaskEntity {
     required this.title,
     this.isDone = false,
     this.dueDate,
-    this.difficulty = 1,
+    this.energy,
   });
 
-  /// XP que otorga al completarse (calculado, no almacenado).
-  int get xpValue => difficulty * 10;
-
-  /// ¿Está vencida?
+  /// Is this task overdue?
   bool get isOverdue =>
       dueDate != null && !isDone && dueDate!.isBefore(DateTime.now());
 
@@ -28,7 +29,7 @@ class TaskEntity {
     String? title,
     bool? isDone,
     DateTime? dueDate,
-    int? difficulty,
+    Energy? energy,
   }) {
     return TaskEntity(
       id: id,
@@ -36,7 +37,7 @@ class TaskEntity {
       title: title ?? this.title,
       isDone: isDone ?? this.isDone,
       dueDate: dueDate ?? this.dueDate,
-      difficulty: difficulty ?? this.difficulty,
+      energy: energy ?? this.energy,
     );
   }
 }

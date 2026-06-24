@@ -1,12 +1,11 @@
-/// Entidad de dominio pura para Hábitos.
-/// La lógica de "¿está activo hoy?" vive aquí, sin saber nada de Supabase.
+/// Domain entity for habits.
+/// Minimal fields: id, userId, title, frequencyMask, currentStreak.
+/// XP/RPG mechanics removed for Zen OS pivot.
 class HabitEntity {
   final String id;
   final String userId;
   final String title;
   final String frequencyMask; // "Mon,Tue,Wed,Thu,Fri,Sat,Sun"
-  final int xpReward;
-  final int dmgPenalty;
   final int currentStreak;
   final bool isArchived;
 
@@ -15,13 +14,11 @@ class HabitEntity {
     required this.userId,
     required this.title,
     required this.frequencyMask,
-    this.xpReward = 10,
-    this.dmgPenalty = 5,
     this.currentStreak = 0,
     this.isArchived = false,
   });
 
-  /// Días de la semana mapeados al formato de [DateTime.weekday] (1=Mon..7=Sun).
+  /// Day map matching [DateTime.weekday] (1=Mon..7=Sun).
   static const _dayMap = {
     'Mon': 1,
     'Tue': 2,
@@ -32,10 +29,10 @@ class HabitEntity {
     'Sun': 7,
   };
 
-  /// ¿Este hábito está programado para [date]?
+  /// Is this habit scheduled for [date]?
   bool isActiveOn(DateTime date) {
     if (frequencyMask.isEmpty) {
-      return true; // si no hay máscara → siempre activo
+      return true; // no mask = always active
     }
     final activeDays = frequencyMask
         .split(',')
@@ -47,8 +44,6 @@ class HabitEntity {
   HabitEntity copyWith({
     String? title,
     String? frequencyMask,
-    int? xpReward,
-    int? dmgPenalty,
     int? currentStreak,
     bool? isArchived,
   }) {
@@ -57,8 +52,6 @@ class HabitEntity {
       userId: userId,
       title: title ?? this.title,
       frequencyMask: frequencyMask ?? this.frequencyMask,
-      xpReward: xpReward ?? this.xpReward,
-      dmgPenalty: dmgPenalty ?? this.dmgPenalty,
       currentStreak: currentStreak ?? this.currentStreak,
       isArchived: isArchived ?? this.isArchived,
     );

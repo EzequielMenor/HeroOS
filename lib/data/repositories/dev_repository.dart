@@ -7,13 +7,13 @@ import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/task_entity.dart';
 import '../../domain/entities/sleep_log_entity.dart';
 import '../../domain/entities/user_goals_entity.dart';
-import '../../domain/entities/rpg_event_entity.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../domain/entities/note_entity.dart';
 
-/// Repositorio en memoria para modo desarrollador.
-/// Cuando [AuthRepository.devQuickAccess] está activo, los viewmodels
-/// usan esta clase en vez de los repositorios de Supabase.
-/// Los datos se pierden al reiniciar — es solo para desarrollo.
+/// In-memory repository for developer mode.
+/// When [AuthRepository.devQuickAccess] is active, viewmodels
+/// use this class instead of Supabase repositories.
+/// Data is lost on restart — development only.
 class DevRepository {
   static final DevRepository _instance = DevRepository._();
   factory DevRepository() => _instance;
@@ -34,7 +34,7 @@ class DevRepository {
   final List<SleepLogEntity> _sleepLogs = [];
   UserGoalsEntity? _goals;
   ProfileEntity? _profile;
-  final List<RpgEventEntity> _rpgEvents = [];
+  final List<NoteEntity> _notes = [];
 
   // ── Habits ──
   List<HabitEntity> getHabits() => List.from(_habits);
@@ -45,8 +45,6 @@ class DevRepository {
       userId: 'dev-user',
       title: h.title,
       frequencyMask: h.frequencyMask,
-      xpReward: h.xpReward,
-      dmgPenalty: h.dmgPenalty,
       currentStreak: 0,
       isArchived: false,
     ));
@@ -116,7 +114,7 @@ class DevRepository {
       title: t.title,
       isDone: false,
       dueDate: t.dueDate,
-      difficulty: t.difficulty,
+      energy: t.energy,
     ));
   }
 
@@ -331,13 +329,7 @@ class DevRepository {
   ProfileEntity getProfile() {
     _profile ??= ProfileEntity(
       id: 'dev-user',
-      username: 'Héroe Dev',
-      level: 1,
-      currentXp: 0,
-      xpNextLevel: 100,
-      currentHp: 100,
-      maxHp: 100,
-      currentGold: 0,
+      username: 'Dev User',
     );
     return _profile!;
   }
@@ -352,24 +344,30 @@ class DevRepository {
     }
   }
 
-  // ── RPG Events ──
-  List<RpgEventEntity> getRpgEvents({int limit = 20}) =>
-      _rpgEvents.take(limit).toList();
+  // ── Notes ──
+  List<NoteEntity> getNotes() => List.from(_notes);
 
-  List<RpgEventEntity> getRecentEvents({int limit = 20}) => getRpgEvents(limit: limit);
-
-  Future<void> log(RpgEventType type, int amount, String description) async {
-    _rpgEvents.add(RpgEventEntity(
+  Future<void> createNote(NoteEntity n) async {
+    _notes.add(NoteEntity(
       id: _genId(),
       userId: 'dev-user',
-      type: type,
-      amount: amount,
-      description: description,
-      createdAt: DateTime.now(),
+      title: n.title,
+      content: n.content,
+      date: n.date,
+      tags: n.tags,
     ));
   }
 
-  /// Limpia todos los datos (útil para resetear entre sesiones dev).
+  Future<void> updateNote(NoteEntity n) async {
+    final idx = _notes.indexWhere((e) => e.id == n.id);
+    if (idx != -1) _notes[idx] = n;
+  }
+
+  Future<void> deleteNote(String noteId) async {
+    _notes.removeWhere((e) => e.id == noteId);
+  }
+
+  /// Clears all data (useful for resetting between dev sessions).
   void clearAll() {
     _habits.clear();
     _habitLogs.clear();
@@ -379,7 +377,7 @@ class DevRepository {
     _tasks.clear();
     _sleepLogs.clear();
     _goals = null;
-    _rpgEvents.clear();
+    _notes.clear();
     _nextId = 1;
   }
 }

@@ -1,54 +1,35 @@
-/// Modelo de datos para la tabla `profiles` en Supabase.
-/// Mapea 1:1 con las columnas de la BD.
+/// Data model for the `profiles` table in Supabase.
 class ProfileModel {
   final String id;
   final String username;
-  final int level;
-  final int currentXp;
-  final int xpNextLevel;
-  final int currentHp;
-  final int maxHp;
-  final double currentGold;
   final String? avatarUrl;
+  final String? aiApiKey;
+  final String aiProvider;
 
   const ProfileModel({
     required this.id,
     required this.username,
-    required this.level,
-    required this.currentXp,
-    required this.xpNextLevel,
-    required this.currentHp,
-    required this.maxHp,
-    required this.currentGold,
     this.avatarUrl,
+    this.aiApiKey,
+    this.aiProvider = 'openai',
   });
 
-  /// Deserializa desde un Map (respuesta JSON de Supabase).
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       id: json['id'] as String,
-      username: json['username'] as String? ?? 'Hero',
-      level: json['level'] as int? ?? 1,
-      currentXp: json['current_xp'] as int? ?? 0,
-      xpNextLevel: json['xp_next_level'] as int? ?? 100,
-      currentHp: json['current_hp'] as int? ?? 100,
-      maxHp: json['max_hp'] as int? ?? 100,
-      currentGold: (json['current_gold'] as num?)?.toDouble() ?? 0.0,
+      username: json['username'] as String? ?? 'User',
       avatarUrl: json['avatar_url'] as String?,
+      aiApiKey: json['ai_api_key'] as String?,
+      aiProvider: json['ai_provider'] as String? ?? 'openai',
     );
   }
 
-  /// Serializa a Map para enviar a Supabase (sin id ni created_at).
   Map<String, dynamic> toJson() {
     return {
       'username': username,
-      'level': level,
-      'current_xp': currentXp,
-      'xp_next_level': xpNextLevel,
-      'current_hp': currentHp,
-      'max_hp': maxHp,
-      'current_gold': currentGold,
       'avatar_url': avatarUrl,
+      'ai_api_key': aiApiKey,
+      'ai_provider': aiProvider,
     };
   }
 }

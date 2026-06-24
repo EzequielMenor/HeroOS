@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../models/profile_model.dart';
 
-/// Implementación concreta con Supabase.
+/// Concrete implementation using Supabase.
 class ProfileRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
@@ -27,12 +27,8 @@ class ProfileRepository {
         .from('profiles')
         .update({
           'username': profile.username,
-          'level': profile.level,
-          'current_xp': profile.currentXp,
-          'xp_next_level': profile.xpNextLevel,
-          'current_hp': profile.currentHp,
-          'max_hp': profile.maxHp,
-          'current_gold': profile.currentGold,
+          'ai_api_key': profile.aiApiKey,
+          'ai_provider': profile.aiProvider,
         })
         .eq('id', profile.id);
   }
@@ -47,12 +43,8 @@ class ProfileRepository {
   ProfileEntity _modelToEntity(ProfileModel m) => ProfileEntity(
     id: m.id,
     username: m.username,
-    level: m.level,
-    currentXp: m.currentXp,
-    xpNextLevel: m.xpNextLevel,
-    currentHp: m.currentHp,
-    maxHp: m.maxHp,
-    currentGold: m.currentGold,
     avatarUrl: m.avatarUrl,
+    aiApiKey: m.aiApiKey,
+    aiProvider: m.aiProvider,
   );
 }

@@ -10,13 +10,16 @@ import 'core/theme/app_theme.dart';
 import 'presentation/screens/dashboard_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/notes_screen.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/finance_viewmodel.dart';
 import 'presentation/viewmodels/habits_viewmodel.dart';
-import 'presentation/viewmodels/stats_viewmodel.dart';
 import 'presentation/viewmodels/tasks_viewmodel.dart';
 import 'presentation/viewmodels/sleep_viewmodel.dart';
 import 'presentation/viewmodels/goals_viewmodel.dart';
+import 'presentation/viewmodels/profile_viewmodel.dart';
+import 'presentation/viewmodels/notes_viewmodel.dart';
+
 
 /// — Configuración del router —
 /// redirect: redirige a /login si no hay sesión, a /dashboard si la hay.
@@ -50,6 +53,10 @@ GoRouter _buildRouter(AuthViewModel authVm) => GoRouter(
       path: AppStrings.routeDashboard,
       builder: (context, state) => const DashboardScreen(),
     ),
+    GoRoute(
+      path: AppStrings.routeNotes,
+      builder: (context, state) => const NotesScreen(),
+    ),
   ],
 );
 
@@ -75,8 +82,9 @@ class HeroOSApp extends StatefulWidget {
 
 class _HeroOSAppState extends State<HeroOSApp> {
   final _authVm = AuthViewModel();
-  final _statsVm = StatsViewModel();
   final _goalsVm = GoalsViewModel();
+  final _profileVm = ProfileViewModel();
+  late final NotesViewModel _notesVm;
   late final HabitsViewModel _habitsVm;
   late final TasksViewModel _tasksVm;
   late final FinanceViewModel _financeVm;
@@ -86,22 +94,24 @@ class _HeroOSAppState extends State<HeroOSApp> {
   @override
   void initState() {
     super.initState();
-    _habitsVm = HabitsViewModel(_statsVm);
-    _tasksVm = TasksViewModel(_statsVm);
-    _financeVm = FinanceViewModel(_statsVm);
-    _sleepVm = SleepViewModel(_statsVm);
+    _notesVm = NotesViewModel();
+    _habitsVm = HabitsViewModel();
+    _tasksVm = TasksViewModel();
+    _financeVm = FinanceViewModel();
+    _sleepVm = SleepViewModel();
     _router = _buildRouter(_authVm);
   }
 
   @override
   void dispose() {
     _authVm.dispose();
-    _statsVm.dispose();
     _habitsVm.dispose();
     _tasksVm.dispose();
     _financeVm.dispose();
     _sleepVm.dispose();
     _goalsVm.dispose();
+    _profileVm.dispose();
+    _notesVm.dispose();
     _router.dispose();
     super.dispose();
   }
@@ -111,12 +121,13 @@ class _HeroOSAppState extends State<HeroOSApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _authVm),
-        ChangeNotifierProvider.value(value: _statsVm),
         ChangeNotifierProvider.value(value: _habitsVm),
         ChangeNotifierProvider.value(value: _tasksVm),
         ChangeNotifierProvider.value(value: _financeVm),
         ChangeNotifierProvider.value(value: _sleepVm),
         ChangeNotifierProvider.value(value: _goalsVm),
+        ChangeNotifierProvider.value(value: _profileVm),
+        ChangeNotifierProvider.value(value: _notesVm),
       ],
       child: MaterialApp.router(
         title: AppStrings.appName,
