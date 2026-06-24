@@ -24,7 +24,7 @@ class HabitStatsCard extends StatelessWidget {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -32,13 +32,13 @@ class HabitStatsCard extends StatelessWidget {
             Row(
               children: [
                 _metric(Icons.local_fire_department, '$currentStreak', 'Racha'),
-                const SizedBox(width: 24),
+                SizedBox(width: 24),
                 _metric(Icons.emoji_events_outlined, '$bestStreak', 'Mejor'),
-                const SizedBox(width: 24),
+                SizedBox(width: 24),
                 _metric(Icons.bar_chart_rounded, '$pct%', '30 días'),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Barra de progreso
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
@@ -46,17 +46,17 @@ class HabitStatsCard extends StatelessWidget {
                 value: completionRate,
                 minHeight: 8,
                 backgroundColor: AppColors.divider,
-                valueColor: const AlwaysStoppedAnimation<Color>(
+                valueColor: AlwaysStoppedAnimation<Color>(
                   AppColors.habits,
                 ),
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
                 'Completado $pct%',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11,
                 ),
@@ -73,10 +73,10 @@ class HabitStatsCard extends StatelessWidget {
       child: Column(
         children: [
           Icon(icon, color: AppColors.habits, size: 20),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -84,7 +84,7 @@ class HabitStatsCard extends StatelessWidget {
           ),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
             ),

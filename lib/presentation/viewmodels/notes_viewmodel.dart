@@ -10,7 +10,7 @@ import '../../domain/entities/note_entity.dart';
 class NotesViewModel extends ChangeNotifier {
   final dynamic _repo;
 
-  List<NoteEntity> _notes = [];
+  List<NoteEntity> _notes = const [];
   Set<String> _allTags = {};
   String _searchQuery = '';
   String? _selectedTag;

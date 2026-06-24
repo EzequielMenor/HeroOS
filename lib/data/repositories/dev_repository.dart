@@ -99,8 +99,8 @@ class DevRepository {
   List<HabitLogEntity> getHabitLogsInRange(DateTime from, DateTime to) {
     return _habitLogs
         .where((l) =>
-            l.date.isAfter(from.subtract(const Duration(days: 1))) &&
-            l.date.isBefore(to.add(const Duration(days: 1))))
+            l.date.isAfter(from.subtract(Duration(days: 1))) &&
+            l.date.isBefore(to.add(Duration(days: 1))))
         .toList();
   }
 

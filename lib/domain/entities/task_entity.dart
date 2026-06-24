@@ -12,7 +12,7 @@ class TaskEntity {
   final DateTime? dueDate;
   final Energy? energy;
 
-  const TaskEntity({
+  TaskEntity({
     required this.id,
     required this.userId,
     required this.title,

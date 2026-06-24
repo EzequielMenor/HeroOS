@@ -8,7 +8,7 @@ class SleepDiagnosis {
   final String reason;
   final String advice;
 
-  const SleepDiagnosis({
+  SleepDiagnosis({
     required this.title,
     required this.physicalAnalysis,
     required this.mentalAnalysis,

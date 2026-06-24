@@ -1,8 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/task_entity.dart';
@@ -12,7 +12,7 @@ import '../viewmodels/sleep_viewmodel.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/quick_capture_viewmodel.dart';
 
-import '../widgets/quick_capture_input.dart';
+import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import 'habits_screen.dart';
 import 'tasks_screen.dart';
 import 'finance_screen.dart';
@@ -36,11 +36,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // ponytail: context.read<>() not safe in initState (InheritedWidgets unmounted).
-    // Defer to post-frame so Provider tree is ready. Type `dynamic` is banned by Provider.
+    _qcVm = QuickCaptureViewModel();
+    // Defer to post-frame so Provider tree is ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _qcVm = QuickCaptureViewModel();
       _loadData();
     });
   }
@@ -58,14 +57,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  static const List<_TabInfo> _tabs = [
-    _TabInfo(AppStrings.moduleFinance, Icons.account_balance_wallet_outlined, AppColors.finance),
-    _TabInfo(AppStrings.moduleHabits, Icons.repeat_outlined, AppColors.habits),
-    _TabInfo('Hoy', Icons.today_outlined, AppColors.sageGreen),
-    _TabInfo(AppStrings.moduleSleep, Icons.nightlight_round, AppColors.sleep),
-    _TabInfo(AppStrings.moduleTasks, Icons.task_alt_outlined, AppColors.habits),
-    _TabInfo(AppStrings.moduleNotes, Icons.note_alt_outlined, AppColors.sageGreen),
-    _TabInfo(AppStrings.moduleProfile, Icons.person_outline, AppColors.textSecondary),
+  // Note: Zen OS uses text-only navigation on mobile, but icons are kept for web rail if needed.
+  static final List<_TabInfo> _tabs = [
+    _TabInfo('Hoy', Icons.today_outlined, AppColors.habits),
+    _TabInfo('Misiones', Icons.task_alt_outlined, AppColors.habits),
+    _TabInfo('Hábitos', Icons.repeat_outlined, AppColors.habits),
+    _TabInfo('Finanzas', Icons.account_balance_wallet_outlined, AppColors.finance),
+    _TabInfo('Descanso', Icons.nightlight_round, AppColors.sleep),
+    _TabInfo('Notas', Icons.note_alt_outlined, AppColors.habits),
+    _TabInfo('Perfil', Icons.person_outline, AppColors.textPrimary),
   ];
 
   void _onTabTapped(int index) {
@@ -82,32 +82,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMobileLayout() {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          FinanceScreen(),
-          HabitsScreen(),
+        children: [
           _TodayOverview(),
-          SleepScreen(),
           TasksScreen(),
+          HabitsScreen(),
+          FinanceScreen(),
+          SleepScreen(),
           NotesScreen(),
           ProfileScreen(),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onTabTapped,
-        backgroundColor: AppColors.surface,
-        indicatorColor: _tabs[_currentIndex].color.withValues(alpha: 0.2),
-        destinations: _tabs
-            .map((t) => NavigationDestination(
-                  icon: Icon(t.icon, color: AppColors.textSecondary),
-                  selectedIcon: Icon(t.icon, color: t.color),
-                  label: t.label,
-                ))
-            .toList(),
-      ),
-      floatingActionButton: _currentIndex == 2 ? _buildQuickCapture() : null,
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.scaffold.withValues(alpha: 0.85),
+            ),
+        padding: EdgeInsets.only(
+          top: 10,
+          bottom: MediaQuery.of(context).padding.bottom > 0
+              ? MediaQuery.of(context).padding.bottom
+              : 24,
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: List.generate(_tabs.length, (index) {
+              final isSelected = _currentIndex == index;
+              final tab = _tabs[index];
+              return GestureDetector(
+                onTap: () => _onTabTapped(index),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.textPrimary : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        tab.label.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ))),
+      floatingActionButton: _buildQuickCapture(),
     );
   }
 
@@ -129,16 +172,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ))
                 .toList(),
           ),
-          const VerticalDivider(thickness: 1, width: 1, color: AppColors.divider),
+          VerticalDivider(thickness: 1, width: 1, color: AppColors.divider),
           Expanded(
             child: IndexedStack(
               index: _currentIndex,
-              children: const [
-                FinanceScreen(),
-                HabitsScreen(),
+              children: [
                 _TodayOverview(),
-                SleepScreen(),
                 TasksScreen(),
+                HabitsScreen(),
+                FinanceScreen(),
+                SleepScreen(),
                 NotesScreen(),
                 ProfileScreen(),
               ],
@@ -146,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      floatingActionButton: _currentIndex == 2 ? _buildQuickCapture() : null,
+      floatingActionButton: _buildQuickCapture(),
     );
   }
 
@@ -157,34 +200,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (ctx, vm, _) {
           return Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              // Result toast
               if (vm.lastResult != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Material(
-                    color: AppColors.sageGreen,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Text(
-              vm.lastResult ?? '',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
+                Container(
+                  margin: EdgeInsets.only(bottom: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(
+                    vm.lastResult ?? '',
+                    style: TextStyle(
+                      color: AppColors.habits,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
               if (vm.isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 10),
                   child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.sageGreen),
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: AppColors.habits,
+                    ),
                   ),
                 ),
-              QuickCaptureInput(
-                onSubmit: (text) => vm.capture(text),
-              ),
+              QuickCaptureButtons(qcVm: _qcVm),
             ],
           );
         },
@@ -197,7 +245,7 @@ class _TabInfo {
   final String label;
   final IconData icon;
   final Color color;
-  const _TabInfo(this.label, this.icon, this.color);
+  _TabInfo(this.label, this.icon, this.color);
 }
 
 /// Today Overview widget: greeting, habits %, top tasks, sleep quality.
@@ -209,20 +257,20 @@ class _TodayOverview extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.surface,
-        title: const Text('Hoy', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text('Hoy', style: TextStyle(color: AppColors.textPrimary)),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _GreetingSection(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _HabitsProgressSection(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _TopTasksSection(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _SleepQualitySection(),
           ],
         ),
@@ -243,17 +291,22 @@ class _GreetingSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting${name.isNotEmpty ? ", $name" : ""}',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+          DateFormat('EEEE, d MMMM', 'es').format(DateTime.now()).toUpperCase(),
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 10,
+            letterSpacing: 2.0,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 8),
         Text(
-          DateFormat('EEEE, d MMMM', 'es').format(DateTime.now()),
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          '$greeting${name.isNotEmpty ? ",\n$name" : ""}',
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+            fontSize: 42,
+            height: 1.02,
+            letterSpacing: -0.5,
+          ),
         ),
       ],
     );
@@ -285,11 +338,11 @@ class _HabitsProgressSection extends StatelessWidget {
                   value: pct,
                   strokeWidth: 8,
                   backgroundColor: AppColors.divider,
-                  color: AppColors.sageGreen,
+                  color: AppColors.habits,
                 ),
                 Text(
                   '${(pct * 100).toInt()}%',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -298,17 +351,17 @@ class _HabitsProgressSection extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$completed de $total completados',
-                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
                 ),
                 if (total == 0)
-                  const Text(
+                  Text(
                     'No hay hábitos programados',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
@@ -332,7 +385,7 @@ class _TopTasksSection extends StatelessWidget {
       icon: Icons.task_alt,
       iconColor: AppColors.danger,
       child: urgent.isEmpty
-          ? const Text(
+          ? Text(
               'Sin tareas pendientes',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             )
@@ -354,15 +407,15 @@ class _TaskRow extends StatelessWidget {
     final energyIdx = task.energy?.index ?? 1;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Icon(
             task.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
             size: 18,
-            color: task.isDone ? AppColors.sageGreen : AppColors.textSecondary,
+            color: task.isDone ? AppColors.habits : AppColors.textSecondary,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               task.title,
@@ -373,7 +426,7 @@ class _TaskRow extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: energyColors[energyIdx].withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
@@ -400,7 +453,7 @@ class _SleepQualitySection extends StatelessWidget {
       icon: Icons.nightlight_round,
       iconColor: AppColors.sleep,
       child: todayLog == null
-          ? const Text(
+          ? Text(
               'Sin datos de sueño hoy',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             )
@@ -409,24 +462,24 @@ class _SleepQualitySection extends StatelessWidget {
               children: [
                 Text(
                   '${todayLog.totalHours.toStringAsFixed(1)} horas',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Row(
                   children: [
                     _SleepPill('Profundo', todayLog.deepSleepPct ?? 0),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     _SleepPill('Ligero', todayLog.lightSleepPct ?? 0),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     _SleepPill('REM', todayLog.remSleepPct ?? 0),
                   ],
                 ),
                 if (todayLog.qualityRating != null) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     children: List.generate(
                       5,
@@ -452,14 +505,14 @@ class _SleepPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.sleep.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         '$label $pct%',
-        style: const TextStyle(color: AppColors.sleep, fontSize: 11),
+        style: TextStyle(color: AppColors.sleep, fontSize: 11),
       ),
     );
   }
@@ -482,29 +535,29 @@ class _OverviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(vertical: 24, horizontal: 4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: iconColor, size: 20),
-              const SizedBox(width: 8),
+              Icon(icon, color: iconColor, size: 16),
+              SizedBox(width: 8),
               Text(
-                title,
-                style: const TextStyle(
+                title.toUpperCase(),
+                style: TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 13,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           child,
         ],
       ),

@@ -14,7 +14,7 @@ class SleepLogModel {
   final String? notes;
   final int? avgHeartRate;
 
-  const SleepLogModel({
+  SleepLogModel({
     required this.id,
     required this.userId,
     required this.startTime,

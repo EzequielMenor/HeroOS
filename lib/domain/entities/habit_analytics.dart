@@ -13,7 +13,7 @@ class HabitAnalytics {
   final List<HabitEntity> habits;
   final List<HabitLogEntity> logs;
 
-  const HabitAnalytics({required this.habits, required this.logs});
+  HabitAnalytics({required this.habits, required this.logs});
 
   // ─── Helpers privados ───
 

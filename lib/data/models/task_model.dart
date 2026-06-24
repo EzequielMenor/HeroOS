@@ -9,7 +9,7 @@ class TaskModel {
   final DateTime? dueDate;
   final Energy? energy;
 
-  const TaskModel({
+  TaskModel({
     required this.id,
     required this.userId,
     required this.title,

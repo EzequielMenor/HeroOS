@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -7,6 +8,14 @@ import '../../core/utils/adaptive_modal.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+Color get _kBg => AppColors.scaffold;
+Color get _kSurface => AppColors.surface;
+Color get _kTextPrimary => AppColors.textPrimary;
+Color get _kTextSecondary => AppColors.textSecondary;
+Color get _kDivider => AppColors.divider;
+Color get _kAccent => AppColors.accent;
 
 /// Pantalla de Notas — lista + editor + filtro por tags.
 class NotesScreen extends StatefulWidget {
@@ -38,8 +47,9 @@ class _NotesScreenState extends State<NotesScreen> {
     final vm = context.watch<NotesViewModel>();
 
     if (vm.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.sageGreen),
+      return Scaffold(
+        backgroundColor: _kBg,
+        body: Center(child: CircularProgressIndicator(color: _kAccent, strokeWidth: 1.5)),
       );
     }
 
@@ -49,126 +59,191 @@ class _NotesScreenState extends State<NotesScreen> {
     return _buildMobileLayout(vm);
   }
 
+  // ── Web ───────────────────────────────────────────────────────────────────
+
   Widget _buildWebLayout(NotesViewModel vm) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Left: tag filter + search
-          SizedBox(
-            width: 280,
-            child: _buildSidebar(vm),
-          ),
-          const VerticalDivider(width: 1, color: AppColors.divider),
-          // Right: note list
-          Expanded(
-            child: _buildNoteList(vm),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'notes_fab', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
-        backgroundColor: AppColors.sageGreen,
-        onPressed: () => _showEditSheet(context, vm, null),
-        child: const Icon(Icons.add, color: Colors.white),
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: Row(
+          children: [
+            SizedBox(width: 300, child: _buildSidebar(vm)),
+            VerticalDivider(width: 1, thickness: 1, color: _kDivider),
+            Expanded(child: _buildNoteListArea(vm)),
+          ],
+        ),
       ),
     );
   }
 
+  // ── Mobile ────────────────────────────────────────────────────────────────
+
   Widget _buildMobileLayout(NotesViewModel vm) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          'Notas',
-          style: TextStyle(color: AppColors.textPrimary),
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ──
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'NOTAS',
+                    style: TextStyle(
+                      color: _kTextSecondary,
+                      fontSize: 9,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Notas',
+                        style: GoogleFonts.inter(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w600,
+                          color: _kTextPrimary,
+                          height: 1.1,
+                        ),
+                      ),
+                      Spacer(),
+                      GestureDetector(
+                        onTap: () => showNoteEditSheet(context, vm, null),
+                        child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            // ── Search ──
+            _buildSearchBar(vm),
+            if (vm.allTags.isNotEmpty) ...[
+              SizedBox(height: 8),
+              _buildTagFilter(vm),
+            ],
+            SizedBox(height: 8),
+            Divider(height: 1, thickness: 1, color: _kDivider),
+            Expanded(child: _buildNoteList(vm)),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppColors.textPrimary),
-            onPressed: () => _showEditSheet(context, vm, null),
-          ),
-        ],
       ),
-      body: Column(
+    );
+  }
+
+  // ── Sidebar (web) ─────────────────────────────────────────────────────────
+
+  Widget _buildSidebar(NotesViewModel vm) {
+    return Container(
+      color: _kSurface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'NOTAS',
+                  style: TextStyle(
+                    color: _kTextSecondary,
+                    fontSize: 9,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Notas',
+                      style: GoogleFonts.inter(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w600,
+                        color: _kTextPrimary,
+                        height: 1.1,
+                      ),
+                    ),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: () => showNoteEditSheet(context, vm, null),
+                      child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
           _buildSearchBar(vm),
-          if (vm.allTags.isNotEmpty) _buildTagFilter(vm),
+          if (vm.allTags.isNotEmpty) ...[
+            SizedBox(height: 8),
+            _buildTagFilter(vm),
+          ],
+          SizedBox(height: 8),
+          Divider(height: 1, thickness: 1, color: _kDivider),
           Expanded(child: _buildNoteList(vm)),
         ],
       ),
     );
   }
 
-  Widget _buildSidebar(NotesViewModel vm) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              const Icon(Icons.note_alt_outlined, color: AppColors.sageGreen),
-              const SizedBox(width: 8),
-              const Text(
-                'Notas',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.add, color: AppColors.sageGreen),
-                onPressed: () => _showEditSheet(context, vm, null),
-              ),
-            ],
-          ),
-        ),
-        _buildSearchBar(vm),
-        if (vm.allTags.isNotEmpty) _buildTagFilter(vm),
-        const Divider(color: AppColors.divider),
-        Expanded(child: _buildNoteList(vm)),
-      ],
-    );
+  Widget _buildNoteListArea(NotesViewModel vm) {
+    return _buildNoteList(vm);
   }
+
+  // ── Search bar ────────────────────────────────────────────────────────────
 
   Widget _buildSearchBar(NotesViewModel vm) {
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: TextField(
         controller: _searchCtrl,
-        style: const TextStyle(color: AppColors.textPrimary),
+        style: TextStyle(color: _kTextPrimary, fontSize: 14),
+        cursorColor: _kAccent,
         decoration: InputDecoration(
-          hintText: 'Buscar notas...',
-          hintStyle: const TextStyle(color: AppColors.textSecondary),
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+          hintText: 'Buscar notas…',
+          hintStyle: TextStyle(color: _kTextSecondary, fontSize: 14),
+          prefixIcon: Icon(Icons.search, color: _kTextSecondary, size: 18),
+          prefixIconConstraints: BoxConstraints(minWidth: 36, minHeight: 36),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: _kDivider),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: _kAccent),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 8),
         ),
         onChanged: vm.search,
       ),
     );
   }
 
+  // ── Tag filter ────────────────────────────────────────────────────────────
+
   Widget _buildTagFilter(NotesViewModel vm) {
     return SizedBox(
-      height: 40,
+      height: 34,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 20),
         children: [
-          _TagChip(
+          _ZenTagChip(
             label: 'Todas',
             isActive: vm.selectedTag == null,
             onTap: () => vm.filterByTag(null),
           ),
-          ...vm.allTags.map((tag) => _TagChip(
+          ...vm.allTags.map((tag) => _ZenTagChip(
                 label: tag,
                 isActive: vm.selectedTag == tag,
                 onTap: () => vm.filterByTag(tag),
@@ -178,19 +253,21 @@ class _NotesScreenState extends State<NotesScreen> {
     );
   }
 
+  // ── Note list ─────────────────────────────────────────────────────────────
+
   Widget _buildNoteList(NotesViewModel vm) {
     if (vm.notes.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.note_alt_outlined, size: 48, color: AppColors.textSecondary),
-            const SizedBox(height: 12),
+            Icon(Icons.article_outlined, size: 36, color: _kTextSecondary),
+            SizedBox(height: 12),
             Text(
               vm.searchQuery.isNotEmpty || vm.selectedTag != null
                   ? 'Sin notas que coincidan'
                   : 'Crea tu primera nota',
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: _kTextSecondary, fontSize: 13),
             ),
           ],
         ),
@@ -198,37 +275,26 @@ class _NotesScreenState extends State<NotesScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+      padding: EdgeInsets.only(bottom: 100),
       itemCount: vm.notes.length,
       itemBuilder: (ctx, i) {
         final note = vm.notes[i];
-        return _NoteTile(note: note, vm: vm);
+        return _ZenNoteTile(note: note, vm: vm);
       },
     );
   }
 
-  void _showEditSheet(BuildContext context, NotesViewModel vm, NoteEntity? note) {
-    showAdaptiveModal<void>(
-      context,
-      _NoteEditorSheet(
-        note: note,
-        onSave: (title, content, tags) {
-          if (note == null) {
-            vm.createNote(title: title, content: content, tags: tags);
-          } else {
-            vm.updateNote(note.copyWith(title: title, content: content, date: note.date, tags: tags));
-          }
-        },
-      ),
-    );
-  }
+  // ── Edit sheet ────────────────────────────────────────────────────────────
+
 }
 
-class _NoteEditorSheet extends StatelessWidget {
+// ─── Note editor sheet ────────────────────────────────────────────────────────
+
+class NoteEditorSheet extends StatelessWidget {
   final NoteEntity? note;
   final void Function(String title, String content, List<String> tags) onSave;
 
-  const _NoteEditorSheet({required this.note, required this.onSave});
+  const NoteEditorSheet({required this.note, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -237,75 +303,96 @@ class _NoteEditorSheet extends StatelessWidget {
     final contentCtrl = TextEditingController(text: note?.content ?? '');
     final tagsCtrl = TextEditingController(text: note?.tags.join(', ') ?? '');
 
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        color: _kSurface,
+        border: Border(
+          top: BorderSide(color: Color(0x14FFFFFF), width: 1),
+        ),
+      ),
       padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
+        22,
+        26,
+        22,
+        MediaQuery.of(context).viewInsets.bottom + 44,
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 32,
+                height: 2,
+                color: Color(0x28FFFFFF),
+              ),
+            ),
+            SizedBox(height: 22),
             Text(
-              isNew ? 'Nueva Nota' : 'Editar Nota',
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+              isNew ? 'Nueva nota' : 'Editar nota',
+              style: GoogleFonts.inter(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: _kTextPrimary,
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: titleCtrl,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Título',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: contentCtrl,
-              style: const TextStyle(color: AppColors.textPrimary),
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'Contenido',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: tagsCtrl,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Tags (separados por coma)',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.sageGreen,
+            SizedBox(height: 20),
+            _sheetInput(controller: titleCtrl, hint: 'Título'),
+            SizedBox(height: 16),
+            _sheetInput(controller: contentCtrl, hint: 'Contenido', maxLines: 4),
+            SizedBox(height: 16),
+            _sheetInput(controller: tagsCtrl, hint: 'Etiquetas (separadas por coma)'),
+            SizedBox(height: 28),
+            Row(
+              children: [
+                // Cancel
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: _kTextSecondary,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'CANCELAR',
+                      style: TextStyle(fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ),
-                onPressed: () {
-                  final title = titleCtrl.text.trim();
-                  final content = contentCtrl.text.trim();
-                  if (title.isEmpty) return;
-                  final tags = tagsCtrl.text
-                      .split(',')
-                      .map((t) => t.trim())
-                      .where((t) => t.isNotEmpty)
-                      .toList();
-                  onSave(title, content, tags);
-                  Navigator.pop(context);
-                },
-                child: Text(isNew ? 'Crear' : 'Guardar'),
-              ),
+                SizedBox(width: 12),
+                // Save
+                Expanded(
+                  flex: 2,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.textPrimary,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    ),
+                    onPressed: () {
+                      final title = titleCtrl.text.trim();
+                      final content = contentCtrl.text.trim();
+                      if (title.isEmpty) return;
+                      final tags = tagsCtrl.text
+                          .split(',')
+                          .map((t) => t.trim())
+                          .where((t) => t.isNotEmpty)
+                          .toList();
+                      onSave(title, content, tags);
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      isNew ? 'CREAR' : 'GUARDAR',
+                      style: TextStyle(
+                          fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -314,12 +401,14 @@ class _NoteEditorSheet extends StatelessWidget {
   }
 }
 
-class _TagChip extends StatelessWidget {
+// ─── Tag chip ─────────────────────────────────────────────────────────────────
+
+class _ZenTagChip extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
 
-  const _TagChip({
+  const _ZenTagChip({
     required this.label,
     required this.isActive,
     required this.onTap,
@@ -328,44 +417,51 @@ class _TagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: EdgeInsets.only(right: 16),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.sageGreen : AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isActive ? AppColors.sageGreen : AppColors.divider,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                color: isActive ? _kAccent : _kTextSecondary,
+                fontSize: 9,
+                letterSpacing: 1.8,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isActive ? Colors.white : AppColors.textSecondary,
-              fontSize: 12,
+            SizedBox(height: 4),
+            AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              height: 1,
+              width: 16,
+              color: isActive ? _kAccent : Colors.transparent,
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _NoteTile extends StatelessWidget {
+// ─── Note tile ────────────────────────────────────────────────────────────────
+
+class _ZenNoteTile extends StatelessWidget {
   final NoteEntity note;
   final NotesViewModel vm;
 
-  const _NoteTile({required this.note, required this.vm});
+  const _ZenNoteTile({required this.note, required this.vm});
 
   void _showEditSheet(BuildContext context) {
     showAdaptiveModal<void>(
       context,
-      _NoteEditorSheet(
+      NoteEditorSheet(
         note: note,
         onSave: (title, content, tags) {
-          vm.updateNote(note.copyWith(title: title, content: content, date: note.date, tags: tags));
+          vm.updateNote(
+              note.copyWith(title: title, content: content, date: note.date, tags: tags));
         },
       ),
     );
@@ -378,54 +474,105 @@ class _NoteTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        padding: EdgeInsets.only(right: 24),
         color: AppColors.danger,
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        child: Icon(Icons.delete_outline, color: Colors.white, size: 18),
       ),
       onDismissed: (_) => vm.deleteNote(note.id),
-      child: ListTile(
-        title: Text(
-          note.title,
-          style: const TextStyle(color: AppColors.textPrimary),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (note.content.isNotEmpty)
-              Text(
-                note.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 12, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  DateFormat('d MMM', 'es').format(note.date),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                ),
-                if (note.tags.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.label_outline, size: 12, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      note.tags.join(', '),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AppColors.sageGreen, fontSize: 11),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
+      child: GestureDetector(
         onTap: () => _showEditSheet(context),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: _kDivider, width: 1)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      note.title,
+                      style: TextStyle(
+                        color: _kTextPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (note.content.isNotEmpty) ...[
+                      SizedBox(height: 3),
+                      Text(
+                        note.content,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: _kTextSecondary, fontSize: 12),
+                      ),
+                    ],
+                    if (note.tags.isNotEmpty) ...[
+                      SizedBox(height: 4),
+                      Text(
+                        note.tags.map((t) => '#$t').join('  '),
+                        style: TextStyle(
+                            color: _kAccent, fontSize: 10, letterSpacing: 0.5),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(width: 16),
+              Text(
+                DateFormat('d MMM', 'es').format(note.date).toUpperCase(),
+                style: TextStyle(color: _kTextSecondary, fontSize: 10, letterSpacing: 0.5),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
+
+// ─── Sheet input helper ───────────────────────────────────────────────────────
+
+Widget _sheetInput({
+  required TextEditingController controller,
+  required String hint,
+  int maxLines = 1,
+}) {
+  return TextField(
+    controller: controller,
+    style: TextStyle(color: _kTextPrimary, fontSize: 14),
+    maxLines: maxLines,
+    cursorColor: _kAccent,
+    decoration: InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: _kTextSecondary, fontSize: 14),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: _kDivider),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: _kAccent),
+      ),
+      contentPadding: EdgeInsets.only(bottom: 8),
+    ),
+  );
+}
+
+
+  void showNoteEditSheet(BuildContext context, NotesViewModel vm, NoteEntity? note) {
+    showAdaptiveModal<void>(
+      context,
+      NoteEditorSheet(
+        note: note,
+        onSave: (title, content, tags) {
+          if (note == null) {
+            vm.createNote(title: title, content: content, tags: tags);
+          } else {
+            vm.updateNote(
+                note.copyWith(title: title, content: content, date: note.date, tags: tags));
+          }
+        },
+      ),
+    );
+  }

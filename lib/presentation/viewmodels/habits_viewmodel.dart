@@ -93,7 +93,7 @@ class HabitsViewModel extends ChangeNotifier {
   Future<void> loadAnalytics() async {
     try {
       final now = DateTime.now();
-      final from = now.subtract(const Duration(days: 365));
+      final from = now.subtract(Duration(days: 365));
       final logs = await _repo.getHabitLogsInRange(from, now);
       _analytics = HabitAnalytics(habits: _habits, logs: logs);
       notifyListeners();

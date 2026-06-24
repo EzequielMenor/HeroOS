@@ -8,7 +8,7 @@ class CategoryEntity {
   final String? accountType;
   final bool isDefault;
 
-  const CategoryEntity({
+  CategoryEntity({
     required this.id,
     required this.userId,
     required this.name,

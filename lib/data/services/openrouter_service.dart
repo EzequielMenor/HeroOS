@@ -9,9 +9,9 @@ import '../../domain/services/sleep_diagnosis_service.dart';
 /// Llama a Groq (100% gratis) para analizar un registro de sueño.
 /// Crea tu API key gratis en: https://console.groq.com/keys
 class OpenRouterService {
-  static const String _apiKey = Secrets.groqApiKey;
-  static const String _model = 'llama-3.1-8b-instant';
-  static const String _endpoint =
+  static final String _apiKey = Secrets.groqApiKey;
+  static final String _model = 'llama-3.1-8b-instant';
+  static final String _endpoint =
       'https://api.groq.com/openai/v1/chat/completions';
 
   /// Devuelve un [SleepDiagnosis] generado por IA con análisis estructurado.
@@ -48,7 +48,7 @@ class OpenRouterService {
             'temperature': 0.7,
           }),
         )
-        .timeout(const Duration(seconds: 30));
+        .timeout(Duration(seconds: 30));
 
     if (response.statusCode != 200) {
       throw Exception('Error ${response.statusCode}: ${response.body}');

@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 
 /// Paleta de colores centralizada de HeroOS.
-/// Módulos con su accent color específico para mantener identidad visual.
-abstract final class AppColors {
-  // --- Backgrounds ---
-  static const Color scaffold = Color(0xFF121212); // Dark base
-  static const Color surface = Color(0xFF1E1E1E); // Cards / Sheets
+/// Estilo Zen OS: Pitch black, ultra minimalista.
+class AppColors {
+  // Brand / Semantic
+  static const Color primary = Color(0xFFF0EDE8);
+  static const Color danger = Color(0xFFF44336);
 
-  // --- Primary ---
-  static const Color primary = Colors.white;
+  // Features (Accent colors)
+  static const Color habits = Color(0xFF8FBC8F); // Sage green
+  static const Color tasks = Color(0xFF448AFF); // Blue
+  static const Color sleep = Color(0xFF7C4DFF); // Purple
+  static const Color finance = Color(0xFF00BFA5); // Teal
 
-  // --- Module Accents ---
-  static const Color finance = Color(0xFF4CAF50); // 🟢 Oro / Ingresos
-  static const Color habits = Color(0xFF2196F3); // 🔵 Racha / Hábitos
-  static const Color sleep = Color(0xFF673AB7); // 🟣 Sueño / Descanso
-  static const Color sageGreen = Color(0xFF8FBC8F); // 🟢 Accent para Zen OS
-  static const Color danger = Color(0xFFF44336); // 🔴 HP Loss / Gastos
+  // Theme control (Forced to Dark Mode always, as requested)
+  static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.dark);
+  static bool get isDark => true; // Always dark
 
-  // --- Neutral ---
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFF9E9E9E);
-  static const Color divider = Color(0xFF2C2C2C);
+  // Zen OS Core Colors
+  static const Color scaffold = Color(0xFF1C1C1E); // Pitch black
+  static const Color surface = Color(0xFF2C2C2E); // Slightly elevated black for sheets/cards
+  
+  static const Color textPrimary = Color(0xFFF0EDE8); // Bone white
+  static const Color textSecondary = Color(0x73F0EDE8); // Bone white 45% opacity
+  
+  static const Color divider = Color(0x0DFFFFFF); // White 5% opacity
+  static const Color accent = habits; 
 }

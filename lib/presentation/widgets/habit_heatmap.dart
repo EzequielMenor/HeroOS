@@ -25,12 +25,12 @@ class HabitHeatmap extends StatelessWidget {
     final todayWeekday = today.weekday; // 1=Mon, 7=Sun
     final thisMonday = today.subtract(Duration(days: todayWeekday - 1));
     // Retroceder 12 semanas más para tener 13 columnas
-    final startMonday = thisMonday.subtract(const Duration(days: 12 * 7));
+    final startMonday = thisMonday.subtract(Duration(days: 12 * 7));
 
-    const int weeks = 13;
-    const int daysPerWeek = 7;
-    const double cellSize = 12;
-    const double cellSpacing = 3;
+    int weeks = 13;
+    int daysPerWeek = 7;
+    double cellSize = 12;
+    double cellSpacing = 3;
 
     // Etiquetas de días (columna izquierda)
     const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -41,15 +41,15 @@ class HabitHeatmap extends StatelessWidget {
         // Leyenda
         Row(
           children: [
-            const Spacer(),
+            Spacer(),
             _legendDot(AppColors.habits, 'Hecho'),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             _legendDot(AppColors.divider, 'Fallo'),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             _legendDot(AppColors.scaffold, 'N/A'),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -61,7 +61,7 @@ class HabitHeatmap extends StatelessWidget {
                   child: Center(
                     child: Text(
                       dayLabels[row],
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 9,
                       ),
@@ -70,7 +70,7 @@ class HabitHeatmap extends StatelessWidget {
                 );
               }),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             // Grid
             Expanded(
               child: SingleChildScrollView(
@@ -99,7 +99,7 @@ class HabitHeatmap extends StatelessWidget {
                         return Container(
                           width: cellSize,
                           height: cellSize,
-                          margin: const EdgeInsets.all(cellSpacing / 2),
+                          margin: EdgeInsets.all(cellSpacing / 2),
                           decoration: BoxDecoration(
                             color: color,
                             borderRadius: BorderRadius.circular(3),
@@ -129,10 +129,10 @@ class HabitHeatmap extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
         ),
       ],
     );

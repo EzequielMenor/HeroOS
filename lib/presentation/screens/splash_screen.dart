@@ -22,15 +22,15 @@ class SplashScreen extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.sageGreen, width: 2),
+                border: Border.all(color: AppColors.habits, width: 2),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shield_outlined,
                 size: 40,
-                color: AppColors.sageGreen,
+                color: AppColors.habits,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(
               AppStrings.appName,
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -39,7 +39,7 @@ class SplashScreen extends StatelessWidget {
                 letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Gamified Life Tracker',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

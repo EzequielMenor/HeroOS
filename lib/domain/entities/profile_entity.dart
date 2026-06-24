@@ -8,7 +8,7 @@ class ProfileEntity {
   final String? aiApiKey;
   final String aiProvider;
 
-  const ProfileEntity({
+  ProfileEntity({
     required this.id,
     required this.username,
     this.avatarUrl,

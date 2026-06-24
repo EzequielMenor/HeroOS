@@ -11,7 +11,7 @@ class TransactionModel {
   final DateTime date;
   final String? relatedTransactionId;
 
-  const TransactionModel({
+  TransactionModel({
     required this.id,
     required this.userId,
     required this.accountId,

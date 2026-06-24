@@ -7,7 +7,7 @@ class HabitLogModel {
   final DateTime date;
   final String status;
 
-  const HabitLogModel({
+  HabitLogModel({
     required this.id,
     required this.habitId,
     required this.date,

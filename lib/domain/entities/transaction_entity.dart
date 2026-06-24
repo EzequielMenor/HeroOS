@@ -9,7 +9,7 @@ class TransactionEntity {
   final DateTime date;
   final String? relatedTransactionId;
 
-  const TransactionEntity({
+  TransactionEntity({
     required this.id,
     required this.userId,
     required this.accountId,

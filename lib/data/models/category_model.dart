@@ -1,7 +1,7 @@
 import '../../domain/entities/category_entity.dart';
 
 class CategoryModel extends CategoryEntity {
-  const CategoryModel({
+  CategoryModel({
     required super.id,
     required super.userId,
     required super.name,

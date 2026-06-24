@@ -9,7 +9,7 @@ class NoteModel {
   final DateTime date;
   final List<String> tags;
 
-  const NoteModel({
+  NoteModel({
     required this.id,
     required this.userId,
     required this.title,

@@ -7,7 +7,7 @@ class AccountEntity {
   final String currency;
   final double balance;
 
-  const AccountEntity({
+  AccountEntity({
     required this.id,
     required this.userId,
     required this.name,

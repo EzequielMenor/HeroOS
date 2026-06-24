@@ -25,7 +25,7 @@ class SleepRepository {
 
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    final endOfDay = startOfDay.add(Duration(days: 1));
 
     final data = await _client
         .from('sleep_logs')

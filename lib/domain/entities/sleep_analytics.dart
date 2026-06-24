@@ -14,7 +14,7 @@ import 'sleep_log_entity.dart';
 class SleepAnalytics {
   final List<SleepLogEntity> logs;
 
-  const SleepAnalytics({required this.logs});
+  SleepAnalytics({required this.logs});
 
   // ─── Helpers privados ───
 
@@ -82,7 +82,7 @@ class SleepAnalytics {
 
     for (int w = weeks - 1; w >= 0; w--) {
       final weekStart = _mondayOf(now.subtract(Duration(days: w * 7)));
-      final weekEnd = weekStart.add(const Duration(days: 7));
+      final weekEnd = weekStart.add(Duration(days: 7));
       final key =
           '${weekStart.year}-W${_isoWeekNumber(weekStart).toString().padLeft(2, '0')}';
 
