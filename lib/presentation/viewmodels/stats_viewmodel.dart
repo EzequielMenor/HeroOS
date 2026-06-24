@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/rpg_events_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../data/services/storage_service.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../../domain/entities/rpg_event_entity.dart';
@@ -8,8 +10,8 @@ import '../../domain/entities/rpg_event_entity.dart';
 /// ViewModel de Stats RPG.
 /// Gestiona carga/persistencia del perfil y expone eventos de Level Up / Game Over.
 class StatsViewModel extends ChangeNotifier {
-  final ProfileRepository _repo = ProfileRepository();
-  final RpgEventsRepository _eventsRepo = RpgEventsRepository();
+  final dynamic _repo;
+  final dynamic _eventsRepo;
   final StorageService _storage = StorageService();
 
   ProfileEntity? _profile;
@@ -20,6 +22,9 @@ class StatsViewModel extends ChangeNotifier {
   List<RpgEventEntity> _recentEvents = [];
   int? _lastXpGain;
   int? _lastHpLoss;
+
+  StatsViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : ProfileRepository(),
+                    _eventsRepo = AuthRepository.devQuickAccess ? DevRepository() : RpgEventsRepository();
 
   ProfileEntity? get profile => _profile;
   bool get isLoading => _isLoading;

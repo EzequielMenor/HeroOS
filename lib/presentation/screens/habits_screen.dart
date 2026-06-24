@@ -66,13 +66,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 ),
               ],
             ),
-      floatingActionButton: Hero(
-        tag: 'fab-habits-web',
-        child: FloatingActionButton(
-          backgroundColor: AppColors.habits,
-          onPressed: () => _showCreateSheet(context, vm),
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.habits,
+        onPressed: () => _showCreateSheet(context, vm),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -105,13 +102,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
       ),
       floatingActionButton: _showStats
           ? null
-          : Hero(
-              tag: 'fab-habits-mobile',
-              child: FloatingActionButton(
-                backgroundColor: AppColors.habits,
-                onPressed: () => _showCreateSheet(context, vm),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
+          : FloatingActionButton(
+              backgroundColor: AppColors.habits,
+              onPressed: () => _showCreateSheet(context, vm),
+              child: const Icon(Icons.add, color: Colors.white),
             ),
     );
   }

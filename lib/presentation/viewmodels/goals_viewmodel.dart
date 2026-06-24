@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/goals_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/user_goals_entity.dart';
 
 /// ViewModel de Objetivos del héroe.
 /// Gestiona carga y persistencia de [UserGoalsEntity].
 class GoalsViewModel extends ChangeNotifier {
-  final GoalsRepository _repo = GoalsRepository();
+  final dynamic _repo;
 
   UserGoalsEntity? _goals;
   bool _isLoading = false;
   String? _error;
+
+  GoalsViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : GoalsRepository();
 
   UserGoalsEntity? get goals => _goals;
   bool get isLoading => _isLoading;

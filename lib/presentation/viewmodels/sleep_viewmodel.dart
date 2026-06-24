@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/sleep_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/sleep_analytics.dart';
 import '../../domain/entities/sleep_log_entity.dart';
 import 'stats_viewmodel.dart';
 
 class SleepViewModel extends ChangeNotifier {
-  final SleepRepository _repo = SleepRepository();
+  final dynamic _repo;
   final StatsViewModel _statsVm;
 
   List<SleepLogEntity> _logs = [];
@@ -15,7 +17,7 @@ class SleepViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  SleepViewModel(this._statsVm);
+  SleepViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : SleepRepository();
 
   List<SleepLogEntity> get logs => _logs;
   SleepLogEntity? get todayLog => _todayLog;
@@ -54,7 +56,7 @@ class SleepViewModel extends ChangeNotifier {
     String? notes,
     int? avgHeartRate,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     // Si la hora de despertar es anterior a la de acostarse, el usuario

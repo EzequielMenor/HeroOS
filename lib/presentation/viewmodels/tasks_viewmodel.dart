@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/task_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/task_entity.dart';
 import 'stats_viewmodel.dart';
 
 /// ViewModel de Tareas (Misiones).
 /// CRUD + integración RPG: completar tarea → XP gain.
 class TasksViewModel extends ChangeNotifier {
-  final TaskRepository _repo = TaskRepository();
+  final dynamic _repo;
   final StatsViewModel _statsVm;
 
   List<TaskEntity> _tasks = [];
   bool _isLoading = false;
   String? _error;
 
-  TasksViewModel(this._statsVm);
+  TasksViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : TaskRepository();
 
   List<TaskEntity> get tasks => _tasks;
   List<TaskEntity> get pendingTasks => _tasks.where((t) => !t.isDone).toList();
@@ -63,7 +65,7 @@ class TasksViewModel extends ChangeNotifier {
     DateTime? dueDate,
     int difficulty = 1,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     final task = TaskEntity(

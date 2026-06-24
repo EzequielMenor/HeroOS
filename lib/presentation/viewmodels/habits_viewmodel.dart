@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/habit_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/habit_entity.dart';
 import '../../domain/entities/habit_analytics.dart';
 import 'stats_viewmodel.dart';
@@ -7,7 +9,8 @@ import 'stats_viewmodel.dart';
 /// ViewModel de Hábitos.
 /// Gestiona CRUD y la integración con el motor RPG via [StatsViewModel].
 class HabitsViewModel extends ChangeNotifier {
-  final HabitRepository _repo = HabitRepository();
+  // En modo dev usa DevRepository, si no el de Supabase
+  final dynamic _repo;
   final StatsViewModel _statsVm;
 
   List<HabitEntity> _habits = [];
@@ -16,7 +19,7 @@ class HabitsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  HabitsViewModel(this._statsVm);
+  HabitsViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : HabitRepository();
 
   List<HabitEntity> get habits => _habits;
   Set<String> get completedTodayIds => _completedTodayIds;
@@ -75,11 +78,11 @@ class HabitsViewModel extends ChangeNotifier {
     int xpReward = 10,
     int dmgPenalty = 5,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     final habit = HabitEntity(
-      id: '', // Supabase genera el UUID
+      id: '', // Supabase genera el UUID; DevRepository ignora y genera su propio id
       userId: userId,
       title: title,
       frequencyMask: frequencyMask,

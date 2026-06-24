@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/finance_repository.dart';
+import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
@@ -9,7 +11,7 @@ import 'stats_viewmodel.dart';
 /// ViewModel de Finanzas.
 /// Gestiona cuentas y transacciones + sincroniza gold via [StatsViewModel].
 class FinanceViewModel extends ChangeNotifier {
-  final FinanceRepository _repo = FinanceRepository();
+  final dynamic _repo;
   final StatsViewModel _statsVm;
 
   List<AccountEntity> _accounts = [];
@@ -18,7 +20,7 @@ class FinanceViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  FinanceViewModel(this._statsVm);
+  FinanceViewModel(this._statsVm) : _repo = AuthRepository.devQuickAccess ? DevRepository() : FinanceRepository();
 
   List<AccountEntity> get accounts => _accounts;
   List<TransactionEntity> get transactions => _transactions;
@@ -53,7 +55,7 @@ class FinanceViewModel extends ChangeNotifier {
     String currency = 'EUR',
     double initialBalance = 0,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     final account = AccountEntity(
@@ -94,7 +96,7 @@ class FinanceViewModel extends ChangeNotifier {
     required String category,
     String? note,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     final txn = TransactionEntity(
@@ -135,12 +137,11 @@ class FinanceViewModel extends ChangeNotifier {
     required double amount,
     String? note,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     try {
       await _repo.createTransfer(
-        userId: userId,
         fromAccountId: fromAccountId,
         toAccountId: toAccountId,
         amount: amount,
@@ -172,7 +173,7 @@ class FinanceViewModel extends ChangeNotifier {
     required bool isExpense,
     String? accountType,
   }) async {
-    final userId = _statsVm.profile?.id;
+    final userId = AuthRepository.devQuickAccess ? 'dev-user' : _statsVm.profile?.id;
     if (userId == null) return;
 
     final category = CategoryEntity(
