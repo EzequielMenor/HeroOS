@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/app_strings.dart';
 import 'core/constants/supabase_config.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/app_colors.dart';
 import 'presentation/screens/dashboard_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/splash_screen.dart';
@@ -43,19 +44,19 @@ GoRouter _buildRouter(AuthViewModel authVm) => GoRouter(
   routes: [
     GoRoute(
       path: AppStrings.routeSplash,
-      builder: (context, state) => const SplashScreen(),
+      builder: (context, state) => SplashScreen(),
     ),
     GoRoute(
       path: AppStrings.routeLogin,
-      builder: (context, state) => const LoginScreen(),
+      builder: (context, state) => LoginScreen(),
     ),
     GoRoute(
       path: AppStrings.routeDashboard,
-      builder: (context, state) => const DashboardScreen(),
+      builder: (context, state) => DashboardScreen(),
     ),
     GoRoute(
       path: AppStrings.routeNotes,
-      builder: (context, state) => const NotesScreen(),
+      builder: (context, state) => NotesScreen(),
     ),
   ],
 );
@@ -70,7 +71,7 @@ Future<void> main() async {
     anonKey: SupabaseConfig.anonKey,
   );
 
-  runApp(const HeroOSApp());
+  runApp(HeroOSApp());
 }
 
 class HeroOSApp extends StatefulWidget {
@@ -129,11 +130,18 @@ class _HeroOSAppState extends State<HeroOSApp> {
         ChangeNotifierProvider.value(value: _profileVm),
         ChangeNotifierProvider.value(value: _notesVm),
       ],
-      child: MaterialApp.router(
-        title: AppStrings.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        routerConfig: _router,
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: AppColors.themeMode,
+        builder: (context, mode, child) {
+          return MaterialApp.router(
+            title: AppStrings.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: mode,
+            routerConfig: _router,
+          );
+        },
       ),
     );
   }

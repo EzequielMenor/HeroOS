@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -9,7 +10,42 @@ import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
 import '../viewmodels/finance_viewmodel.dart';
 
+// ─── Tokens Zen OS ──────────────────────────────────────────────────────────
+Color get _kSageGreen => AppColors.habits;
+Color get _kDanger => AppColors.danger;
+Color get _kTextPrim => AppColors.textPrimary;
+Color get _kTextSec => AppColors.textSecondary;
+Color get _kDivider => AppColors.divider;
+Color get _kSurface => AppColors.surface;
+Color get _kScaffold => AppColors.scaffold;
+
+/// Underline-only InputDecoration — Zen OS
+InputDecoration _zenInput({
+  required String hint,
+  String? label,
+  Widget? prefixIcon,
+}) =>
+    InputDecoration(
+      hintText: hint,
+      labelText: label,
+      hintStyle: TextStyle(color: _kTextSec, fontSize: 14),
+      labelStyle: TextStyle(color: _kTextSec, fontSize: 13),
+      prefixIcon: prefixIcon,
+      filled: false,
+      contentPadding: EdgeInsets.symmetric(vertical: 10),
+      border: UnderlineInputBorder(
+        borderSide: BorderSide(color: _kDivider),
+      ),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: _kDivider),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: _kTextPrim.withValues(alpha: 0.5)),
+      ),
+    );
+
 /// Pantalla de Finanzas — cuentas, transacciones y balance total.
+/// Sin FloatingActionButton propio: el FAB global lo gestiona el Dashboard.
 class FinanceScreen extends StatefulWidget {
   const FinanceScreen({super.key});
 
@@ -18,6 +54,9 @@ class FinanceScreen extends StatefulWidget {
 }
 
 class _FinanceScreenState extends State<FinanceScreen> {
+  // Filtro: 0=Todo, 1=Ingresos, 2=Gastos
+  int _filter = 0;
+
   @override
   void initState() {
     super.initState();
@@ -26,777 +65,708 @@ class _FinanceScreenState extends State<FinanceScreen> {
     });
   }
 
+  List<TransactionEntity> _filteredTxns(List<TransactionEntity> all) =>
+      switch (_filter) {
+        1 => all.where((t) => t.isIncome).toList(),
+        2 => all.where((t) => !t.isIncome && !t.isTransfer).toList(),
+        _ => all,
+      };
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<FinanceViewModel>();
 
     if (vm.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.finance),
+      return Scaffold(
+        backgroundColor: _kScaffold,
+        body: Center(
+          child: CircularProgressIndicator(color: _kSageGreen, strokeWidth: 1),
+        ),
       );
     }
 
     return Scaffold(
+      backgroundColor: _kScaffold,
       body: SafeArea(
         child: vm.accounts.isEmpty
-            ? _buildEmptyState(context)
+            ? _buildEmptyState(context, vm)
             : _buildContent(context, vm),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'finance_fab', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
-        backgroundColor: AppColors.finance,
-        onPressed: () => _showAddMenu(context, vm),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // Sin FAB: lo gestiona el Dashboard globalmente.
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.account_balance_wallet_outlined,
-            size: 48,
-            color: AppColors.textSecondary,
+  // ─────────────────────────────────────────────────────────────────────────
+  // Empty state
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _buildEmptyState(BuildContext context, FinanceViewModel vm) {
+    return Column(
+      children: [
+        _ZenHeader(
+          vm: vm,
+          onAdd: () => showFinanceAddMenu(context, vm),
+        ),
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_balance_wallet_outlined,
+                  size: 40,
+                  color: _kTextSec,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'SIN CUENTAS',
+                  style: TextStyle(
+                    color: _kTextSec,
+                    fontSize: 9,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Crea tu primera cuenta\npara empezar.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: _kTextSec, fontSize: 14, height: 1.7),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            '¡Tu tesoro está vacío!\nCrea tu primera cuenta.',
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Content layout
+  // ─────────────────────────────────────────────────────────────────────────
 
   Widget _buildContent(BuildContext context, FinanceViewModel vm) {
     if (context.isWeb) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left: balance + cuentas
+          Expanded(child: _LeftPanel(vm: vm, onAdd: () => showFinanceAddMenu(context, vm))),
+          Container(width: 1, color: _kDivider),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                _BalanceHeader(total: vm.totalBalance),
-                const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text(
-                    '💰 Cuentas',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                ...vm.accounts.map((a) => _AccountTile(account: a, vm: vm)),
-              ],
-            ),
-          ),
-          const VerticalDivider(width: 1, color: AppColors.divider),
-          // Right: transacciones
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text(
-                    '📜 Transacciones recientes',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                if (vm.transactions.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      'Aún no hay transacciones.',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  )
-                else
-                  ...vm.transactions
-                      .take(20)
-                      .map((t) => _TransactionTile(txn: t, vm: vm)),
-              ],
+            child: _TransactionPanel(
+              vm: vm,
+              filter: _filter,
+              filteredTxns: _filteredTxns(vm.transactions),
+              onFilterChanged: (v) => setState(() => _filter = v),
             ),
           ),
         ],
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      children: [
-        _BalanceHeader(total: vm.totalBalance),
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Text(
-            '💰 Cuentas',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+    // ── Mobile layout ───────────────────────────────────────────────────
+    return CustomScrollView(
+      slivers: [
+        // Header: label + balance + botón añadir
+        SliverToBoxAdapter(
+          child: _ZenHeader(vm: vm, onAdd: () => showFinanceAddMenu(context, vm)),
+        ),
+        // Cuentas
+        SliverToBoxAdapter(child: _AccountsSection(vm: vm)),
+        // Filtros
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
+            child: _FilterBar(
+              selected: _filter,
+              onChanged: (v) => setState(() => _filter = v),
             ),
           ),
         ),
-        ...vm.accounts.map((a) => _AccountTile(account: a, vm: vm)),
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Text(
-            '📜 Transacciones recientes',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        if (vm.transactions.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'Aún no hay transacciones.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        SliverToBoxAdapter(child: SizedBox(height: 4)),
+        // Lista transacciones
+        if (_filteredTxns(vm.transactions).isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
+              child: Text(
+                'Sin transacciones.',
+                style: TextStyle(color: _kTextSec, fontSize: 13),
+              ),
             ),
           )
         else
-          ...vm.transactions
-              .take(20)
-              .map((t) => _TransactionTile(txn: t, vm: vm)),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) {
+                final list = _filteredTxns(vm.transactions);
+                return _ZenTransactionTile(txn: list[i], vm: vm);
+              },
+              childCount: _filteredTxns(vm.transactions).length,
+            ),
+          ),
+        SliverToBoxAdapter(child: SizedBox(height: 40)),
       ],
     );
   }
 
-  void _showAddMenu(BuildContext context, FinanceViewModel vm) {
-    showAdaptiveModal<void>(
-      context,
-      SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(
-                Icons.account_balance,
-                color: AppColors.finance,
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Modales
+  // ─────────────────────────────────────────────────────────────────────────
+
+
+
+
+
+}
+
+// ─── Header Zen ─────────────────────────────────────────────────────────────
+// Label BALANCE + importe en Cormorant + ingresos mes + botón añadir (+)
+
+class _ZenHeader extends StatelessWidget {
+  final FinanceViewModel vm;
+  final VoidCallback onAdd;
+
+  const _ZenHeader({required this.vm, required this.onAdd});
+
+
+  bool _isSameMonth(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && date.month == now.month;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPositive = vm.totalBalance >= 0;
+    final monthlyIncome = vm.transactions
+        .where((t) => t.isIncome && _isSameMonth(t.date))
+        .fold(0.0, (s, t) => s + t.amount);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label + botón añadir
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'BALANCE',
+                style: TextStyle(
+                  color: _kTextSec,
+                  fontSize: 9,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              title: const Text(
-                'Nueva Cuenta',
-                style: TextStyle(color: AppColors.textPrimary),
+              // Botón añadir en el header — icono pequeño textSecondary
+              GestureDetector(
+                onTap: onAdd,
+                child: Icon(
+                  Icons.add,
+                  size: 18,
+                  color: _kTextSec,
+                ),
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _showCreateAccount(context, vm);
-              },
+            ],
+          ),
+          SizedBox(height: 4),
+          // Balance en Cormorant Garamond 42px w300
+          Text(
+            '${isPositive ? '' : '-'}€${vm.totalBalance.abs().toStringAsFixed(2)}',
+            style: GoogleFonts.inter(
+              fontSize: 42,
+              fontWeight: FontWeight.w600,
+              color: isPositive ? _kTextPrim : _kDanger,
+              height: 1.0,
             ),
-            if (vm.accounts.isNotEmpty)
-              ListTile(
-                leading: const Icon(Icons.swap_horiz, color: AppColors.finance),
-                title: const Text(
-                  'Nueva Transacción',
-                  style: TextStyle(color: AppColors.textPrimary),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Ingresos este mes: +€${monthlyIncome.toStringAsFixed(2)}',
+            style: TextStyle(color: _kTextSec, fontSize: 12),
+          ),
+          SizedBox(height: 20),
+          Container(height: 1, color: _kDivider),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Panel izquierdo (Web) ──────────────────────────────────────────────────
+
+class _LeftPanel extends StatelessWidget {
+  final FinanceViewModel vm;
+  final VoidCallback onAdd;
+
+  const _LeftPanel({required this.vm, required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        _ZenHeader(vm: vm, onAdd: onAdd),
+        _AccountsSection(vm: vm),
+      ],
+    );
+  }
+}
+
+// ─── Panel derecho (Web) ────────────────────────────────────────────────────
+
+class _TransactionPanel extends StatelessWidget {
+  final FinanceViewModel vm;
+  final int filter;
+  final List<TransactionEntity> filteredTxns;
+  final ValueChanged<int> onFilterChanged;
+
+  const _TransactionPanel({
+    required this.vm,
+    required this.filter,
+    required this.filteredTxns,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 36, 20, 0),
+          child: _FilterBar(selected: filter, onChanged: onFilterChanged),
+        ),
+        SizedBox(height: 8),
+        if (filteredTxns.isEmpty)
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
+            child: Text(
+              'Sin transacciones.',
+              style: TextStyle(color: _kTextSec, fontSize: 13),
+            ),
+          )
+        else
+          ...filteredTxns.map((t) => _ZenTransactionTile(txn: t, vm: vm)),
+      ],
+    );
+  }
+}
+
+// ─── Sección Cuentas ────────────────────────────────────────────────────────
+
+class _AccountsSection extends StatelessWidget {
+  final FinanceViewModel vm;
+  const _AccountsSection({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+          child: Text(
+            'CUENTAS',
+            style: TextStyle(
+              color: _kTextSec,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        ...vm.accounts.map((a) => _ZenAccountTile(account: a, vm: vm)),
+      ],
+    );
+  }
+}
+
+// ─── Tile de Cuenta ────────────────────────────────────────────────────────
+
+class _ZenAccountTile extends StatelessWidget {
+  final AccountEntity account;
+  final FinanceViewModel vm;
+
+  const _ZenAccountTile({required this.account, required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (account.type) {
+      'Bank'       => Icons.account_balance_outlined,
+      'Investment' => Icons.trending_up,
+      _            => Icons.account_balance_wallet_outlined,
+    };
+    final isNeg = account.balance < 0;
+
+    return Dismissible(
+      key: ValueKey(account.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        color: _kDanger.withValues(alpha: 0.10),
+        child: Icon(Icons.delete_outline, color: _kDanger, size: 18),
+      ),
+      confirmDismiss: (_) => showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: _kSurface,
+          title: Text(
+            'Borrar cuenta',
+            style: TextStyle(color: _kTextPrim, fontSize: 16),
+          ),
+          content: Text(
+            '¿Eliminar "${account.name}" y todas sus transacciones?',
+            style: TextStyle(color: _kTextSec, fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'CANCELAR',
+                style: TextStyle(
+                  color: _kTextSec,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showCreateTransaction(context, vm);
-                },
               ),
-            if (vm.accounts.length >= 2)
-              ListTile(
-                leading: const Icon(Icons.sync_alt, color: AppColors.finance),
-                title: const Text(
-                  'Transferir entre cuentas',
-                  style: TextStyle(color: AppColors.textPrimary),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'BORRAR',
+                style: TextStyle(
+                  color: _kDanger,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showCreateTransfer(context, vm);
-                },
               ),
+            ),
+          ],
+        ),
+      ),
+      onDismissed: (_) => vm.deleteAccount(account.id),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: _kDivider)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: _kTextSec, size: 16),
+            SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                account.name,
+                style: TextStyle(color: _kTextPrim, fontSize: 14),
+              ),
+            ),
+            Text(
+              '${isNeg ? '-' : ''}€${account.balance.abs().toStringAsFixed(2)}',
+              style: TextStyle(
+                color: isNeg ? _kDanger : _kTextPrim,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showCreateAccount(BuildContext context, FinanceViewModel vm) {
-    final nameCtrl = TextEditingController();
-    final balanceCtrl = TextEditingController();
-    String type = 'Cash';
+// ─── Barra de filtros ───────────────────────────────────────────────────────
 
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Nueva Cuenta',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: nameCtrl,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Ej: Banco, Cartera',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: balanceCtrl,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Saldo inicial (€)',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Tipo',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: ['Cash', 'Bank', 'Investment'].map((t) {
-                  final isActive = type == t;
-                  final label = switch (t) {
-                    'Cash' => '💵 Efectivo',
-                    'Bank' => '🏦 Banco',
-                    'Investment' => '📈 Inversión',
-                    _ => t,
-                  };
-                  return ChoiceChip(
-                    label: Text(
-                      label,
-                      style: TextStyle(
-                        color: isActive
-                            ? Colors.white
-                            : AppColors.textSecondary.withValues(alpha: 0.1),
-                        fontSize: 12,
-                      ),
-                    ),
-                    selected: isActive,
-                    selectedColor: AppColors.finance,
-                    backgroundColor: AppColors.scaffold,
-                    onSelected: (_) => setSheetState(() => type = t),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.finance,
+class _FilterBar extends StatelessWidget {
+  final int selected;
+  final ValueChanged<int> onChanged;
+
+  const _FilterBar({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    const labels = ['TODO', 'INGRESOS', 'GASTOS'];
+
+    return Row(
+      children: List.generate(labels.length, (i) {
+        final isActive = selected == i;
+        return Padding(
+          padding: EdgeInsets.only(right: i < labels.length - 1 ? 24 : 0),
+          child: GestureDetector(
+            onTap: () => onChanged(i),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedDefaultTextStyle(
+                  duration: Duration(milliseconds: 180),
+                  style: TextStyle(
+                    color: isActive ? _kTextPrim : _kTextSec,
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w500,
                   ),
-                  onPressed: () {
-                    final name = nameCtrl.text.trim();
-                    if (name.isEmpty) return;
-                    final balance =
-                        double.tryParse(balanceCtrl.text.trim()) ?? 0;
-                    vm.createAccount(
-                      name: name,
-                      type: type,
-                      initialBalance: balance,
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Crear Cuenta'),
+                  child: Text(labels[i]),
                 ),
-              ),
-            ],
+                SizedBox(height: 4),
+                AnimatedContainer(
+                  duration: Duration(milliseconds: 180),
+                  height: 1.5,
+                  width: isActive ? 40 : 0,
+                  color: _kTextPrim,
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
+}
 
-  void _showCreateTransaction(BuildContext context, FinanceViewModel vm) {
-    if (vm.accounts.isEmpty) return;
+// ─── Tile de Transacción ────────────────────────────────────────────────────
 
-    final amountCtrl = TextEditingController();
-    final noteCtrl = TextEditingController();
-    String? selectedAccountId = vm.accounts.first.id;
-    bool isExpense = true;
+class _ZenTransactionTile extends StatelessWidget {
+  final TransactionEntity txn;
+  final FinanceViewModel vm;
 
-    List<CategoryEntity> categoriesFor(String? accId, bool isExp) {
-      final acc = vm.accounts.where((a) => a.id == accId).firstOrNull;
-      return vm.categoriesFor(acc?.type, isExp);
-    }
+  const _ZenTransactionTile({required this.txn, required this.vm});
 
-    String category =
-        categoriesFor(selectedAccountId, isExpense).firstOrNull?.name ??
-        'General';
+  @override
+  Widget build(BuildContext context) {
+    final isIncome   = txn.isIncome;
+    final isTransfer = txn.isTransfer;
 
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final iconColor   = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
+    final amountColor = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
+
+    final arrowIcon = isTransfer
+        ? Icons.sync_alt
+        : isIncome
+        ? Icons.arrow_upward
+        : Icons.arrow_downward;
+
+    return Dismissible(
+      key: ValueKey(txn.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        color: _kDanger.withValues(alpha: 0.08),
+        child: Icon(Icons.delete_outline, color: _kDanger, size: 18),
+      ),
+      onDismissed: (_) => vm.removeTransaction(txn.id),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: _kDivider)),
+        ),
+        child: Row(
+          children: [
+            // Icono cuadrado 34×34, sin bordes redondeados
+            Container(
+              width: 34,
+              height: 34,
+              color: iconColor.withValues(alpha: 0.08),
+              child: Icon(arrowIcon, size: 15, color: iconColor),
+            ),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Nueva Transacción',
+                  Text(
+                    txn.category,
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: _kTextPrim,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => _showManageCategories(context, vm),
-                    icon: const Icon(Icons.settings, size: 16),
-                    label: const Text('Gestionar'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.finance,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Tipo: ingreso/gasto
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(
-                        child: Text(
-                          'Gasto',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      selected: isExpense,
-                      selectedColor: AppColors.danger,
-                      onSelected: (_) => setSheetState(() {
-                        isExpense = true;
-                        category =
-                            categoriesFor(
-                              selectedAccountId,
-                              isExpense,
-                            ).firstOrNull?.name ??
-                            'General';
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(
-                        child: Text(
-                          'Ingreso',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      selected: !isExpense,
-                      selectedColor: Colors.green,
-                      onSelected: (_) => setSheetState(() {
-                        isExpense = false;
-                        category =
-                            categoriesFor(
-                              selectedAccountId,
-                              isExpense,
-                            ).firstOrNull?.name ??
-                            'General';
-                      }),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Cantidad',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  prefixIcon: const Icon(Icons.euro, color: AppColors.finance),
-                  filled: true,
-                  fillColor: AppColors.scaffold,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: selectedAccountId,
-                dropdownColor: AppColors.surface,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Cuenta',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.scaffold,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                items: vm.accounts.map((a) {
-                  final typeName = switch (a.type) {
-                    'Bank' => 'Banco',
-                    'Investment' => 'Inversión',
-                    'Cash' => 'Efectivo',
-                    _ => a.type,
-                  };
-                  return DropdownMenuItem(
-                    value: a.id,
-                    child: Text('${a.name} ($typeName)'),
-                  );
-                }).toList(),
-                onChanged: (v) => setSheetState(() {
-                  selectedAccountId = v;
-                  category =
-                      categoriesFor(v, isExpense).firstOrNull?.name ??
-                      'General';
-                }),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Categoría',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: categoriesFor(selectedAccountId, isExpense).map((c) {
-                  final isSelected = category == c.name;
-                  return ChoiceChip(
-                    label: Text('${c.icon} ${c.name}'),
-                    selected: isSelected,
-                    selectedColor: AppColors.finance.withValues(alpha: 0.3),
-                    backgroundColor: AppColors.scaffold,
-                    onSelected: (_) => setSheetState(() => category = c.name),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: noteCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Nota (opcional)',
-                  labelStyle: const TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.scaffold,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final amount = double.tryParse(amountCtrl.text) ?? 0;
-                    if (amount <= 0 || selectedAccountId == null) return;
-                    vm.addTransaction(
-                      accountId: selectedAccountId!,
-                      amount: isExpense ? -amount : amount,
-                      category: category,
-                      note: noteCtrl.text.isEmpty ? null : noteCtrl.text,
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.finance,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showCreateTransfer(BuildContext context, FinanceViewModel vm) {
-    final amountCtrl = TextEditingController();
-    final noteCtrl = TextEditingController();
-    String? fromId = vm.accounts.first.id;
-    String? toId = vm.accounts.length > 1 ? vm.accounts[1].id : null;
-
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Transferir entre cuentas',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Cuenta origen
-              DropdownButtonFormField<String>(
-                initialValue: fromId,
-                dropdownColor: AppColors.surface,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'Desde',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-                items: vm.accounts.map((a) {
-                  final typeName = switch (a.type) {
-                    'Bank' => 'Banco',
-                    'Investment' => 'Inversión',
-                    'Cash' => 'Efectivo',
-                    _ => a.type,
-                  };
-                  return DropdownMenuItem(
-                    value: a.id,
-                    child: Text('${a.name} ($typeName)'),
-                  );
-                }).toList(),
-                onChanged: (v) => setSheetState(() => fromId = v),
-              ),
-              const SizedBox(height: 12),
-              // Cuenta destino
-              DropdownButtonFormField<String>(
-                initialValue: toId,
-                dropdownColor: AppColors.surface,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'Hacia',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-                items: vm.accounts.map((a) {
-                  final typeName = switch (a.type) {
-                    'Bank' => 'Banco',
-                    'Investment' => 'Inversión',
-                    'Cash' => 'Efectivo',
-                    _ => a.type,
-                  };
-                  return DropdownMenuItem(
-                    value: a.id,
-                    child: Text('${a.name} ($typeName)'),
-                  );
-                }).toList(),
-                onChanged: (v) => setSheetState(() => toId = v),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Cantidad (€)',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: noteCtrl,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Nota (opcional)',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.finance,
-                  ),
-                  onPressed: () {
-                    final raw = double.tryParse(amountCtrl.text.trim());
-                    if (raw == null ||
-                        raw <= 0 ||
-                        fromId == null ||
-                        toId == null ||
-                        fromId == toId) {
-                      return;
-                    }
-                    vm.transferMoney(
-                      fromAccountId: fromId!,
-                      toAccountId: toId!,
-                      amount: raw,
-                      note: noteCtrl.text.trim().isEmpty
-                          ? null
-                          : noteCtrl.text.trim(),
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Transferir'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showManageCategories(BuildContext context, FinanceViewModel vm) {
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Gestionar Categorías',
+                  SizedBox(height: 2),
+                  Text(
+                    (txn.note != null && txn.note!.isNotEmpty)
+                        ? txn.note!.toUpperCase()
+                        : '${txn.date.day.toString().padLeft(2, '0')}/'
+                            '${txn.date.month.toString().padLeft(2, '0')}/'
+                            '${txn.date.year}',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(
-                      Icons.close,
-                      color: AppColors.textSecondary,
+                      color: _kTextSec,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: vm.categories.length,
-                  itemBuilder: (context, index) {
-                    final cat = vm.categories[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Text(
-                        cat.icon,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      title: Text(
-                        cat.name,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
+            ),
+            Text(
+              '${isIncome ? '+' : isTransfer ? '' : '-'}€${txn.amount.abs().toStringAsFixed(2)}',
+              style: TextStyle(
+                color: amountColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Sheet Zen OS base ──────────────────────────────────────────────────────
+
+class ZenSheet extends StatelessWidget {
+  final String title;
+  final BuildContext ctx;
+  final List<Widget> children;
+  final Widget? trailing;
+  final VoidCallback? onCancel;
+  final VoidCallback? onConfirm;
+  final String confirmLabel;
+
+  const ZenSheet({
+    required this.title,
+    required this.ctx,
+    required this.children,
+    this.trailing,
+    this.onCancel,
+    this.onConfirm,
+    this.confirmLabel = 'AÑADIR',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kSurface,
+        border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        22,
+        26,
+        22,
+        MediaQuery.of(ctx).viewInsets.bottom + 44,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Título + trailing
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: _kTextPrim,
+                  height: 1.0,
+                ),
+              ),
+              ?trailing,
+            ],
+          ),
+          SizedBox(height: 24),
+          // Contenido
+          ...children,
+          // Botones
+          if (onConfirm != null) ...[
+            SizedBox(height: 28),
+            Row(
+              children: [
+                if (onCancel != null) ...[
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: onCancel,
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        child: Text(
+                          'CANCELAR',
+                          style: TextStyle(
+                            color: _kTextSec,
+                            fontSize: 11,
+                            letterSpacing: 2.0,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        '${cat.isExpense ? 'Gasto' : 'Ingreso'}${cat.accountType != null ? ' • ${cat.accountType}' : ''}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                ],
+                Expanded(
+                  flex: 2,
+                  child: GestureDetector(
+                    onTap: onConfirm,
+                    child: Container(
+                      height: 48,
+                      color: _kTextPrim,
+                      alignment: Alignment.center,
+                      child: Text(
+                        confirmLabel,
+                        style: TextStyle(
+                          color: AppColors.scaffold,
                           fontSize: 11,
+                          letterSpacing: 2.5,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: AppColors.danger,
-                          size: 20,
-                        ),
-                        onPressed: () async {
-                          await vm.deleteCategory(cat.id);
-                          setSheetState(() {});
-                        },
-                      ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
-              const Divider(color: AppColors.scaffold, height: 24),
-              const Text(
-                'Nueva Categoría',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white70,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _NewCategoryForm(
-                onAdd: (name, icon, isExp, accType) async {
-                  await vm.addCategory(
-                    name: name,
-                    icon: icon,
-                    isExpense: isExp,
-                    accountType: accType,
-                  );
-                  setSheetState(() {});
-                },
-              ),
-            ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Toggle chip ─────────────────────────────────────────────────────────────
+
+class _ZenToggleChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color activeColor;
+  final VoidCallback onTap;
+
+  const _ZenToggleChip({
+    required this.label,
+    required this.selected,
+    required this.activeColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected ? activeColor.withValues(alpha: 0.5) : _kDivider,
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selected ? activeColor : _kTextSec,
+              fontSize: 10,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ),
@@ -804,38 +774,48 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 }
 
-// ─── Widgets privados ───
+// ─── Row de categoría ────────────────────────────────────────────────────────
 
-class _BalanceHeader extends StatelessWidget {
-  final double total;
-  const _BalanceHeader({required this.total});
+class _ZenCategoryRow extends StatelessWidget {
+  final CategoryEntity cat;
+  final VoidCallback onDelete;
+
+  const _ZenCategoryRow({required this.cat, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        border: Border(bottom: BorderSide(color: _kDivider)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text(
-            'Tesoro Real',
-            style: TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${total.toStringAsFixed(2)} G',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+          Text(cat.icon, style: TextStyle(fontSize: 18)),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cat.name,
+                  style: TextStyle(color: _kTextPrim, fontSize: 14),
+                ),
+                Text(
+                  '${cat.isExpense ? 'GASTO' : 'INGRESO'}'
+                  '${cat.accountType != null ? ' · ${cat.accountType!.toUpperCase()}' : ''}',
+                  style: TextStyle(
+                    color: _kTextSec,
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
+          ),
+          GestureDetector(
+            onTap: onDelete,
+            child: Icon(Icons.close, color: _kDanger, size: 16),
           ),
         ],
       ),
@@ -843,138 +823,49 @@ class _BalanceHeader extends StatelessWidget {
   }
 }
 
-class _AccountTile extends StatelessWidget {
-  final AccountEntity account;
-  final FinanceViewModel vm;
+// ─── Opción de menú ─────────────────────────────────────────────────────────
 
-  const _AccountTile({required this.account, required this.vm});
+class ZenMenuTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const ZenMenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final icon = switch (account.type) {
-      'Bank' => Icons.account_balance,
-      'Investment' => Icons.trending_up,
-      _ => Icons.wallet,
-    };
-
-    return Dismissible(
-      key: ValueKey(account.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: AppColors.danger,
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      confirmDismiss: (_) => showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: const Text(
-            'Borrar cuenta',
-            style: TextStyle(color: AppColors.textPrimary),
-          ),
-          content: Text(
-            '¿Eliminar "${account.name}" y todas sus transacciones?',
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                'Borrar',
-                style: TextStyle(color: AppColors.danger),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: _kDivider)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: _kTextSec, size: 16),
+            SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                color: _kTextPrim,
+                fontSize: 11,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
         ),
       ),
-      onDismissed: (_) => vm.deleteAccount(account.id),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.finance),
-        title: Text(
-          account.name,
-          style: const TextStyle(color: AppColors.textPrimary),
-        ),
-        trailing: Text(
-          '${account.balance.toStringAsFixed(2)} ${account.currency}',
-          style: TextStyle(
-            color: account.balance >= 0 ? Colors.green : AppColors.danger,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
     );
   }
 }
 
-class _TransactionTile extends StatelessWidget {
-  final TransactionEntity txn;
-  final FinanceViewModel vm;
-
-  const _TransactionTile({required this.txn, required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    final isIncome = txn.isIncome;
-    final isTransfer = txn.isTransfer;
-
-    return Dismissible(
-      key: ValueKey(txn.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: AppColors.danger,
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      onDismissed: (_) => vm.removeTransaction(txn.id),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor:
-              (isTransfer
-                      ? AppColors.finance
-                      : isIncome
-                      ? Colors.green
-                      : AppColors.danger)
-                  .withValues(alpha: 0.15),
-          child: Icon(
-            isTransfer
-                ? Icons.sync_alt
-                : isIncome
-                ? Icons.arrow_downward
-                : Icons.arrow_upward,
-            color: isTransfer
-                ? AppColors.finance
-                : isIncome
-                ? Colors.green
-                : AppColors.danger,
-            size: 18,
-          ),
-        ),
-        title: Text(
-          txn.category,
-          style: const TextStyle(color: AppColors.textPrimary),
-        ),
-        subtitle: Text(
-          txn.note ?? '${txn.date.day}/${txn.date.month}/${txn.date.year}',
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        trailing: Text(
-          '${isIncome ? '+' : ''}${txn.amount.toStringAsFixed(2)} G',
-          style: TextStyle(
-            color: isIncome ? Colors.green : AppColors.danger,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ─── Formulario nueva categoría ─────────────────────────────────────────────
 
 class _NewCategoryForm extends StatefulWidget {
   final Function(String, String, bool, String?) onAdd;
@@ -985,118 +876,100 @@ class _NewCategoryForm extends StatefulWidget {
 }
 
 class _NewCategoryFormState extends State<_NewCategoryForm> {
-  final nameCtrl = TextEditingController();
-  final iconCtrl = TextEditingController(text: '🏷️');
-  bool isExpense = true;
+  final nameCtrl  = TextEditingController();
+  final iconCtrl  = TextEditingController(text: '🏷️');
+  bool isExpense  = true;
   String? accountType;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             SizedBox(
-              width: 50,
+              width: 48,
               child: TextField(
                 controller: iconCtrl,
                 textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.scaffold,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                style: TextStyle(fontSize: 18),
+                decoration: _zenInput(hint: ''),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 12),
             Expanded(
               child: TextField(
                 controller: nameCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Ej: Gym, Comida...',
-                  hintStyle: const TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.scaffold,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                style: TextStyle(color: _kTextPrim, fontSize: 14),
+                decoration: _zenInput(hint: 'Ej: Gym, Comida…'),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 14),
         Row(
           children: [
-            Expanded(
-              child: ChoiceChip(
-                label: const Center(child: Text('Gasto')),
-                selected: isExpense,
-                onSelected: (_) => setState(() => isExpense = true),
-              ),
+            _ZenToggleChip(
+              label: 'GASTO',
+              selected: isExpense,
+              activeColor: _kDanger,
+              onTap: () => setState(() => isExpense = true),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ChoiceChip(
-                label: const Center(child: Text('Ingreso')),
-                selected: !isExpense,
-                onSelected: (_) => setState(() => isExpense = false),
-              ),
+            SizedBox(width: 8),
+            _ZenToggleChip(
+              label: 'INGRESO',
+              selected: !isExpense,
+              activeColor: _kSageGreen,
+              onTap: () => setState(() => isExpense = false),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 12),
         DropdownButtonFormField<String?>(
           initialValue: accountType,
-          dropdownColor: AppColors.surface,
-          hint: const Text(
-            'Tipo Cuenta (Opcional)',
-            style: TextStyle(color: AppColors.textSecondary),
+          dropdownColor: _kSurface,
+          hint: Text(
+            'TIPO CUENTA (OPCIONAL)',
+            style: TextStyle(
+              color: _kTextSec,
+              fontSize: 10,
+              letterSpacing: 1.2,
+            ),
           ),
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.scaffold,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('Todas')),
-            DropdownMenuItem(value: 'Bank', child: Text('Banco')),
+          style: TextStyle(color: _kTextPrim, fontSize: 14),
+          decoration: _zenInput(hint: ''),
+          items: [
+            DropdownMenuItem(value: null,         child: Text('Todas')),
+            DropdownMenuItem(value: 'Bank',       child: Text('Banco')),
             DropdownMenuItem(value: 'Investment', child: Text('Inversión')),
           ],
           onChanged: (v) => setState(() => accountType = v),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 44,
-          child: ElevatedButton(
-            onPressed: () {
-              if (nameCtrl.text.isEmpty) return;
-              widget.onAdd(
-                nameCtrl.text,
-                iconCtrl.text,
-                isExpense,
-                accountType,
-              );
-              nameCtrl.clear();
-              setState(() {
-                isExpense = true;
-                accountType = null;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.finance,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            if (nameCtrl.text.isEmpty) return;
+            widget.onAdd(nameCtrl.text, iconCtrl.text, isExpense, accountType);
+            nameCtrl.clear();
+            setState(() {
+              isExpense   = true;
+              accountType = null;
+            });
+          },
+          child: Container(
+            width: double.infinity,
+            height: 44,
+            color: _kTextPrim,
+            alignment: Alignment.center,
+            child: Text(
+              'AÑADIR CATEGORÍA',
+              style: TextStyle(
+                color: AppColors.scaffold,
+                fontSize: 10,
+                letterSpacing: 2.5,
+                fontWeight: FontWeight.w600,
               ),
-            ),
-            child: const Text(
-              'Añadir Categoría',
-              style: TextStyle(color: Colors.white),
             ),
           ),
         ),
@@ -1104,3 +977,459 @@ class _NewCategoryFormState extends State<_NewCategoryForm> {
     );
   }
 }
+
+
+  void showFinanceAddMenu(BuildContext context, FinanceViewModel vm) {
+    showAdaptiveModal<void>(
+      context,
+      SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: _kSurface,
+            border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 28),
+              ZenMenuTile(
+                icon: Icons.account_balance_outlined,
+                label: 'NUEVA CUENTA',
+                onTap: () {
+                  Navigator.pop(context);
+                  showCreateAccount(context, vm);
+                },
+              ),
+              if (vm.accounts.isNotEmpty)
+                ZenMenuTile(
+                  icon: Icons.swap_vert,
+                  label: 'NUEVA TRANSACCIÓN',
+                  onTap: () {
+                    Navigator.pop(context);
+                    showCreateTransaction(context, vm);
+                  },
+                ),
+              if (vm.accounts.length >= 2)
+                ZenMenuTile(
+                  icon: Icons.sync_alt,
+                  label: 'TRANSFERIR',
+                  onTap: () {
+                    Navigator.pop(context);
+                    showCreateTransfer(context, vm);
+                  },
+                ),
+              SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  void showCreateAccount(BuildContext context, FinanceViewModel vm) {
+    final nameCtrl    = TextEditingController();
+    final balanceCtrl = TextEditingController();
+    String type       = 'Cash';
+
+    showAdaptiveModal<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setSheetState) => ZenSheet(
+          title: 'Nueva Cuenta',
+          ctx: ctx,
+          onCancel: () => Navigator.pop(ctx),
+          onConfirm: () {
+            final name = nameCtrl.text.trim();
+            if (name.isEmpty) return;
+            final balance = double.tryParse(balanceCtrl.text.trim()) ?? 0;
+            vm.createAccount(name: name, type: type, initialBalance: balance);
+            Navigator.pop(ctx);
+          },
+          confirmLabel: 'CREAR',
+          children: [
+            TextField(
+              controller: nameCtrl,
+              style: TextStyle(color: _kTextPrim),
+              decoration: _zenInput(hint: 'Ej: Banco, Cartera'),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: balanceCtrl,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(color: _kTextPrim),
+              decoration: _zenInput(hint: 'Saldo inicial (€)'),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'TIPO',
+              style: TextStyle(
+                color: _kTextSec,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: ['Cash', 'Bank', 'Investment'].map((t) {
+                final isActive = type == t;
+                final label = switch (t) {
+                  'Cash'       => 'EFECTIVO',
+                  'Bank'       => 'BANCO',
+                  'Investment' => 'INVERSIÓN',
+                  _            => t.toUpperCase(),
+                };
+                return GestureDetector(
+                  onTap: () => setSheetState(() => type = t),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isActive
+                            ? _kTextPrim.withValues(alpha: 0.35)
+                            : _kDivider,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: isActive ? _kTextPrim : _kTextSec,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  void showCreateTransaction(BuildContext context, FinanceViewModel vm) {
+    if (vm.accounts.isEmpty) return;
+
+    final amountCtrl      = TextEditingController();
+    final noteCtrl        = TextEditingController();
+    String? selectedAccId = vm.accounts.first.id;
+    bool isExpense        = true;
+
+    List<CategoryEntity> categoriesFor(String? accId, bool isExp) {
+      final acc = vm.accounts.where((a) => a.id == accId).firstOrNull;
+      return vm.categoriesFor(acc?.type, isExp);
+    }
+
+    String category =
+        categoriesFor(selectedAccId, isExpense).firstOrNull?.name ?? 'General';
+
+    showAdaptiveModal<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setSheetState) => ZenSheet(
+          title: 'Nueva Transacción',
+          ctx: ctx,
+          trailing: GestureDetector(
+            onTap: () => showManageCategories(context, vm),
+            child: Text(
+              'GESTIONAR',
+              style: TextStyle(
+                color: _kSageGreen,
+                fontSize: 10,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+          onCancel: () => Navigator.pop(ctx),
+          onConfirm: () {
+            final amount = double.tryParse(amountCtrl.text) ?? 0;
+            if (amount <= 0 || selectedAccId == null) return;
+            vm.addTransaction(
+              accountId: selectedAccId!,
+              amount: isExpense ? -amount : amount,
+              category: category,
+              note: noteCtrl.text.isEmpty ? null : noteCtrl.text,
+            );
+            Navigator.pop(ctx);
+          },
+          confirmLabel: 'AÑADIR',
+          children: [
+            // Tipo
+            Row(
+              children: [
+                _ZenToggleChip(
+                  label: 'GASTO',
+                  selected: isExpense,
+                  activeColor: _kDanger,
+                  onTap: () => setSheetState(() {
+                    isExpense = true;
+                    category = categoriesFor(selectedAccId, isExpense)
+                            .firstOrNull
+                            ?.name ??
+                        'General';
+                  }),
+                ),
+                SizedBox(width: 8),
+                _ZenToggleChip(
+                  label: 'INGRESO',
+                  selected: !isExpense,
+                  activeColor: _kSageGreen,
+                  onTap: () => setSheetState(() {
+                    isExpense = false;
+                    category = categoriesFor(selectedAccId, isExpense)
+                            .firstOrNull
+                            ?.name ??
+                        'General';
+                  }),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            // Cantidad
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: _kTextPrim, fontSize: 22),
+              decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
+            ),
+            SizedBox(height: 16),
+            // Cuenta
+            DropdownButtonFormField<String>(
+              initialValue: selectedAccId,
+              dropdownColor: _kSurface,
+              style: TextStyle(color: _kTextPrim, fontSize: 14),
+              decoration: _zenInput(hint: '', label: 'Cuenta'),
+              items: vm.accounts.map((a) {
+                final typeName = switch (a.type) {
+                  'Bank'       => 'Banco',
+                  'Investment' => 'Inversión',
+                  'Cash'       => 'Efectivo',
+                  _            => a.type,
+                };
+                return DropdownMenuItem(
+                  value: a.id,
+                  child: Text('${a.name} ($typeName)'),
+                );
+              }).toList(),
+              onChanged: (v) => setSheetState(() {
+                selectedAccId = v;
+                category = categoriesFor(v, isExpense).firstOrNull?.name ??
+                    'General';
+              }),
+            ),
+            SizedBox(height: 20),
+            // Categorías
+            Text(
+              'CATEGORÍA',
+              style: TextStyle(
+                color: _kTextSec,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: categoriesFor(selectedAccId, isExpense).map((c) {
+                final isSelected = category == c.name;
+                return GestureDetector(
+                  onTap: () => setSheetState(() => category = c.name),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isSelected
+                            ? _kTextPrim.withValues(alpha: 0.35)
+                            : _kDivider,
+                      ),
+                    ),
+                    child: Text(
+                      '${c.icon} ${c.name.toUpperCase()}',
+                      style: TextStyle(
+                        color: isSelected ? _kTextPrim : _kTextSec,
+                        fontSize: 10,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
+            // Nota
+            TextField(
+              controller: noteCtrl,
+              style: TextStyle(color: _kTextPrim, fontSize: 14),
+              decoration: _zenInput(hint: 'Nota (opcional)'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  void showCreateTransfer(BuildContext context, FinanceViewModel vm) {
+    final amountCtrl = TextEditingController();
+    final noteCtrl   = TextEditingController();
+    String? fromId   = vm.accounts.first.id;
+    String? toId     = vm.accounts.length > 1 ? vm.accounts[1].id : null;
+
+    showAdaptiveModal<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setSheetState) => ZenSheet(
+          title: 'Transferir',
+          ctx: ctx,
+          onCancel: () => Navigator.pop(ctx),
+          onConfirm: () {
+            final raw = double.tryParse(amountCtrl.text.trim());
+            if (raw == null ||
+                raw <= 0 ||
+                fromId == null ||
+                toId == null ||
+                fromId == toId) {
+              return;
+            }
+            vm.transferMoney(
+              fromAccountId: fromId!,
+              toAccountId: toId!,
+              amount: raw,
+              note: noteCtrl.text.trim().isEmpty
+                  ? null
+                  : noteCtrl.text.trim(),
+            );
+            Navigator.pop(ctx);
+          },
+          confirmLabel: 'TRANSFERIR',
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: fromId,
+              dropdownColor: _kSurface,
+              style: TextStyle(color: _kTextPrim, fontSize: 14),
+              decoration: _zenInput(hint: '', label: 'Desde'),
+              items: vm.accounts.map((a) {
+                final typeName = switch (a.type) {
+                  'Bank'       => 'Banco',
+                  'Investment' => 'Inversión',
+                  'Cash'       => 'Efectivo',
+                  _            => a.type,
+                };
+                return DropdownMenuItem(
+                  value: a.id,
+                  child: Text('${a.name} ($typeName)'),
+                );
+              }).toList(),
+              onChanged: (v) => setSheetState(() => fromId = v),
+            ),
+            SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: toId,
+              dropdownColor: _kSurface,
+              style: TextStyle(color: _kTextPrim, fontSize: 14),
+              decoration: _zenInput(hint: '', label: 'Hacia'),
+              items: vm.accounts.map((a) {
+                final typeName = switch (a.type) {
+                  'Bank'       => 'Banco',
+                  'Investment' => 'Inversión',
+                  'Cash'       => 'Efectivo',
+                  _            => a.type,
+                };
+                return DropdownMenuItem(
+                  value: a.id,
+                  child: Text('${a.name} ($typeName)'),
+                );
+              }).toList(),
+              onChanged: (v) => setSheetState(() => toId = v),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(color: _kTextPrim, fontSize: 22),
+              decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: noteCtrl,
+              style: TextStyle(color: _kTextPrim, fontSize: 14),
+              decoration: _zenInput(hint: 'Nota (opcional)'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  void showManageCategories(BuildContext context, FinanceViewModel vm) {
+    showAdaptiveModal<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setSheetState) => ZenSheet(
+          title: 'Categorías',
+          ctx: ctx,
+          onCancel: () => Navigator.pop(ctx),
+          children: [
+            SizedBox(
+              height: 260,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: vm.categories.length,
+                itemBuilder: (context, index) {
+                  final cat = vm.categories[index];
+                  return _ZenCategoryRow(
+                    cat: cat,
+                    onDelete: () async {
+                      await vm.deleteCategory(cat.id);
+                      setSheetState(() {});
+                    },
+                  );
+                },
+              ),
+            ),
+            Container(
+              height: 1,
+              color: _kDivider,
+              margin: EdgeInsets.symmetric(vertical: 16),
+            ),
+            Text(
+              'NUEVA CATEGORÍA',
+              style: TextStyle(
+                color: _kTextSec,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 12),
+            _NewCategoryForm(
+              onAdd: (name, icon, isExp, accType) async {
+                await vm.addCategory(
+                  name: name,
+                  icon: icon,
+                  isExpense: isExp,
+                  accountType: accType,
+                );
+                setSheetState(() {});
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }

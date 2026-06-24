@@ -12,7 +12,7 @@ class AuthRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
   // Modo desarrollador: acceso rápido sin Supabase
-  static const bool devQuickAccess = kDebugMode;
+  static bool devQuickAccess = kDebugMode;
 
   Future<void> signIn({required String email, required String password}) async {
     await _client.auth.signInWithPassword(email: email, password: password);

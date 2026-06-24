@@ -10,7 +10,7 @@ enum AiClassification { gasto, tarea, habito, nota }
 /// System prompt embedded in code (NOT in Supabase config).
 /// API key stored in shared_preferences (NOT Supabase).
 class AiService {
-  static const String _systemPrompt = '''
+  static final String _systemPrompt = '''
 Eres un asistente que clasifica texto en exactamente una de estas 4 categorías:
 - GASTO: gastos, compras, pagos, transacciones financieras
 - TAREA: tareas, pendientes, quehaceres, obligaciones
@@ -26,7 +26,8 @@ No escribas nada más, solo el JSON.
   Future<(AiClassification, double)> classify(String text) async {
     final prefs = await SharedPreferences.getInstance();
     final apiKey = prefs.getString('ai_api_key');
-    final provider = prefs.getString('ai_provider') ?? 'openai';
+    final endpoint = prefs.getString('ai_endpoint');
+    final aiModel = prefs.getString('ai_model');
 
     if (apiKey == null || apiKey.isEmpty) {
       return (AiClassification.nota, 0.0);
@@ -34,7 +35,7 @@ No escribas nada más, solo el JSON.
 
     try {
       final body = jsonEncode({
-        'model': provider == 'gemini' ? 'gemini-pro' : 'gpt-3.5-turbo',
+        'model': (aiModel != null && aiModel.trim().isNotEmpty) ? aiModel.trim() : 'gpt-3.5-turbo',
         'messages': [
           {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': text},
@@ -43,9 +44,10 @@ No escribas nada más, solo el JSON.
         'temperature': 0.0,
       });
 
-      final uri = provider == 'gemini'
-          ? Uri.parse('https://api.gemini.com/v1/chat/completions')
-          : Uri.parse('https://api.openai.com/v1/chat/completions');
+      final uriStr = (endpoint != null && endpoint.trim().isNotEmpty)
+          ? endpoint.trim()
+          : 'https://api.openai.com/v1/chat/completions';
+      final uri = Uri.parse(uriStr);
 
       final response = await http.post(
         uri,
@@ -54,7 +56,7 @@ No escribas nada más, solo el JSON.
           'Authorization': 'Bearer $apiKey',
         },
         body: body,
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         return (AiClassification.nota, 0.0);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -11,7 +12,9 @@ import '../viewmodels/habits_viewmodel.dart';
 import '../widgets/habit_heatmap.dart';
 import '../widgets/habit_stats_card.dart';
 
-/// Pantalla de Hábitos — toggle entre Lista (checkboxes) y Stats (analytics).
+/// Pantalla de Rituales — toggle entre Lista (checkboxes) y Stats (analytics).
+/// Diseño Zen OS: flat, fondo negro, acento sage green.
+/// El botón de añadir está en el header (no FAB propio — el Dashboard gestiona los FABs globales).
 class HabitsScreen extends StatefulWidget {
   const HabitsScreen({super.key});
 
@@ -45,17 +48,19 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   Widget _buildWebLayout(HabitsViewModel vm) {
     return Scaffold(
+      backgroundColor: AppColors.scaffold,
       body: vm.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.habits),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.habits,
+                strokeWidth: 1,
+              ),
             )
           : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Izquierda: lista de hábitos de hoy
-                Expanded(child: _ListView(vm: vm)),
-                const VerticalDivider(width: 1, color: AppColors.divider),
-                // Derecha: stats
+                Expanded(child: _ListView(vm: vm, onAdd: () => showHabitCreateSheet(context, vm))),
+                Container(width: 1, color: AppColors.divider),
                 Expanded(
                   child: _StatsView(
                     vm: vm,
@@ -66,153 +71,151 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'habits_fab_web', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
-        backgroundColor: AppColors.habits,
-        onPressed: () => _showCreateSheet(context, vm),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
   // ── MOBILE: toggle lista / stats ────────────────────────────────────────────
 
   Widget _buildMobileLayout(HabitsViewModel vm) {
+    final today = DateFormat('EEEE, d MMM', 'es').format(DateTime.now());
+
     return Scaffold(
+      backgroundColor: AppColors.scaffold,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ViewToggle(
-            showStats: _showStats,
-            onToggle: (v) => setState(() => _showStats = v),
-          ),
-          Expanded(
-            child: vm.isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColors.habits),
-                  )
-                : _showStats
-                ? _StatsView(
-                    vm: vm,
-                    selectedHabitId: _selectedHabitId,
-                    onHabitSelected: (id) =>
-                        setState(() => _selectedHabitId = id),
-                  )
-                : _ListView(vm: vm),
-          ),
-        ],
-      ),
-      ),
-      floatingActionButton: _showStats
-          ? null
-          : FloatingActionButton(
-              heroTag: 'habits_fab_mobile', // ponytail: unique tag — IndexedStack keeps all sibling FABs mounted
-              backgroundColor: AppColors.habits,
-              onPressed: () => _showCreateSheet(context, vm),
-              child: const Icon(Icons.add, color: Colors.white),
+            // ── Header compartido ──
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Label superior: fecha uppercase
+                  Text(
+                    today.toUpperCase(),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 9,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  // Título grande + botón añadir en la misma fila
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Hábitos',
+                        style: GoogleFonts.inter(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                          height: 1.0,
+                        ),
+                      ),
+                      Spacer(),
+                      // Botón + en el header (no FAB)
+                      GestureDetector(
+                        onTap: () => showHabitCreateSheet(context, vm),
+                        child: Icon(
+                          Icons.add,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Barra de progreso: 1px justo bajo el título
+                  if (!_showStats) ...[
+                    SizedBox(height: 8),
+                    _DayProgressBar(vm: vm),
+                  ],
+                  SizedBox(height: 18),
+                  // Toggle lista/stats
+                  _ViewToggle(
+                    showStats: _showStats,
+                    onToggle: (v) => setState(() => _showStats = v),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(height: 12),
+            // Divisor ultra fino
+            Container(height: 1, color: AppColors.divider),
+            // Contenido
+            Expanded(
+              child: vm.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.habits,
+                        strokeWidth: 1,
+                      ),
+                    )
+                  : _showStats
+                      ? _StatsView(
+                          vm: vm,
+                          selectedHabitId: _selectedHabitId,
+                          onHabitSelected: (id) =>
+                              setState(() => _selectedHabitId = id),
+                        )
+                      : _ListView(vm: vm, onAdd: () => showHabitCreateSheet(context, vm)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   // ─── Bottom Sheet: Crear hábito ───
 
-  void _showCreateSheet(BuildContext context, HabitsViewModel vm) {
-    final titleCtrl = TextEditingController();
-    final days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
-    final selected = <String>{...days};
 
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Nuevo Hábito',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: titleCtrl,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Ej: Beber 2L de agua',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Días activos',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                children: days.map((d) {
-                  final isActive = selected.contains(d);
-                  return FilterChip(
-                    label: Text(
-                      d,
-                      style: TextStyle(
-                        color: isActive
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    selected: isActive,
-                    selectedColor: AppColors.habits,
-                    checkmarkColor: Colors.white,
-                    backgroundColor: AppColors.scaffold,
-                    onSelected: (v) {
-                      setSheetState(() {
-                        v ? selected.add(d) : selected.remove(d);
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.habits,
-                  ),
-                  onPressed: () {
-                    final title = titleCtrl.text.trim();
-                    if (title.isEmpty) return;
-                    vm.createHabit(
-                      title: title,
-                      frequencyMask: selected.join(','),
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Crear Hábito'),
-                ),
-              ),
-            ],
+}
+
+// ═══════════════════════════════════════════════════════
+//  Barra de progreso del día — 1px, justo bajo el título
+// ═══════════════════════════════════════════════════════
+
+class _DayProgressBar extends StatelessWidget {
+  final HabitsViewModel vm;
+
+  const _DayProgressBar({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    final total = vm.todayHabits.length;
+    final done = vm.todayHabits.where((h) => vm.isCompletedToday(h.id)).length;
+    final progress = total == 0 ? 0.0 : done / total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            Container(height: 1, color: Color(0x12FFFFFF)),
+            FractionallySizedBox(
+              widthFactor: progress,
+              child: Container(height: 1, color: AppColors.habits),
+            ),
+          ],
+        ),
+        SizedBox(height: 4),
+        Text(
+          '$done / $total completados',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 10,
+            letterSpacing: 0.5,
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════
-//  Toggle Lista / Stats
+//  Toggle Lista / Stats — filtros uppercase, línea activa
 // ═══════════════════════════════════════════════════════
 
 class _ViewToggle extends StatelessWidget {
@@ -223,108 +226,98 @@ class _ViewToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Row(
-        children: [
-          _tab(Icons.checklist, 'Lista', !showStats, () => onToggle(false)),
-          const SizedBox(width: 8),
-          _tab(Icons.insights, 'Stats', showStats, () => onToggle(true)),
-        ],
-      ),
+    return Row(
+      children: [
+        _tab('RITUALES', !showStats, () => onToggle(false)),
+        SizedBox(width: 20),
+        _tab('ESTADÍSTICAS', showStats, () => onToggle(true)),
+      ],
     );
   }
 
-  Widget _tab(IconData icon, String label, bool active, VoidCallback onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: active
-                ? AppColors.habits.withValues(alpha: 0.15)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: active ? AppColors.habits : AppColors.divider,
+  Widget _tab(String label, bool active, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: active ? AppColors.textPrimary : AppColors.textSecondary,
+              fontSize: 10,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: active ? AppColors.habits : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: active ? AppColors.habits : AppColors.textSecondary,
-                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+          SizedBox(height: 3),
+          AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            height: 1.5,
+            width: active ? (label.length * 6.5).clamp(0.0, 120.0) : 0,
+            color: AppColors.textPrimary,
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════
-//  Vista Lista (checkboxes — la original)
+//  Vista Lista
 // ═══════════════════════════════════════════════════════
 
 class _ListView extends StatelessWidget {
   final HabitsViewModel vm;
+  final VoidCallback? onAdd;
 
-  const _ListView({required this.vm});
+  const _ListView({required this.vm, this.onAdd});
 
   @override
   Widget build(BuildContext context) {
     if (vm.todayHabits.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.self_improvement_outlined,
-              size: 48,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Sin hábitos para hoy.\n¡Crea tu primer entrenamiento!',
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
+        child: Text(
+          'Aún no hay hábitos',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: vm.todayHabits.length,
-      itemBuilder: (_, i) => _HabitTile(habit: vm.todayHabits[i], vm: vm),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Text(
+              'HOY',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (_, i) => _HabitTile(habit: vm.todayHabits[i], vm: vm),
+            childCount: vm.todayHabits.length,
+          ),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: 80)),
+      ],
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════
-//  Vista Stats (analytics dashboard)
+//  Vista Stats
 // ═══════════════════════════════════════════════════════
 
 class _StatsView extends StatelessWidget {
   final HabitsViewModel vm;
-  // null = vista global "Todos"
   final String? selectedHabitId;
   final ValueChanged<String?> onHabitSelected;
 
@@ -340,17 +333,20 @@ class _StatsView extends StatelessWidget {
     final habits = vm.habits;
 
     if (habits.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Crea hábitos para ver estadísticas',
-          style: TextStyle(color: AppColors.textSecondary),
+          'Aún no hay hábitos',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
       );
     }
 
     if (analytics == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.habits),
+      return Center(
+        child: CircularProgressIndicator(
+          color: AppColors.habits,
+          strokeWidth: 1,
+        ),
       );
     }
 
@@ -360,70 +356,64 @@ class _StatsView extends StatelessWidget {
         : (habits.where((h) => h.id == selectedHabitId).firstOrNull ??
             habits.first);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Selector: Todos + hábitos individuales ──
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: habits.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (_, i) {
-                if (i == 0) {
-                  return ChoiceChip(
-                    label: Text(
-                      'Todos',
-                      style: TextStyle(
-                        color: showGlobal
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    selected: showGlobal,
-                    selectedColor: AppColors.habits,
-                    backgroundColor: AppColors.surface,
-                    side: BorderSide(
-                      color: showGlobal
-                          ? AppColors.habits
-                          : AppColors.divider,
-                    ),
-                    onSelected: (_) => onHabitSelected(null),
-                  );
-                }
-                final h = habits[i - 1];
-                final isSelected =
-                    !showGlobal && h.id == selectedHabit!.id;
-                return ChoiceChip(
-                  label: Text(
-                    h.title,
-                    style: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
+    return CustomScrollView(
+      slivers: [
+        // Selector de filtro
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'FILTRAR POR RITUAL',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 9,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w500,
                   ),
-                  selected: isSelected,
-                  selectedColor: AppColors.habits,
-                  backgroundColor: AppColors.surface,
-                  side: BorderSide(
-                    color: isSelected ? AppColors.habits : AppColors.divider,
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: 32,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: habits.length + 1,
+                    separatorBuilder: (_, _) => SizedBox(width: 8),
+                    itemBuilder: (_, i) {
+                      if (i == 0) {
+                        return _ZenChip(
+                          label: 'Todos',
+                          active: showGlobal,
+                          onTap: () => onHabitSelected(null),
+                        );
+                      }
+                      final h = habits[i - 1];
+                      final isSelected =
+                          !showGlobal && h.id == selectedHabit!.id;
+                      return _ZenChip(
+                        label: h.title,
+                        active: isSelected,
+                        onTap: () => onHabitSelected(h.id),
+                      );
+                    },
                   ),
-                  onSelected: (_) => onHabitSelected(h.id),
-                );
-              },
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Divider(height: 1, thickness: 1, color: AppColors.divider),
+          ),
+        ),
 
-          if (showGlobal) ...[
-            // ─── Vista Global ───
-            _GlobalStatsSection(
+        if (showGlobal) ...[
+          SliverToBoxAdapter(
+            child: _GlobalStatsSection(
               overallRate: analytics.overallCompletionRate(),
               habitCount: habits.length,
               perHabitRates: {
@@ -432,83 +422,117 @@ class _StatsView extends StatelessWidget {
               },
               globalTrend: analytics.overallMonthlyTrend(),
             ),
-          ] else ...[
-            // ─── Vista Individual ───
-            HabitStatsCard(
-              currentStreak: analytics.currentStreak(selectedHabit!.id),
-              bestStreak: analytics.bestStreak(selectedHabit.id),
-              completionRate: analytics.completionRate(selectedHabit.id),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Actividad (90 días)',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              color: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: HabitHeatmap(
-                  data: analytics.weeklyHeatmap(selectedHabit.id),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Tendencia mensual',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              color: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
-                child: SizedBox(
-                  height: 200,
-                  child: _MonthlyTrendChart(
-                    data: analytics.monthlyTrend(selectedHabit.id, months: 6),
+          ),
+        ] else ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 24, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HabitStatsCard(
+                    currentStreak: analytics.currentStreak(selectedHabit!.id),
+                    bestStreak: analytics.bestStreak(selectedHabit.id),
+                    completionRate: analytics.completionRate(selectedHabit.id),
                   ),
-                ),
+                  SizedBox(height: 28),
+                  Text(
+                    'ACTIVIDAD — 90 DÍAS',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 9,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  HabitHeatmap(
+                    data: analytics.weeklyHeatmap(selectedHabit.id),
+                  ),
+                  SizedBox(height: 28),
+                  Text(
+                    'TENDENCIA MENSUAL',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 9,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  SizedBox(
+                    height: 200,
+                    child: _MonthlyTrendChart(
+                      data: analytics.monthlyTrend(
+                        selectedHabit.id,
+                        months: 6,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 40),
+                ],
               ),
             ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ],
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Chip Zen — borde fino, sin relleno
+// ═══════════════════════════════════════════════════════
+
+class _ZenChip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _ZenChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 150),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: active ? AppColors.habits : AppColors.divider,
+            width: 1,
+          ),
+          color: active
+              ? AppColors.habits.withValues(alpha: 0.07)
+              : Colors.transparent,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? AppColors.habits : AppColors.textSecondary,
+            fontSize: 11,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════
-//  Line Chart — Tendencia mensual (fl_chart)
-// ═══════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════
-//  Vista Global — stats del conjunto de todos los hábitos
+//  Vista Global
 // ═══════════════════════════════════════════════════════
 
 class _GlobalStatsSection extends StatelessWidget {
   final double overallRate;
   final int habitCount;
-  final Map<String, double> perHabitRates; // nombre → tasa 0-1
-  final Map<String, double> globalTrend;   // 'YYYY-MM' → tasa 0-1
+  final Map<String, double> perHabitRates;
+  final Map<String, double> globalTrend;
 
   const _GlobalStatsSection({
     required this.overallRate,
@@ -520,165 +544,157 @@ class _GlobalStatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (overallRate * 100).round();
-    // Ordenar hábitos de mayor a menor tasa
     final sorted = perHabitRates.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Resumen global ──
-        Card(
-          color: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Número grande ──
+          Text(
+            'TASA GLOBAL',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.speed, color: AppColors.habits, size: 32),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tasa global — $habitCount hábitos',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$pct%',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: overallRate,
-                          minHeight: 6,
-                          backgroundColor: AppColors.divider,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppColors.habits,
-                          ),
-                        ),
-                      ),
-                    ],
+          SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$pct',
+                style: GoogleFonts.inter(
+                  fontSize: 64,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: 8, left: 4),
+                child: Text(
+                  '%',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 20,
                   ),
                 ),
-              ],
+              ),
+              Spacer(),
+              Text(
+                '$habitCount rituales',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Stack(
+            children: [
+              Container(height: 1, color: Color(0x12FFFFFF)),
+              FractionallySizedBox(
+                widthFactor: overallRate,
+                child: Container(height: 1, color: AppColors.habits),
+              ),
+            ],
+          ),
+          SizedBox(height: 32),
+
+          // ── Tasa por hábito ──
+          Text(
+            'TASA POR RITUAL — 30 DÍAS',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-
-        // ── Tasa por hábito ──
-        const Text(
-          'Tasa por hábito (30 días)',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          color: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: sorted.map((e) {
-                final rate = e.value;
-                final p = (rate * 100).round();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          e.key,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+          SizedBox(height: 14),
+          ...sorted.map((e) {
+            final rate = e.value;
+            final p = (rate * 100).round();
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppColors.divider, width: 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      e.key,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 5,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: rate,
-                            minHeight: 7,
-                            backgroundColor: AppColors.divider,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              rate >= 0.7
-                                  ? AppColors.habits
-                                  : AppColors.habits.withValues(alpha: 0.45),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 36,
-                        child: Text(
-                          '$p%',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ],
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    flex: 5,
+                    child: Stack(
+                      children: [
+                        Container(height: 1, color: Color(0x12FFFFFF)),
+                        FractionallySizedBox(
+                          widthFactor: rate,
+                          child: Container(
+                            height: 1,
+                            color: rate >= 0.7
+                                ? AppColors.habits
+                                : AppColors.habits.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  SizedBox(
+                    width: 36,
+                    child: Text(
+                      '$p%',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          SizedBox(height: 32),
 
-        // ── Tendencia global mensual ──
-        const Text(
-          'Tendencia global mensual',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          color: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
-            child: SizedBox(
-              height: 200,
-              child: _MonthlyTrendChart(data: globalTrend),
+          // ── Tendencia global ──
+          Text(
+            'TENDENCIA GLOBAL MENSUAL',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-        const SizedBox(height: 32),
-      ],
+          SizedBox(height: 12),
+          SizedBox(
+            height: 200,
+            child: _MonthlyTrendChart(data: globalTrend),
+          ),
+          SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }
@@ -688,14 +704,14 @@ class _GlobalStatsSection extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 
 class _MonthlyTrendChart extends StatelessWidget {
-  final Map<String, double> data; // {'2026-01': 0.85, ...}
+  final Map<String, double> data;
 
   const _MonthlyTrendChart({required this.data});
 
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Sin datos suficientes',
           style: TextStyle(color: AppColors.textSecondary),
@@ -721,10 +737,10 @@ class _MonthlyTrendChart extends StatelessWidget {
               FlLine(color: AppColors.divider, strokeWidth: 0.5),
         ),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(
+          topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-          rightTitles: const AxisTitles(
+          rightTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
           leftTitles: AxisTitles(
@@ -734,7 +750,7 @@ class _MonthlyTrendChart extends StatelessWidget {
               interval: 25,
               getTitlesWidget: (value, _) => Text(
                 '${value.toInt()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
                 ),
@@ -747,18 +763,16 @@ class _MonthlyTrendChart extends StatelessWidget {
               interval: 1,
               getTitlesWidget: (value, _) {
                 final idx = value.toInt();
-                if (idx < 0 || idx >= entries.length) return const SizedBox();
-                // Formato: "2026-02" → "Feb"
+                if (idx < 0 || idx >= entries.length) return SizedBox();
                 final parts = entries[idx].key.split('-');
                 final month = int.tryParse(parts.last) ?? 1;
-                final label = DateFormat.MMM(
-                  'es',
-                ).format(DateTime(2026, month));
+                final label =
+                    DateFormat.MMM('es').format(DateTime(2026, month));
                 return Padding(
-                  padding: const EdgeInsets.only(top: 6),
+                  padding: EdgeInsets.only(top: 6),
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 10,
                     ),
@@ -774,14 +788,14 @@ class _MonthlyTrendChart extends StatelessWidget {
             spots: spots,
             isCurved: true,
             color: AppColors.habits,
-            barWidth: 3,
+            barWidth: 1.5,
             dotData: FlDotData(
               show: true,
               getDotPainter: (_, _, _, _) => FlDotCirclePainter(
-                radius: 4,
+                radius: 3,
                 color: AppColors.habits,
-                strokeWidth: 2,
-                strokeColor: AppColors.surface,
+                strokeWidth: 1.5,
+                strokeColor: AppColors.scaffold,
               ),
             ),
             belowBarData: BarAreaData(
@@ -790,7 +804,7 @@ class _MonthlyTrendChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.habits.withValues(alpha: 0.3),
+                  AppColors.habits.withValues(alpha: 0.12),
                   AppColors.habits.withValues(alpha: 0.0),
                 ],
               ),
@@ -799,13 +813,13 @@ class _MonthlyTrendChart extends StatelessWidget {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => AppColors.scaffold,
+            getTooltipColor: (_) => AppColors.surface,
             getTooltipItems: (spots) => spots.map((s) {
               return LineTooltipItem(
                 '${s.y.round()}%',
-                const TextStyle(
+                TextStyle(
                   color: AppColors.habits,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
               );
@@ -818,7 +832,7 @@ class _MonthlyTrendChart extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════
-//  Habit Tile (lista individual con long press menu)
+//  Habit Tile — plano, borde inferior, círculo check Zen
 // ═══════════════════════════════════════════════════════
 
 class _HabitTile extends StatelessWidget {
@@ -830,87 +844,168 @@ class _HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final done = vm.isCompletedToday(habit.id);
+    final streak = habit.currentStreak;
+    final streakColor =
+        streak >= 7 ? AppColors.habits : AppColors.textSecondary;
 
-    return ListTile(
-      leading: IconButton(
-        icon: Icon(
-          done ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: done
-              ? AppColors.habits
-              : AppColors.textSecondary.withValues(alpha: 0.5),
-        ),
-        onPressed: () {
-          if (done) {
-            vm.uncompleteHabit(habit);
-          } else {
-            vm.completeHabit(habit);
-          }
-        },
-      ),
-      title: Text(
-        habit.title,
-        style: TextStyle(
-          color: done ? AppColors.textSecondary : AppColors.textPrimary,
-          decoration: done ? TextDecoration.lineThrough : null,
-        ),
-      ),
-      subtitle: Text(
-        habit.currentStreak > 0
-            ? '🔥 ${habit.currentStreak} días'
-            : 'Sin racha',
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-      ),
+    return GestureDetector(
       onLongPress: () => _showContextMenu(context),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.divider, width: 1),
+          ),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            // ── Círculo check ──
+            GestureDetector(
+              onTap: () {
+                if (done) {
+                  vm.uncompleteHabit(habit);
+                } else {
+                  vm.completeHabit(habit);
+                }
+              },
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: done
+                        ? AppColors.habits
+                        : Color(0x40F0EDE8), // dim blanco
+                    width: 1.5,
+                  ),
+                  color: Colors.transparent,
+                ),
+                child: done
+                    ? Icon(
+                        Icons.check,
+                        size: 13,
+                        color: AppColors.habits,
+                      )
+                    : null,
+              ),
+            ),
+            SizedBox(width: 16),
+
+            // ── Título ──
+            Expanded(
+              child: Text(
+                habit.title,
+                style: TextStyle(
+                  color: done ? AppColors.textSecondary : AppColors.textPrimary,
+                  fontSize: 15,
+                  decoration: done ? TextDecoration.lineThrough : null,
+                  decorationColor: AppColors.textSecondary,
+                ),
+              ),
+            ),
+
+            SizedBox(width: 12),
+
+            // ── Racha ──
+            if (streak > 0)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$streak',
+                    style: TextStyle(
+                      color: streakColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    'd',
+                    style: TextStyle(
+                      color: streakColor,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                '—',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
   void _showContextMenu(BuildContext context) {
     showAdaptiveModal<void>(
       context,
-      SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit_outlined, color: AppColors.habits),
-              title: const Text(
-                'Editar',
-                style: TextStyle(color: AppColors.textPrimary),
+      Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: Color(0x14FFFFFF), width: 1),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Nombre del hábito como subtítulo
+              Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    habit.title.toUpperCase(),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 9,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                ),
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _showEditSheet(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.archive_outlined,
+              Divider(height: 1, thickness: 1, color: AppColors.divider),
+              _ContextMenuItem(
+                label: 'Editar',
+                icon: Icons.edit_outlined,
+                color: AppColors.textPrimary,
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditSheet(context);
+                },
+              ),
+              Divider(height: 1, thickness: 1, color: AppColors.divider),
+              _ContextMenuItem(
+                label: 'Archivar',
+                icon: Icons.archive_outlined,
                 color: AppColors.textSecondary,
+                onTap: () {
+                  Navigator.pop(context);
+                  vm.archiveHabit(habit.id);
+                },
               ),
-              title: const Text(
-                'Archivar',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                vm.archiveHabit(habit.id);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.delete_outline,
+              Divider(height: 1, thickness: 1, color: AppColors.divider),
+              _ContextMenuItem(
+                label: 'Borrar permanentemente',
+                icon: Icons.delete_outline,
                 color: AppColors.danger,
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(context);
+                },
               ),
-              title: const Text(
-                'Borrar permanentemente',
-                style: TextStyle(color: AppColors.danger),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _confirmDelete(context);
-              },
-            ),
-          ],
+              SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -921,27 +1016,39 @@ class _HabitTile extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text(
-          'Borrar hábito',
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        title: Text(
+          'Borrar ritual',
           style: TextStyle(color: AppColors.textPrimary),
         ),
         content: Text(
           '¿Eliminar "${habit.title}" permanentemente?',
-          style: const TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(
+              'CANCELAR',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 10,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               vm.deleteHabit(habit.id);
               Navigator.pop(context);
             },
-            child: const Text(
-              'Borrar',
-              style: TextStyle(color: AppColors.danger),
+            child: Text(
+              'BORRAR',
+              style: TextStyle(
+                color: AppColors.danger,
+                fontSize: 10,
+                letterSpacing: 1.5,
+              ),
             ),
           ),
         ],
@@ -951,94 +1058,164 @@ class _HabitTile extends StatelessWidget {
 
   void _showEditSheet(BuildContext context) {
     final titleCtrl = TextEditingController(text: habit.title);
-    final days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
+    const days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
     final selected = habit.frequencyMask.isEmpty
         ? <String>{...days}
         : habit.frequencyMask.split(',').map((d) => d.trim()).toSet();
 
+    const dayLabels = {
+      'Mon': 'LUN',
+      'Tue': 'MAR',
+      'Wed': 'MIÉ',
+      'Thu': 'JUE',
+      'Fri': 'VIE',
+      'Sat': 'SÁB',
+      'Sun': 'DOM',
+    };
+
     showAdaptiveModal<void>(
       context,
       StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
+        builder: (ctx, setSheetState) => Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border(
+              top: BorderSide(color: Color(0x14FFFFFF), width: 1),
+            ),
+          ),
           padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(ctx).viewInsets.bottom + 16,
+            22,
+            26,
+            22,
+            MediaQuery.of(ctx).viewInsets.bottom + 44,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Editar Hábito',
-                style: TextStyle(
+              Text(
+                'Editar ritual',
+                style: GoogleFonts.inter(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 20),
               TextField(
                 controller: titleCtrl,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                ),
+                cursorColor: AppColors.habits,
+                decoration: InputDecoration(
                   hintText: 'Nombre del hábito',
                   hintStyle: TextStyle(color: AppColors.textSecondary),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.divider),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.habits, width: 1),
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'Días activos',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              SizedBox(height: 24),
+              Text(
+                'DÍAS ACTIVOS',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 9,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 12),
               Wrap(
                 spacing: 6,
+                runSpacing: 6,
                 children: days.map((d) {
                   final isActive = selected.contains(d);
-                  return FilterChip(
-                    label: Text(
-                      d,
-                      style: TextStyle(
-                        color: isActive
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    selected: isActive,
-                    selectedColor: AppColors.habits,
-                    checkmarkColor: Colors.white,
-                    backgroundColor: AppColors.scaffold,
-                    onSelected: (v) {
+                  return GestureDetector(
+                    onTap: () {
                       setSheetState(() {
-                        v ? selected.add(d) : selected.remove(d);
+                        isActive ? selected.remove(d) : selected.add(d);
                       });
                     },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 150),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isActive
+                              ? AppColors.habits
+                              : AppColors.divider,
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        dayLabels[d] ?? d,
+                        style: TextStyle(
+                          color: isActive
+                              ? AppColors.habits
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.habits,
-                  ),
-                  onPressed: () {
-                    final title = titleCtrl.text.trim();
-                    if (title.isEmpty) return;
-                    vm.updateHabit(
-                      habit.copyWith(
-                        title: title,
-                        frequencyMask: selected.join(','),
+              SizedBox(height: 28),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Text(
+                      'CANCELAR',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w500,
                       ),
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Guardar'),
-                ),
+                    ),
+                  ),
+                  Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      final title = titleCtrl.text.trim();
+                      if (title.isEmpty) return;
+                      vm.updateHabit(
+                        habit.copyWith(
+                          title: title,
+                          frequencyMask: selected.join(','),
+                        ),
+                      );
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      color: AppColors.textPrimary,
+                      child: Text(
+                        'GUARDAR',
+                        style: TextStyle(
+                          color: AppColors.scaffold,
+                          fontSize: 10,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1047,3 +1224,212 @@ class _HabitTile extends StatelessWidget {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════
+//  Ítem de menú contextual
+// ═══════════════════════════════════════════════════════
+
+class _ContextMenuItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ContextMenuItem({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(color: color, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+  void showHabitCreateSheet(BuildContext context, HabitsViewModel vm) {
+    final titleCtrl = TextEditingController();
+    const days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
+    final selected = <String>{...days};
+
+    showAdaptiveModal<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setSheetState) => Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border(
+              top: BorderSide(color: Color(0x14FFFFFF), width: 1),
+            ),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            22,
+            26,
+            22,
+            MediaQuery.of(ctx).viewInsets.bottom + 44,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título del sheet
+              Text(
+                'Nuevo ritual',
+                style: GoogleFonts.inter(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 20),
+              // Campo texto
+              TextField(
+                controller: titleCtrl,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                ),
+                cursorColor: AppColors.habits,
+                decoration: InputDecoration(
+                  hintText: 'Ej: Beber 2L de agua',
+                  hintStyle: TextStyle(color: AppColors.textSecondary),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.divider),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.habits, width: 1),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              // Label días
+              Text(
+                'DÍAS ACTIVOS',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 9,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 12),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: days.map((d) {
+                  final isActive = selected.contains(d);
+                  return GestureDetector(
+                    onTap: () {
+                      setSheetState(() {
+                        isActive ? selected.remove(d) : selected.add(d);
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 150),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isActive ? AppColors.habits : AppColors.divider,
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        dayLabel(d),
+                        style: TextStyle(
+                          color: isActive
+                              ? AppColors.habits
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 28),
+              // Botones: Cancel + Add
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Text(
+                      'CANCELAR',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      final title = titleCtrl.text.trim();
+                      if (title.isEmpty) return;
+                      vm.createHabit(
+                        title: title,
+                        frequencyMask: selected.join(','),
+                      );
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      color: AppColors.textPrimary,
+                      child: Text(
+                        'CREAR',
+                        style: TextStyle(
+                          color: AppColors.scaffold,
+                          fontSize: 10,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  String dayLabel(String d) {
+    const map = {
+      'Mon': 'LUN',
+      'Tue': 'MAR',
+      'Wed': 'MIÉ',
+      'Thu': 'JUE',
+      'Fri': 'VIE',
+      'Sat': 'SÁB',
+      'Sun': 'DOM',
+    };
+    return map[d] ?? d;
+  }

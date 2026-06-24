@@ -9,7 +9,7 @@ class AccountModel {
   final String currency;
   final double balance;
 
-  const AccountModel({
+  AccountModel({
     required this.id,
     required this.userId,
     required this.name,

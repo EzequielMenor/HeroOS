@@ -9,7 +9,7 @@ class HabitEntity {
   final int currentStreak;
   final bool isArchived;
 
-  const HabitEntity({
+  HabitEntity({
     required this.id,
     required this.userId,
     required this.title,
@@ -19,7 +19,7 @@ class HabitEntity {
   });
 
   /// Day map matching [DateTime.weekday] (1=Mon..7=Sun).
-  static const _dayMap = {
+  static final _dayMap = {
     'Mon': 1,
     'Tue': 2,
     'Wed': 3,

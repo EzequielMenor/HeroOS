@@ -17,7 +17,7 @@ Future<T?> showAdaptiveModal<T>(
           borderRadius: BorderRadius.circular(16),
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
+          constraints: BoxConstraints(maxWidth: 520),
           child: child,
         ),
       ),
@@ -28,7 +28,7 @@ Future<T?> showAdaptiveModal<T>(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (_) => child,

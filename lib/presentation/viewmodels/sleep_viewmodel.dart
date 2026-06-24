@@ -61,7 +61,7 @@ class SleepViewModel extends ChangeNotifier {
     // durmió pasando la medianoche: retrocedemos startTime al día anterior
     // para que el registro quede en el día en que se despertó (endTime).
     final adjustedStart =
-        endTime.isBefore(startTime) ? startTime.subtract(const Duration(days: 1)) : startTime;
+        endTime.isBefore(startTime) ? startTime.subtract(Duration(days: 1)) : startTime;
     final duration = endTime.difference(adjustedStart);
     final totalHours = duration.inMinutes / 60.0;
 

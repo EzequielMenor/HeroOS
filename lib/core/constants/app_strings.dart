@@ -2,19 +2,19 @@
 /// Centralizar aquí evita magic strings dispersas en el código.
 abstract final class AppStrings {
   // App
-  static const String appName = 'HeroOS';
+  static String appName = 'HeroOS';
 
   // Routes
-  static const String routeSplash = '/';
-  static const String routeDashboard = '/dashboard';
-  static const String routeLogin = '/login';
-  static const String routeNotes = '/notes';
+  static String routeSplash = '/';
+  static String routeDashboard = '/dashboard';
+  static String routeLogin = '/login';
+  static String routeNotes = '/notes';
 
   // Modules
-  static const String moduleFinance = 'Finanzas';
-  static const String moduleHabits = 'Hábitos';
-  static const String moduleTasks = 'Misiones';
-  static const String moduleSleep = 'Sueño';
-  static const String moduleNotes = 'Notas';
-  static const String moduleProfile = 'Perfil';
+  static String moduleFinance = 'Finanzas';
+  static String moduleHabits = 'Hábitos';
+  static String moduleTasks = 'Misiones';
+  static String moduleSleep = 'Sueño';
+  static String moduleNotes = 'Notas';
+  static String moduleProfile = 'Perfil';
 }

@@ -9,7 +9,7 @@ class UserGoalsModel {
   final int minHabitsDaily;
   final double maxMonthlySpending;
 
-  const UserGoalsModel({
+  UserGoalsModel({
     required this.id,
     required this.userId,
     required this.sleepHoursTarget,

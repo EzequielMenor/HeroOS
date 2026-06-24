@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && _isRegisterMode) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             '¡Cuenta creada! Revisa tu email para verificar tu cuenta.',
           ),
@@ -75,26 +75,26 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text(
+        title: Text(
           'Recuperar contraseña',
           style: TextStyle(color: AppColors.textPrimary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Email',
-                hintStyle: const TextStyle(color: AppColors.textSecondary),
-                prefixIcon: const Icon(
+                hintStyle: TextStyle(color: AppColors.textSecondary),
+                prefixIcon: Icon(
                   Icons.email_outlined,
                   color: AppColors.textSecondary,
                 ),
@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.sageGreen),
+                  borderSide: BorderSide(color: AppColors.habits),
                 ),
               ),
             ),
@@ -115,13 +115,13 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
+            child: Text(
               'Cancelar',
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.sageGreen),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.habits),
             onPressed: () async {
               final email = emailCtrl.text.trim();
               if (email.isEmpty || !email.contains('@')) return;
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               );
             },
-            child: const Text('Enviar enlace'),
+            child: Text('Enviar enlace'),
           ),
         ],
       ),
@@ -156,9 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: BoxConstraints(maxWidth: 420),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: EdgeInsets.symmetric(horizontal: 32),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -170,15 +170,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.sageGreen, width: 2),
+                        border: Border.all(color: AppColors.habits, width: 2),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.shield_outlined,
                         size: 36,
-                        color: AppColors.sageGreen,
+                        color: AppColors.habits,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       'HeroOS',
                       style:
@@ -188,25 +188,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             letterSpacing: 2,
                           ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40),
 
                     // Email
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: AppColors.textPrimary),
                       decoration:
                           _inputDecoration('Email', Icons.email_outlined),
                       validator: (v) =>
                           v != null && v.contains('@') ? null : 'Email inválido',
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // Password
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: AppColors.textPrimary),
                       decoration: _inputDecoration(
                         'Contraseña',
                         Icons.lock_outline,
@@ -229,11 +229,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Confirmar contraseña (solo en modo registro)
                     if (_isRegisterMode) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirm,
-                        style: const TextStyle(color: AppColors.textPrimary),
+                        style: TextStyle(color: AppColors.textPrimary),
                         decoration: _inputDecoration(
                           'Confirmar contraseña',
                           Icons.lock_outline,
@@ -255,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : 'Las contraseñas no coinciden',
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Submit button
                     SizedBox(
@@ -264,13 +264,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: FilledButton(
                         onPressed: vm.isLoading ? null : _submit,
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.sageGreen,
+                          backgroundColor: AppColors.habits,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: vm.isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
@@ -282,20 +282,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _isRegisterMode
                                     ? 'Registrarse'
                                     : 'Iniciar Sesión',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     // Olvidaste tu contraseña (solo en login)
                     if (!_isRegisterMode)
                       TextButton(
                         onPressed: _showForgotPasswordDialog,
-                        child: const Text(
+                        child: Text(
                           '¿Olvidaste tu contraseña?',
                           style: TextStyle(
                             color: AppColors.textSecondary,
@@ -315,15 +315,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? '¿Ya tienes cuenta? Inicia sesión'
                             : '¿No tienes cuenta? Regístrate',
                         style:
-                            const TextStyle(color: AppColors.textSecondary),
+                            TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
 
                     // --- Acceso rápido desarrollador (solo en debug) ---
                     if (AuthRepository.devQuickAccess) ...[
-                      const SizedBox(height: 24),
-                      const Divider(color: AppColors.textSecondary),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 24),
+                      Divider(color: AppColors.textSecondary),
+                      SizedBox(height: 8),
                       SizedBox(
                         width: double.infinity,
                         height: 44,
@@ -336,11 +336,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               // El redirect en main.dart lleva a dashboard
                             }
                           },
-                          icon: const Icon(Icons.flash_on, size: 18),
-                          label: const Text('Acceso rápido (Dev)'),
+                          icon: Icon(Icons.flash_on, size: 18),
+                          label: Text('Acceso rápido (Dev)'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.habits,
-                            side: const BorderSide(color: AppColors.habits),
+                            side: BorderSide(color: AppColors.habits),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -365,7 +365,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.textSecondary),
+      labelStyle: TextStyle(color: AppColors.textSecondary),
       prefixIcon: Icon(icon, color: AppColors.textSecondary),
       suffixIcon: suffixIcon,
       filled: true,
@@ -376,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.sageGreen),
+        borderSide: BorderSide(color: AppColors.habits),
       ),
     );
   }

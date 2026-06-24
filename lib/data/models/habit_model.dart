@@ -9,7 +9,7 @@ class HabitModel {
   final int currentStreak;
   final bool isArchived;
 
-  const HabitModel({
+  HabitModel({
     required this.id,
     required this.userId,
     required this.title,

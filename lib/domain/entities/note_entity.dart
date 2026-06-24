@@ -8,7 +8,7 @@ class NoteEntity {
   final DateTime date;
   final List<String> tags;
 
-  const NoteEntity({
+  NoteEntity({
     required this.id,
     required this.userId,
     required this.title,

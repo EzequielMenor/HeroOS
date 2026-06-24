@@ -16,7 +16,7 @@ class UserGoalsEntity {
   /// Presupuesto mensual máximo en euros (default: 500).
   final double maxMonthlySpending;
 
-  const UserGoalsEntity({
+  UserGoalsEntity({
     required this.id,
     required this.userId,
     this.sleepHoursTarget = 8.0,

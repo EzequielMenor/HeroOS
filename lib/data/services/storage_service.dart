@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Gestiona la selección y subida de imágenes a Supabase Storage.
 class StorageService {
-  static const _bucket = 'avatars';
+  static final _bucket = 'avatars';
   final _picker = ImagePicker();
 
   /// Abre la galería y devuelve el archivo seleccionado.

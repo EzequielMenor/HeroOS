@@ -12,7 +12,7 @@ class SleepLogEntity {
   final String? notes;
   final int? avgHeartRate;
 
-  const SleepLogEntity({
+  SleepLogEntity({
     required this.id,
     required this.userId,
     required this.startTime,

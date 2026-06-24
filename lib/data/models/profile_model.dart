@@ -6,7 +6,7 @@ class ProfileModel {
   final String? aiApiKey;
   final String aiProvider;
 
-  const ProfileModel({
+  ProfileModel({
     required this.id,
     required this.username,
     this.avatarUrl,

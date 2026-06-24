@@ -21,7 +21,7 @@ class InstallBanner extends StatefulWidget {
 
 class _InstallBannerState extends State<InstallBanner> {
   bool _visible = false;
-  static const _prefKey = 'pwa_banner_dismissed';
+  static final _prefKey = 'pwa_banner_dismissed';
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _InstallBannerState extends State<InstallBanner> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text(
+        title: Text(
           'Instalar HeroOS',
           style: TextStyle(color: AppColors.textPrimary),
         ),
@@ -63,7 +63,7 @@ class _InstallBannerState extends State<InstallBanner> {
           isIos
               ? 'Toca el botón Compartir (□↑) en Safari\n→ "Añadir a inicio"\n\nAbrirá sin barras del navegador.'
               : 'Abre el menú del navegador (⋮)\n→ "Instalar app" o "Añadir a inicio"\n\nAbrirá sin barras del navegador.',
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textSecondary,
             height: 1.5,
           ),
@@ -71,9 +71,9 @@ class _InstallBannerState extends State<InstallBanner> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Entendido',
-              style: TextStyle(color: AppColors.sageGreen),
+              style: TextStyle(color: AppColors.habits),
             ),
           ),
           TextButton(
@@ -81,7 +81,7 @@ class _InstallBannerState extends State<InstallBanner> {
               Navigator.pop(context);
               _dismiss();
             },
-            child: const Text(
+            child: Text(
               'No mostrar más',
               style: TextStyle(color: AppColors.textSecondary),
             ),
@@ -93,24 +93,24 @@ class _InstallBannerState extends State<InstallBanner> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_visible) return const SizedBox.shrink();
+    if (!_visible) return SizedBox.shrink();
 
     return Container(
       height: 40,
       color: AppColors.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.install_mobile_outlined,
-            color: AppColors.sageGreen,
+            color: AppColors.habits,
             size: 16,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: GestureDetector(
               onTap: _showInstallInstructions,
-              child: const Text(
+              child: Text(
                 'Instala HeroOS para la experiencia completa →',
                 style: TextStyle(
                   color: AppColors.textSecondary,
@@ -122,7 +122,7 @@ class _InstallBannerState extends State<InstallBanner> {
           ),
           GestureDetector(
             onTap: _dismiss,
-            child: const Icon(
+            child: Icon(
               Icons.close,
               color: AppColors.textSecondary,
               size: 16,

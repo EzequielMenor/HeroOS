@@ -5,7 +5,7 @@ class HabitLogEntity {
   final DateTime date;
   final String status;
 
-  const HabitLogEntity({
+  HabitLogEntity({
     required this.id,
     required this.habitId,
     required this.date,
