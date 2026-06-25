@@ -10,6 +10,7 @@ import '../../core/utils/adaptive_modal.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
+import 'zen_canvas_screen.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 Color get _kBg => AppColors.scaffold;
@@ -117,7 +118,12 @@ class _NotesScreenState extends State<NotesScreen> {
                       ),
                       Spacer(),
                       GestureDetector(
-                        onTap: () => showNoteEditSheet(context, vm, null),
+                        onTap: () => Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ZenCanvasScreen(),
+                          ),
+                        ),
                         child: Icon(Icons.add, size: 18, color: _kTextSecondary),
                       ),
                     ],
@@ -178,9 +184,14 @@ class _NotesScreenState extends State<NotesScreen> {
                     ),
                     Spacer(),
                     GestureDetector(
-                      onTap: () => showNoteEditSheet(context, vm, null),
-                      child: Icon(Icons.add, size: 18, color: _kTextSecondary),
-                    ),
+                        onTap: () => Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ZenCanvasScreen(),
+                          ),
+                        ),
+                        child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                      ),
                   ],
                 ),
               ],
@@ -784,15 +795,10 @@ class _ZenNoteTile extends StatelessWidget {
   const _ZenNoteTile({required this.note, required this.vm});
 
   void _showEditSheet(BuildContext context) {
-    showAdaptiveModal<void>(
+    Navigator.push<void>(
       context,
-      NoteEditorSheet(
-        note: note,
-        onSave: (title, content, tags) {
-          vm.updateNote(
-              note.copyWith(title: title, content: content, date: note.date, tags: tags));
-        },
-        onDelete: () => vm.deleteNote(note.id),
+      MaterialPageRoute(
+        builder: (context) => ZenCanvasScreen(note: note),
       ),
     );
   }
@@ -822,75 +828,88 @@ class _ZenNoteTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withOpacity(0.4),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.05),
-                  width: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            child: ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.65, 1.0],
+                colors: [Colors.white, Colors.transparent],
+              ).createShader(bounds),
+              blendMode: BlendMode.dstIn,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 110),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface.withOpacity(0.4),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.05),
+                      width: 0.5,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Text(
-                          titleText,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              titleText,
+                              style: TextStyle(
+                                color: _kTextPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            DateFormat('h:mm a', 'es').format(note.date).toLowerCase(),
+                            style: TextStyle(color: _kTextSecondary, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                      if (bodyText.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          bodyText.trim(),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: _kTextPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            color: _kTextSecondary,
+                            fontSize: 12,
+                            height: 1.4,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormat('h:mm a', 'es').format(note.date).toLowerCase(),
-                        style: TextStyle(color: _kTextSecondary, fontSize: 10),
-                      ),
+                      ],
+                      if (note.tags.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: note.tags.map((tag) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _kAccent.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: TextStyle(
+                                color: _kAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          )).toList(),
+                        ),
+                      ],
                     ],
                   ),
-                  if (bodyText.trim().isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      bodyText.trim(),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _kTextSecondary,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                  if (note.tags.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: note.tags.map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _kAccent.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '#$tag',
-                          style: TextStyle(
-                            color: _kAccent,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      )).toList(),
-                    ),
-                  ],
-                ],
+                ),
               ),
             ),
           ),
