@@ -26,7 +26,7 @@ class NotesViewModel extends ChangeNotifier {
   NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
   Completer<bool?>? _flushCompleter; // For flushAutosave to wait
 
-  NotesViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : NoteRepository();
+  NotesViewModel({dynamic repository}) : _repo = repository ?? (AuthRepository.devQuickAccess ? DevRepository() : NoteRepository());
 
   List<NoteEntity> get notes {
     var result = _notes;
@@ -54,11 +54,13 @@ class NotesViewModel extends ChangeNotifier {
   Future<bool?> flushAutosave() async {
     _debounceTimer?.cancel();
     _debounceTimer = null;
-    if (_pendingNoteState == null) return null;
+    if (_pendingNoteState == null && !_isSaving) return null;
+    if (_flushCompleter != null) {
+      return _flushCompleter!.future;
+    }
     _flushCompleter = Completer<bool?>();
     _executeSave();
-    final result = await _flushCompleter!.future;
-    return result;
+    return _flushCompleter!.future;
   }
 
   /// Carga todas las notas del usuario.
@@ -159,22 +161,27 @@ class NotesViewModel extends ChangeNotifier {
     try {
       final noteToSave = _pendingNoteState;
       if (noteToSave != null) {
+        // Validar que userId no sea 'dev-user' en producción (no es UUID)
+        final isDevString = noteToSave.userId == 'dev-user';
+        final isRealUuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false).hasMatch(noteToSave.userId);
+        if (isDevString && !AuthRepository.devQuickAccess) {
+          _flushCompleter?.complete(false);
+          _flushCompleter = null;
+          _error = 'userId inválido: dev-user';
+          _isSaving = false;
+          notifyListeners();
+          return;
+        }
         if (noteToSave.id.isEmpty) {
-          // Nueva nota: crear solo si es contenido nuevo (no duplicar)
-          final isDuplicate = _lastCreatedNote != null &&
-              _lastCreatedNote!.content == noteToSave.content;
-          if (!isDuplicate) {
-            await _repo.createNote(noteToSave);
-            await loadNotes();
-            final created = _notes
-                .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
-                .firstOrNull;
-              if (created != null) {
-              _lastCreatedNote = created;
-            }
+          await _repo.createNote(noteToSave);
+          await loadNotes();
+          final created = _notes
+              .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
+              .firstOrNull;
+          if (created != null) {
+            _lastCreatedNote = created;
           }
         } else {
-          // Nota existente: actualizar in-place
           await _repo.updateNote(noteToSave);
           final idx = _notes.indexWhere((n) => n.id == noteToSave.id);
           if (idx != -1) {
@@ -184,22 +191,23 @@ class NotesViewModel extends ChangeNotifier {
             notifyListeners();
           }
         }
-      }
-      if (_flushCompleter != null) {
-        _flushCompleter!.complete(true);
-        _flushCompleter = null;
+        if (_pendingNoteState == noteToSave) {
+          _pendingNoteState = null;
+        }
       }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      if (_flushCompleter != null) {
-        _flushCompleter!.complete(false);
-        _flushCompleter = null;
-      }
+      success = false;
     } finally {
       _isSaving = false;
       if (_hasPendingChanges) {
         _executeSave();
+      } else {
+        if (_flushCompleter != null) {
+          _flushCompleter!.complete(success);
+          _flushCompleter = null;
+        }
       }
     }
   }

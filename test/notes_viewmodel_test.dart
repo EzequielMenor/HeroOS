@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heroos/data/repositories/auth_repository.dart';
 import 'package:heroos/data/repositories/dev_repository.dart';
+import 'package:heroos/domain/entities/note_entity.dart';
 import 'package:heroos/presentation/viewmodels/notes_viewmodel.dart';
 
 void main() {
@@ -78,4 +80,73 @@ void main() {
     final finalNote = vm.notes.firstWhere((n) => n.id == originalNote.id);
     expect(finalNote.content, 'Debounced Content');
   });
+
+  test('flushAutosave called during an active save awaits the second save and finishes successfully', () async {
+    final mockRepo = MockDelayedRepository();
+    final note = NoteEntity(
+      id: 'mock_id',
+      userId: 'dev-user',
+      title: 'Original Title',
+      content: 'Original Content',
+      date: DateTime.now(),
+      tags: [],
+    );
+    mockRepo._notes.add(note);
+
+    final vm = NotesViewModel(repository: mockRepo);
+    await vm.loadNotes();
+
+    // Start a delayed save
+    mockRepo.saveCompleter = Completer<void>();
+    vm.queueAutosave(note.copyWith(content: 'First Update'));
+    
+    // Trigger save execution
+    await Future.delayed(const Duration(milliseconds: 1600));
+    expect(vm.isSaving, true);
+
+    // Queue a second update and immediately call flushAutosave
+    vm.queueAutosave(note.copyWith(content: 'Second Update'));
+    final flushFuture = vm.flushAutosave();
+
+    // Complete the first save
+    mockRepo.saveCompleter!.complete();
+
+    // The flush future should complete successfully
+    final flushResult = await flushFuture;
+    expect(flushResult, true);
+    
+    // Verify the second update was saved
+    expect(mockRepo._notes.first.content, 'Second Update');
+  });
+}
+
+class MockDelayedRepository {
+  final List<NoteEntity> _notes = [];
+  Completer<void>? saveCompleter;
+
+  Future<List<NoteEntity>> getNotes() async => _notes;
+
+  Future<void> createNote(NoteEntity note) async {
+    if (saveCompleter != null) {
+      await saveCompleter!.future;
+    }
+    _notes.add(NoteEntity(
+      id: 'mock_id',
+      userId: note.userId,
+      title: note.title,
+      content: note.content,
+      date: note.date,
+      tags: note.tags,
+    ));
+  }
+
+  Future<void> updateNote(NoteEntity note) async {
+    if (saveCompleter != null) {
+      await saveCompleter!.future;
+    }
+    final idx = _notes.indexWhere((n) => n.id == note.id);
+    if (idx != -1) {
+      _notes[idx] = note;
+    }
+  }
 }
