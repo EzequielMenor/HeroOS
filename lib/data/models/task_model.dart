@@ -1,3 +1,4 @@
+import '../../domain/entities/sync_status.dart';
 import '../../domain/entities/task_entity.dart';
 
 /// Data model for serializing/deserializing tasks from Supabase.
@@ -8,6 +9,7 @@ class TaskModel {
   final bool isDone;
   final DateTime? dueDate;
   final Energy? energy;
+  final SyncStatus? syncStatus;
 
   TaskModel({
     required this.id,
@@ -16,6 +18,7 @@ class TaskModel {
     required this.isDone,
     this.dueDate,
     this.energy,
+    this.syncStatus,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,14 @@ class TaskModel {
         orElse: () => Energy.medium,
       );
     }
+    SyncStatus? syncStatus;
+    final syncStatusStr = json['sync_status'] as String?;
+    if (syncStatusStr != null) {
+      syncStatus = SyncStatus.values.firstWhere(
+        (s) => s.name == syncStatusStr,
+        orElse: () => SyncStatus.completed,
+      );
+    }
     return TaskModel(
       id: json['id'] as String,
       userId: json['user_id'] as String,
@@ -36,6 +47,7 @@ class TaskModel {
           ? DateTime.parse(json['due_date'] as String)
           : null,
       energy: energy,
+      syncStatus: syncStatus,
     );
   }
 
@@ -45,6 +57,8 @@ class TaskModel {
     'is_done': isDone,
     'due_date': dueDate?.toIso8601String(),
     'energy': energy?.name,
+    if (syncStatus != null)
+      'sync_status': syncStatus!.name,
   };
 
   TaskEntity toEntity() => TaskEntity(
@@ -54,6 +68,7 @@ class TaskModel {
     isDone: isDone,
     dueDate: dueDate,
     energy: energy,
+    syncStatus: syncStatus,
   );
 
   factory TaskModel.fromEntity(TaskEntity e) => TaskModel(
@@ -63,5 +78,6 @@ class TaskModel {
     isDone: e.isDone,
     dueDate: e.dueDate,
     energy: e.energy,
+    syncStatus: e.syncStatus,
   );
 }
