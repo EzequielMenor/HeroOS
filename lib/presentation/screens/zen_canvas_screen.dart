@@ -116,18 +116,18 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                         final vm = context.read<NotesViewModel>();
                         final saved = await vm.flushAutosave();
                         if (context.mounted) {
-                          if (saved == false) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Error: no hay usuario logueado'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          } else {
+                          if (saved == true) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Nota guardada'),
                                 duration: Duration(seconds: 1),
+                              ),
+                            );
+                          } else if (saved == false) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(vm.error ?? 'Error al guardar la nota'),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }

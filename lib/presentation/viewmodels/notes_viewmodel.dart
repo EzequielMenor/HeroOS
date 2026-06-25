@@ -185,12 +185,17 @@ class NotesViewModel extends ChangeNotifier {
           }
         }
       }
-      _flushCompleter?.complete(true);
+      if (_flushCompleter != null) {
+        _flushCompleter!.complete(true);
+        _flushCompleter = null;
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      _flushCompleter?.complete(false);
-      _flushCompleter = null;
+      if (_flushCompleter != null) {
+        _flushCompleter!.complete(false);
+        _flushCompleter = null;
+      }
     } finally {
       _isSaving = false;
       if (_hasPendingChanges) {

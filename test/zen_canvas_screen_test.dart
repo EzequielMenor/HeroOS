@@ -106,4 +106,93 @@ void main() {
 
     expect(find.text('Existing content here'), findsOneWidget);
   });
+
+  testWidgets('ZenCanvasScreen shows "Nota guardada" when save succeeds',
+      (WidgetTester tester) async {
+    final mockVm = FakeNotesViewModel()..flushAutosaveResult = true;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChangeNotifierProvider<NotesViewModel>.value(
+            value: mockVm,
+            child: const ZenCanvasScreen(),
+          ),
+        ),
+      ),
+    );
+
+    // Tap checkmark button
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pump(); // Start animation
+    await tester.pump(const Duration(milliseconds: 500)); // Advance animation
+
+    expect(find.text('Nota guardada'), findsOneWidget);
+  });
+
+  testWidgets('ZenCanvasScreen shows dynamic error from ViewModel when save fails',
+      (WidgetTester tester) async {
+    final mockVm = FakeNotesViewModel()
+      ..flushAutosaveResult = false
+      ..mockError = 'Custom failure message';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChangeNotifierProvider<NotesViewModel>.value(
+            value: mockVm,
+            child: const ZenCanvasScreen(),
+          ),
+        ),
+      ),
+    );
+
+    // Tap checkmark button
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Custom failure message'), findsOneWidget);
+  });
+
+  testWidgets('ZenCanvasScreen does not show Snackbar when saved is null',
+      (WidgetTester tester) async {
+    final mockVm = FakeNotesViewModel()..flushAutosaveResult = null;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChangeNotifierProvider<NotesViewModel>.value(
+            value: mockVm,
+            child: const ZenCanvasScreen(),
+          ),
+        ),
+      ),
+    );
+
+    // Tap checkmark button
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(SnackBar), findsNothing);
+  });
+}
+
+class FakeNotesViewModel extends NotesViewModel {
+  bool? flushAutosaveResult;
+  String? mockError;
+
+  @override
+  Future<bool?> flushAutosave() async {
+    return flushAutosaveResult;
+  }
+
+  @override
+  String? get error => mockError;
+
+  @override
+  void queueAutosave(dynamic note) {
+    // No-op to avoid triggering real timers/saves in test
+  }
 }

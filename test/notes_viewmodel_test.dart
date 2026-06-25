@@ -58,4 +58,24 @@ void main() {
     final savedNote = vm.notes.firstWhere((n) => n.id == originalNote.id);
     expect(savedNote.content, 'Update 3');
   });
+
+  test('flushAutosave followed by debounced autosave does not throw StateError', () async {
+    final vm = NotesViewModel();
+    await vm.loadNotes();
+
+    await vm.createNote(title: 'Flush Test', content: 'Start');
+    final originalNote = vm.notes.first;
+
+    // Queue update and flush
+    vm.queueAutosave(originalNote.copyWith(content: 'Flush Content'));
+    final saved = await vm.flushAutosave();
+    expect(saved, true);
+
+    // Queue another update immediately and wait for debounce
+    vm.queueAutosave(originalNote.copyWith(content: 'Debounced Content'));
+    await Future.delayed(const Duration(milliseconds: 1700));
+
+    final finalNote = vm.notes.firstWhere((n) => n.id == originalNote.id);
+    expect(finalNote.content, 'Debounced Content');
+  });
 }
