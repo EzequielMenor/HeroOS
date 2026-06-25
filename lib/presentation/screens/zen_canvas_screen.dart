@@ -75,11 +75,11 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          context.read<NotesViewModel>().flushAutosave();
-        }
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await context.read<NotesViewModel>().flushAutosave();
+        if (context.mounted) Navigator.pop(context);
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF1C1C1E),
@@ -94,9 +94,9 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
-                      onPressed: () {
-                        context.read<NotesViewModel>().flushAutosave();
-                        Navigator.pop(context);
+                      onPressed: () async {
+                        await context.read<NotesViewModel>().flushAutosave();
+                        if (context.mounted) Navigator.pop(context);
                       },
                     ),
                     const Expanded(

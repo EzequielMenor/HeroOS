@@ -21,10 +21,9 @@ class NotesViewModel extends ChangeNotifier {
   // Debounced autosave state
   Timer? _debounceTimer;
   bool _isSaving = false;
-  bool _hasPendingChanges = false;
   NoteEntity? _pendingNoteState;
   NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
-  Completer<bool?>? _flushCompleter; // For flushAutosave to wait
+  Future<void>? _activeSaveFuture;
 
   NotesViewModel({dynamic repository}) : _repo = repository ?? (AuthRepository.devQuickAccess ? DevRepository() : NoteRepository());
 
@@ -54,13 +53,21 @@ class NotesViewModel extends ChangeNotifier {
   Future<bool?> flushAutosave() async {
     _debounceTimer?.cancel();
     _debounceTimer = null;
-    if (_pendingNoteState == null) return null;
-    if (_flushCompleter != null) {
-      return _flushCompleter!.future;
+    if (_pendingNoteState == null && !_isSaving) return null;
+
+    bool hadError = false;
+    while (_pendingNoteState != null || _isSaving) {
+      if (_isSaving) {
+        await _activeSaveFuture;
+      } else {
+        await _executeSave();
+        if (_error != null) {
+          hadError = true;
+          break;
+        }
+      }
     }
-    _flushCompleter = Completer<bool?>();
-    _executeSave();
-    return _flushCompleter!.future;
+    return !hadError;
   }
 
   /// Carga todas las notas del usuario.
@@ -152,33 +159,46 @@ class NotesViewModel extends ChangeNotifier {
   }
 
   Future<void> _executeSave() async {
-    if (_isSaving) {
-      _hasPendingChanges = true;
-      return;
-    }
+    if (_isSaving) return;
     _isSaving = true;
-    _hasPendingChanges = false;
-    bool saved = false;
+    
+    final completer = Completer<void>();
+    _activeSaveFuture = completer.future;
+
     try {
       final noteToSave = _pendingNoteState;
       if (noteToSave != null) {
-        // Validar que userId no sea 'dev-user' en producción (no es UUID)
+        _error = null;
         if (noteToSave.userId == 'dev-user' && !AuthRepository.devQuickAccess) {
           _error = 'userId inválido: dev-user (necesitas login o devQuickAccess)';
           notifyListeners();
-          _isSaving = false;
-          _flushCompleter?.complete(false);
-          _flushCompleter = null;
           return;
         }
+
         if (noteToSave.id.isEmpty) {
-          await _repo.createNote(noteToSave);
-          await loadNotes();
-          final created = _notes
-              .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
-              .firstOrNull;
-          if (created != null) {
-            _lastCreatedNote = created;
+          // Nueva nota: crear solo si es contenido nuevo (no duplicar)
+          final isDuplicate = _lastCreatedNote != null &&
+              _lastCreatedNote!.content == noteToSave.content;
+          if (!isDuplicate) {
+            await _repo.createNote(noteToSave);
+            await loadNotes();
+            final created = _notes
+                .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
+                .firstOrNull;
+            if (created != null) {
+              _lastCreatedNote = created;
+              // Actualizar el ID en _pendingNoteState para evitar duplicaciones si el usuario sigue editando la misma nota
+              if (_pendingNoteState != null && _pendingNoteState!.content == noteToSave.content) {
+                _pendingNoteState = NoteEntity(
+                  id: created.id,
+                  userId: _pendingNoteState!.userId,
+                  title: _pendingNoteState!.title,
+                  content: _pendingNoteState!.content,
+                  date: _pendingNoteState!.date,
+                  tags: _pendingNoteState!.tags,
+                );
+              }
+            }
           }
         } else {
           await _repo.updateNote(noteToSave);
@@ -190,22 +210,18 @@ class NotesViewModel extends ChangeNotifier {
             notifyListeners();
           }
         }
-        if (_pendingNoteState == noteToSave) {
+
+        if (_pendingNoteState?.content == noteToSave.content && _pendingNoteState?.title == noteToSave.title) {
           _pendingNoteState = null;
         }
-        saved = true;
       }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
     } finally {
       _isSaving = false;
-      if (_hasPendingChanges) {
-        _executeSave();
-      } else {
-        _flushCompleter?.complete(saved);
-        _flushCompleter = null;
-      }
+      _activeSaveFuture = null;
+      completer.complete();
     }
   }
 }
