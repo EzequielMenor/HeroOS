@@ -188,7 +188,7 @@ class NotesViewModel extends ChangeNotifier {
             if (created != null) {
               _lastCreatedNote = created;
               // Actualizar el ID en _pendingNoteState para evitar duplicaciones si el usuario sigue editando la misma nota
-              if (_pendingNoteState != null && _pendingNoteState!.content == noteToSave.content) {
+              if (_pendingNoteState != null && _pendingNoteState!.id.isEmpty) {
                 _pendingNoteState = NoteEntity(
                   id: created.id,
                   userId: _pendingNoteState!.userId,

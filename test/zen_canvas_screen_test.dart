@@ -4,6 +4,7 @@ import 'package:heroos/data/repositories/auth_repository.dart';
 import 'package:heroos/domain/entities/note_entity.dart';
 import 'package:heroos/presentation/screens/zen_canvas_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:heroos/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:heroos/presentation/viewmodels/notes_viewmodel.dart';
 
 void main() {
@@ -11,15 +12,25 @@ void main() {
     AuthRepository.devQuickAccess = true;
   });
 
+  Widget buildTestWidget({required Widget child, NotesViewModel? notesVm}) {
+    return MaterialApp(
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthViewModel()),
+          if (notesVm != null)
+            ChangeNotifierProvider<NotesViewModel>.value(value: notesVm)
+          else
+            ChangeNotifierProvider(create: (_) => NotesViewModel()),
+        ],
+        child: child,
+      ),
+    );
+  }
+
   testWidgets('ZenCanvasScreen renders with correct background color',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: const ZenCanvasScreen(),
-        ),
-      ),
+      buildTestWidget(child: const ZenCanvasScreen()),
     );
 
     // Verify scaffold has #1C1C1E background
@@ -30,12 +41,7 @@ void main() {
   testWidgets('ZenCanvasScreen shows LIENZO ZEN header',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: const ZenCanvasScreen(),
-        ),
-      ),
+      buildTestWidget(child: const ZenCanvasScreen()),
     );
 
     expect(find.text('LIENZO ZEN'), findsOneWidget);
@@ -43,12 +49,7 @@ void main() {
 
   testWidgets('ZenCanvasScreen has back button', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: const ZenCanvasScreen(),
-        ),
-      ),
+      buildTestWidget(child: const ZenCanvasScreen()),
     );
 
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -57,12 +58,7 @@ void main() {
   testWidgets('ZenCanvasScreen has TextField for editing',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: const ZenCanvasScreen(),
-        ),
-      ),
+      buildTestWidget(child: const ZenCanvasScreen()),
     );
 
     expect(find.byType(TextField), findsOneWidget);
@@ -70,12 +66,7 @@ void main() {
 
   testWidgets('ZenCanvasScreen accepts text input', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: const ZenCanvasScreen(),
-        ),
-      ),
+      buildTestWidget(child: const ZenCanvasScreen()),
     );
 
     await tester.enterText(find.byType(TextField), 'Test note content');
@@ -96,12 +87,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider(
-          create: (_) => NotesViewModel(),
-          child: ZenCanvasScreen(note: note),
-        ),
-      ),
+      buildTestWidget(child: ZenCanvasScreen(note: note)),
     );
 
     expect(find.text('Existing content here'), findsOneWidget);
@@ -112,13 +98,9 @@ void main() {
     final mockVm = FakeNotesViewModel()..flushAutosaveResult = true;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChangeNotifierProvider<NotesViewModel>.value(
-            value: mockVm,
-            child: const ZenCanvasScreen(),
-          ),
-        ),
+      buildTestWidget(
+        notesVm: mockVm,
+        child: const ZenCanvasScreen(),
       ),
     );
 
@@ -137,13 +119,9 @@ void main() {
       ..mockError = 'Custom failure message';
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChangeNotifierProvider<NotesViewModel>.value(
-            value: mockVm,
-            child: const ZenCanvasScreen(),
-          ),
-        ),
+      buildTestWidget(
+        notesVm: mockVm,
+        child: const ZenCanvasScreen(),
       ),
     );
 
@@ -160,13 +138,9 @@ void main() {
     final mockVm = FakeNotesViewModel()..flushAutosaveResult = null;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChangeNotifierProvider<NotesViewModel>.value(
-            value: mockVm,
-            child: const ZenCanvasScreen(),
-          ),
-        ),
+      buildTestWidget(
+        notesVm: mockVm,
+        child: const ZenCanvasScreen(),
       ),
     );
 

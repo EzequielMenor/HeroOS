@@ -9,10 +9,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// y permite acceso instantáneo sin credenciales. Ideal para desarrollo
 /// cuando no hay usuarios configurados o Supabase no responde.
 class AuthRepository {
-  final SupabaseClient _client = Supabase.instance.client;
+  SupabaseClient get _client => Supabase.instance.client;
 
   // Modo desarrollador apagado por defecto para usar Supabase real
   static bool devQuickAccess = false;
+
+  String? get currentUserId {
+    if (devQuickAccess) return 'dev-user';
+    return _client.auth.currentUser?.id;
+  }
 
   Future<void> signIn({required String email, required String password}) async {
     await _client.auth.signInWithPassword(email: email, password: password);

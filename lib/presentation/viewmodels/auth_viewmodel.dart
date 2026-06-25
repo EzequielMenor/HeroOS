@@ -13,6 +13,7 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _repo.isAuthenticated;
+  String? get currentUserId => _repo.currentUserId;
 
   Future<bool> signIn({required String email, required String password}) async {
     _setLoading(true);

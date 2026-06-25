@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../domain/entities/note_entity.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/notes_viewmodel.dart';
 import '../widgets/zen_markdown_controller.dart';
 
@@ -52,9 +52,7 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
 
     // Si ya se creó la nota, usa su id; si no, empty id → ViewModel crea
     final noteId = _createdNoteId ?? '';
-    final userId = AuthRepository.devQuickAccess
-        ? 'dev-user'
-        : Supabase.instance.client.auth.currentUser?.id ?? '';
+    final userId = context.read<AuthViewModel>().currentUserId ?? '';
 
     final noteToSave = NoteEntity(
       id: noteId,
@@ -75,11 +73,11 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        await context.read<NotesViewModel>().flushAutosave();
-        if (context.mounted) Navigator.pop(context);
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          context.read<NotesViewModel>().flushAutosave();
+        }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF1C1C1E),
@@ -94,9 +92,9 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
-                      onPressed: () async {
-                        await context.read<NotesViewModel>().flushAutosave();
-                        if (context.mounted) Navigator.pop(context);
+                      onPressed: () {
+                        context.read<NotesViewModel>().flushAutosave();
+                        Navigator.pop(context);
                       },
                     ),
                     const Expanded(
