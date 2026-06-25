@@ -48,6 +48,15 @@ class NotesViewModel extends ChangeNotifier {
   String? get error => _error;
   NoteEntity? get lastCreatedNote => _lastCreatedNote;
 
+  /// Cancels pending debounce and immediately saves any pending note.
+  void flushAutosave() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    if (_pendingNoteState != null) {
+      _executeSave();
+    }
+  }
+
   /// Carga todas las notas del usuario.
   Future<void> loadNotes() async {
     _isLoading = true;

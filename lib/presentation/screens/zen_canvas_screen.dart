@@ -73,62 +73,70 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1C1C1E),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Minimal header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'LIENZO ZEN',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        letterSpacing: 2.0,
-                        fontWeight: FontWeight.w600,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          context.read<NotesViewModel>().flushAutosave();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1C1C1E),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Minimal header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'LIENZO ZEN',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 10,
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 48), // Balance the back button
-                ],
+                    const SizedBox(width: 48), // Balance the back button
+                  ],
+                ),
               ),
-            ),
-            // Editor
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextField(
-                  controller: _controller,
-                  maxLines: null,
-                  expands: true,
-                  keyboardType: TextInputType.multiline,
-                  textAlignVertical: TextAlignVertical.top,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    height: 1.6,
-                  ),
-                  cursorColor: AppColors.accent,
-                  decoration: const InputDecoration(
-                    hintText: 'Escribe sin distracciones…',
-                    hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                    border: InputBorder.none,
+              // Editor
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: TextField(
+                    controller: _controller,
+                    maxLines: null,
+                    expands: true,
+                    keyboardType: TextInputType.multiline,
+                    textAlignVertical: TextAlignVertical.top,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      height: 1.6,
+                    ),
+                    cursorColor: AppColors.accent,
+                    decoration: const InputDecoration(
+                      hintText: 'Escribe sin distracciones…',
+                      hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
