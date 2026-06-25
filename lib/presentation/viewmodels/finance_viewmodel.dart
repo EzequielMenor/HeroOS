@@ -6,6 +6,7 @@ import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
+import '../../domain/entities/sync_status.dart';
 
 /// ViewModel de Finanzas.
 /// Gestiona cuentas y transacciones.
@@ -121,6 +122,28 @@ class FinanceViewModel extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  /// Actualiza una transacción existente.
+  Future<void> updateTransaction(TransactionEntity txn) async {
+    try {
+      await _repo.updateTransaction(txn);
+      await loadAll();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Actualiza solo la categoría de una transacción y marca como userModified.
+  Future<void> updateTransactionCategory(String txnId, String newCategory) async {
+    final idx = _transactions.indexWhere((t) => t.id == txnId);
+    if (idx == -1) return;
+    final updated = _transactions[idx].copyWith(
+      category: newCategory,
+      syncStatus: SyncStatus.userModified,
+    );
+    await updateTransaction(updated);
   }
 
   /// Transfiere dinero entre dos cuentas.

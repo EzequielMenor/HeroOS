@@ -1,33 +1,42 @@
-import re
+import os
 
-filepath = 'lib/presentation/widgets/quick_capture_input.dart'
-with open(filepath, 'r') as f:
-    content = f.read()
+qc_path = "lib/presentation/widgets/quick_capture_input.dart"
+with open(qc_path, "r") as f:
+    qc_content = f.read()
 
-# Remove unused imports
-content = re.sub(r"import 'package:provider/provider\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./viewmodels/tasks_viewmodel\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./viewmodels/habits_viewmodel\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./viewmodels/finance_viewmodel\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./viewmodels/notes_viewmodel\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./viewmodels/sleep_viewmodel\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./screens/tasks_screen\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./screens/habits_screen\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./screens/finance_screen\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./screens/notes_screen\.dart';\n?", "", content)
-content = re.sub(r"import '\.\./screens/sleep_screen\.dart';\n?", "", content)
+# Make the function and sheet public and top-level
+qc_content = qc_content.replace("void _showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {", 
+                                "}\n\nvoid showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {")
+qc_content = qc_content.replace("_showAIVoiceCapture(context, qcVm)", "showAIVoiceCapture(context, qcVm)")
+qc_content = qc_content.replace("_AIVoiceSheet", "AIVoiceSheet")
 
-# But we DO need provider for QuickCaptureViewModel in _AIVoiceSheet!
-# Let's add it back at the top.
-content = content.replace("import 'package:flutter/material.dart';", "import 'package:flutter/material.dart';\nimport 'package:provider/provider.dart';")
+with open(qc_path, "w") as f:
+    f.write(qc_content)
 
-# Fix _AIVoiceSheet constructor
-content = content.replace("class _AIVoiceSheet extends StatefulWidget {\n  final QuickCaptureViewModel vm;\n  const _AIVoiceSheet(this.vm);", "class _AIVoiceSheet extends StatefulWidget {\n  const _AIVoiceSheet({super.key});")
+add_path = "lib/presentation/screens/global_add_screen.dart"
+with open(add_path, "r") as f:
+    add_content = f.read()
 
-# Remove _MenuOption class
-# It starts at class _MenuOption and ends before class _AIVoiceSheet
-content = re.sub(r'class _MenuOption extends StatelessWidget \{.*?\}(?=\s*class _AIVoiceSheet)', '', content, flags=re.DOTALL)
+# Add import
+if "import '../widgets/quick_capture_input.dart';" not in add_content:
+    add_content = add_content.replace("import '../../domain/entities/task_entity.dart';",
+                                      "import '../../domain/entities/task_entity.dart';\nimport '../widgets/quick_capture_input.dart';\nimport '../viewmodels/quick_capture_viewmodel.dart';")
 
-with open(filepath, 'w') as f:
-    f.write(content)
-print("Cleaned up quick_capture_input.dart")
+# Add actions to AppBar
+actions_str = """
+        actions: [
+          IconButton(
+            icon: Icon(Icons.mic, color: AppColors.textPrimary),
+            onPressed: () {
+              final qcVm = Provider.of<QuickCaptureViewModel>(context, listen: false);
+              showAIVoiceCapture(context, qcVm);
+            },
+          ),
+          SizedBox(width: 8),
+        ],
+        centerTitle: true,"""
+
+add_content = add_content.replace("centerTitle: true,", actions_str)
+
+with open(add_path, "w") as f:
+    f.write(add_content)

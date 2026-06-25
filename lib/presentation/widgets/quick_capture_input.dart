@@ -21,7 +21,7 @@ class QuickCaptureButtons extends StatelessWidget {
         children: [
           // AI Voice Capture Button (Smaller, simpler)
           InkWell(
-            onTap: () => _showAIVoiceCapture(context, qcVm),
+            onTap: () => showAIVoiceCapture(context, qcVm),
             borderRadius: BorderRadius.circular(20),
             child: Container(
               width: 36,
@@ -79,28 +79,29 @@ class QuickCaptureButtons extends StatelessWidget {
 
   // ── AI Voice Capture ─────────────────────────────────────────────────────
 
-  void _showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {
+  }
+
+void showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (ctx) => _AIVoiceSheet(qcVm),
+      builder: (ctx) => AIVoiceSheet(qcVm),
     );
   }
-}
 
 
 
-class _AIVoiceSheet extends StatefulWidget {
+class AIVoiceSheet extends StatefulWidget {
   final QuickCaptureViewModel vm;
-  const _AIVoiceSheet(this.vm);
+  const AIVoiceSheet(this.vm);
 
   @override
-  State<_AIVoiceSheet> createState() => _AIVoiceSheetState();
+  State<AIVoiceSheet> createState() => AIVoiceSheetState();
 }
 
-class _AIVoiceSheetState extends State<_AIVoiceSheet> {
+class AIVoiceSheetState extends State<AIVoiceSheet> {
   final _textCtrl = TextEditingController();
 
   @override

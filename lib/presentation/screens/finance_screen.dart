@@ -529,16 +529,65 @@ class _FilterBar extends StatelessWidget {
 
 // ─── Tile de Transacción ────────────────────────────────────────────────────
 
-class _ZenTransactionTile extends StatelessWidget {
+class _ZenTransactionTile extends StatefulWidget {
   final TransactionEntity txn;
   final FinanceViewModel vm;
 
   const _ZenTransactionTile({required this.txn, required this.vm});
 
   @override
+  State<_ZenTransactionTile> createState() => _ZenTransactionTileState();
+}
+
+class _ZenTransactionTileState extends State<_ZenTransactionTile> {
+  OverlayEntry? _categoryOverlay;
+
+  void _showCategoryPopover(BuildContext context) {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    _categoryOverlay?.remove();
+
+    _categoryOverlay = OverlayEntry(
+      builder: (context) => _CategoryPopover(
+        anchorPosition: position,
+        anchorSize: size,
+        currentCategory: widget.txn.category,
+        isExpense: !widget.txn.isIncome,
+        categories: widget.vm.categoriesFor(
+          widget.vm.accounts.firstWhere(
+            (a) => a.id == widget.txn.accountId,
+            orElse: () => widget.vm.accounts.first,
+          ).type,
+          !widget.txn.isIncome,
+        ),
+        onCategorySelected: (category) {
+          widget.vm.updateTransactionCategory(widget.txn.id, category);
+          _hideCategoryPopover();
+        },
+        onDismiss: _hideCategoryPopover,
+      ),
+    );
+
+    Overlay.of(context).insert(_categoryOverlay!);
+  }
+
+  void _hideCategoryPopover() {
+    _categoryOverlay?.remove();
+    _categoryOverlay = null;
+  }
+
+  @override
+  void dispose() {
+    _hideCategoryPopover();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isIncome   = txn.isIncome;
-    final isTransfer = txn.isTransfer;
+    final isIncome   = widget.txn.isIncome;
+    final isTransfer = widget.txn.isTransfer;
 
     final iconColor   = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
     final amountColor = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
@@ -550,7 +599,7 @@ class _ZenTransactionTile extends StatelessWidget {
         : Icons.arrow_downward;
 
     return Dismissible(
-      key: ValueKey(txn.id),
+      key: ValueKey(widget.txn.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -558,7 +607,7 @@ class _ZenTransactionTile extends StatelessWidget {
         color: _kDanger.withValues(alpha: 0.08),
         child: Icon(Icons.delete_outline, color: _kDanger, size: 18),
       ),
-      onDismissed: (_) => vm.removeTransaction(txn.id),
+      onDismissed: (_) => widget.vm.removeTransaction(widget.txn.id),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
@@ -578,21 +627,36 @@ class _ZenTransactionTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    txn.category,
-                    style: TextStyle(
-                      color: _kTextPrim,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                  // Tappable category
+                  GestureDetector(
+                    onTap: () => _showCategoryPopover(context),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.txn.category,
+                          style: TextStyle(
+                            color: _kTextPrim,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: _kTextSec,
+                          size: 16,
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 2),
                   Text(
-                    (txn.note != null && txn.note!.isNotEmpty)
-                        ? txn.note!.toUpperCase()
-                        : '${txn.date.day.toString().padLeft(2, '0')}/'
-                            '${txn.date.month.toString().padLeft(2, '0')}/'
-                            '${txn.date.year}',
+                    (widget.txn.note != null && widget.txn.note!.isNotEmpty)
+                        ? widget.txn.note!.toUpperCase()
+                        : '${widget.txn.date.day.toString().padLeft(2, '0')}/'
+                            '${widget.txn.date.month.toString().padLeft(2, '0')}/'
+                            '${widget.txn.date.year}',
                     style: TextStyle(
                       color: _kTextSec,
                       fontSize: 10,
@@ -603,7 +667,7 @@ class _ZenTransactionTile extends StatelessWidget {
               ),
             ),
             Text(
-              '${isIncome ? '+' : isTransfer ? '' : '-'}€${txn.amount.abs().toStringAsFixed(2)}',
+              '${isIncome ? '+' : isTransfer ? '' : '-'}€${widget.txn.amount.abs().toStringAsFixed(2)}',
               style: TextStyle(
                 color: amountColor,
                 fontSize: 14,
@@ -613,6 +677,208 @@ class _ZenTransactionTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Translucent popover for category selection on transaction tiles.
+class _CategoryPopover extends StatelessWidget {
+  final Offset anchorPosition;
+  final Size anchorSize;
+  final String currentCategory;
+  final bool isExpense;
+  final List<CategoryEntity> categories;
+  final void Function(String) onCategorySelected;
+  final VoidCallback onDismiss;
+
+  const _CategoryPopover({
+    required this.anchorPosition,
+    required this.anchorSize,
+    required this.currentCategory,
+    required this.isExpense,
+    required this.categories,
+    required this.onCategorySelected,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaSize = MediaQuery.of(context).size;
+    // Popover dimensions
+    const double popoverWidth = 260;
+    const double popoverMaxHeight = 320;
+
+    // Smart positioning: anchor below the category, but clamp to screen.
+    double left = anchorPosition.dx;
+    // If the popover would overflow the right side, shift it left.
+    if (left + popoverWidth > mediaSize.width - 12) {
+      left = mediaSize.width - popoverWidth - 12;
+    }
+    if (left < 12) left = 12;
+
+    double top = anchorPosition.dy + anchorSize.height + 6;
+    // If it would overflow the bottom, show it above the anchor instead.
+    if (top + popoverMaxHeight > mediaSize.height - 12) {
+      top = anchorPosition.dy - popoverMaxHeight - 6;
+    }
+    if (top < 12) top = 12;
+
+    return Stack(
+      children: [
+        // Light scrim (only around the popover, not full screen)
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: onDismiss,
+            behavior: HitTestBehavior.translucent,
+          ),
+        ),
+        // Popover
+        Positioned(
+          left: left,
+          top: top,
+          child: GestureDetector(
+            onTap: () {}, // Prevent dismiss when tapping inside
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: popoverWidth,
+                constraints: BoxConstraints(maxHeight: popoverMaxHeight),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2C2C2E),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    width: 0.5,
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isExpense
+                                ? Icons.arrow_downward
+                                : Icons.arrow_upward,
+                            color: isExpense ? _kDanger : _kSageGreen,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'CATEGORÍA',
+                            style: TextStyle(
+                              color: _kTextSec,
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Close X button
+                          GestureDetector(
+                            onTap: onDismiss,
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.close,
+                                color: _kTextSec,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Divider
+                    Container(
+                      height: 0.5,
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                    // Categories list
+                    Flexible(
+                      child: categories.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Text(
+                                'Sin categorías disponibles',
+                                style: TextStyle(
+                                  color: _kTextSec,
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: categories.map((cat) {
+                                  final isSelected =
+                                      cat.name == currentCategory;
+                                  return InkWell(
+                                    onTap: () =>
+                                        onCategorySelected(cat.name),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            cat.icon,
+                                            style: const TextStyle(
+                                                fontSize: 16),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              cat.name,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: isSelected
+                                                    ? _kSageGreen
+                                                    : _kTextPrim,
+                                                fontSize: 13,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          if (isSelected)
+                                            Icon(
+                                              Icons.check,
+                                              color: _kSageGreen,
+                                              size: 16,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -629,6 +895,7 @@ class ZenSheet extends StatelessWidget {
   final String confirmLabel;
 
   const ZenSheet({
+    super.key,
     required this.title,
     required this.ctx,
     required this.children,
@@ -831,6 +1098,7 @@ class ZenMenuTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const ZenMenuTile({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

@@ -50,9 +50,6 @@ class HabitRepository {
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
       'status': 'completed',
     });
-
-    // Incrementar streak
-    await _client.rpc('increment_streak', params: {'habit_id_param': habitId});
   }
 
   Future<List<String>> getCompletedHabitIds(DateTime date) async {
@@ -89,9 +86,6 @@ class HabitRepository {
         .eq('user_id', userId)
         .eq('habit_id', habitId)
         .eq('date', dateStr);
-
-    // Decrementar streak
-    await _client.rpc('decrement_streak', params: {'habit_id_param': habitId});
   }
 
   Future<List<HabitLogEntity>> getHabitLogsInRange(

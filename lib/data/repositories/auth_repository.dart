@@ -11,8 +11,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
-  // Modo desarrollador: acceso rápido sin Supabase
-  static bool devQuickAccess = kDebugMode;
+  // Modo desarrollador apagado por defecto para usar Supabase real
+  static bool devQuickAccess = false;
 
   Future<void> signIn({required String email, required String password}) async {
     await _client.auth.signInWithPassword(email: email, password: password);

@@ -58,6 +58,8 @@ class HabitsViewModel extends ChangeNotifier {
     try {
       await _repo.logHabitCompletion(habit.id, DateTime.now());
       _completedTodayIds.add(habit.id);
+      // Recalcular analytics para que stats se actualicen sin recargar
+      await loadAnalytics();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -144,6 +146,8 @@ class HabitsViewModel extends ChangeNotifier {
     try {
       await _repo.uncompleteHabitLog(habit.id, DateTime.now());
       _completedTodayIds.remove(habit.id);
+      // Recalcular analytics para que stats se actualicen sin recargar
+      await loadAnalytics();
       notifyListeners();
     } catch (e) {
       _error = e.toString();
