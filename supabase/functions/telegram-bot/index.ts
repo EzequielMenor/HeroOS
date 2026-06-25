@@ -282,7 +282,7 @@ async function handleHabitos(
 ): Promise<void> {
   const { data: habits } = await supabase
     .from("habits")
-    .select("id, title, xp_reward, frequency_mask")
+    .select("id, title, frequency_mask")
     .eq("user_id", link.user_id)
     .eq("is_archived", false);
 
@@ -316,10 +316,10 @@ async function handleHabitos(
 
   const completedIds = new Set((logs ?? []).map((l: { habit_id: string }) => l.habit_id));
 
-  const lines = todayHabits.map((h: { id: string; title: string; xp_reward: number }) => {
+  const lines = todayHabits.map((h: { id: string; title: string }) => {
     const done = completedIds.has(h.id);
     const icon = done ? "✅" : "⬜";
-    return `${icon} ${h.title} (+${h.xp_reward} XP)`;
+    return `${icon} ${h.title}`;
   });
 
   await sendMessage(
@@ -446,7 +446,7 @@ async function handleHabito(
 
   const { data: habits } = await supabase
     .from("habits")
-    .select("id, title, xp_reward")
+    .select("id, title")
     .eq("user_id", link.user_id)
     .eq("is_archived", false)
     .ilike("title", `%${habitName}%`);
@@ -482,15 +482,11 @@ async function handleHabito(
     return;
   }
 
-  // Otorgar XP al perfil
-  await supabase.rpc("add_xp", { p_user_id: link.user_id, p_xp: habit.xp_reward });
-
   await sendMessage(
     chatId,
     `🏆 *¡Hábito completado!*\n\n` +
-      `⚡ *${habit.title}*\n` +
-      `+${habit.xp_reward} XP ganados\n\n` +
-      `_¡Seguí acumulando poder, héroe!_`,
+      `⚡ *${habit.title}*\n\n` +
+      `_¡Mantené ese ritmo, héroe!_`,
   );
 }
 

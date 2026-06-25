@@ -67,6 +67,14 @@ class FinanceRepository {
         .eq('id', txn.accountId);
   }
 
+  Future<void> updateTransaction(TransactionEntity txn) async {
+    final model = TransactionModel.fromEntity(txn);
+    await _client
+        .from('transactions')
+        .update(model.toJson())
+        .eq('id', txn.id);
+  }
+
   Future<void> deleteTransaction(String txnId) async {
     // Obtener transacción antes de borrar para revertir balance
     final txnData = await _client
@@ -110,6 +118,7 @@ class FinanceRepository {
           'user_id': userId,
           'account_id': fromAccountId,
           'amount': -amount,
+          'type': 'transfer',
           'category': 'Transfer',
           'note': transferNote,
           'date': now,
@@ -124,6 +133,7 @@ class FinanceRepository {
           'user_id': userId,
           'account_id': toAccountId,
           'amount': amount,
+          'type': 'transfer',
           'category': 'Transfer',
           'note': transferNote,
           'date': now,
@@ -183,8 +193,7 @@ class FinanceRepository {
 
   Future<void> createCategory(CategoryEntity category) async {
     final model = CategoryModel.fromEntity(category);
-    final json = model.toJson()..remove('id'); // Supabase genera el UUID
-    await _client.from('finance_categories').insert(json);
+    await _client.from('finance_categories').insert(model.toJson());
   }
 
   Future<void> updateCategory(CategoryEntity category) async {

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/profile_entity.dart';
+import '../../domain/services/ai_service.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -33,6 +34,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _endpointController = TextEditingController();
   final _modelController = TextEditingController();
 
+  List<String> _availableModels = [];
+  bool _isValidating = false;
+  String? _errorMessage;
+  String? _selectedModel;
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +56,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _apiKeyController.text = prefs.getString('ai_api_key') ?? '';
       _endpointController.text = prefs.getString('ai_endpoint') ?? '';
       _modelController.text = prefs.getString('ai_model') ?? '';
+      _selectedModel = _modelController.text.isNotEmpty ? _modelController.text : null;
     });
+  }
+
+  Future<void> _validateAndLoadModels() async {
+    if (_apiKeyController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor, introduce una API Key';
+      });
+      return;
+    }
+
+    setState(() {
+      _isValidating = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final aiService = AiService();
+      final models = await aiService.fetchAvailableModels(
+        endpoint: _endpointController.text,
+        apiKey: _apiKeyController.text,
+      );
+
+      setState(() {
+        _availableModels = models;
+        if (models.isNotEmpty) {
+          if (!models.contains(_selectedModel)) {
+            _selectedModel = models.first;
+            _modelController.text = models.first;
+          }
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Credenciales válidas. Modelos cargados.'),
+            backgroundColor: _kAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error al validar: ${e.toString().replaceAll('Exception: ', '')}';
+        _availableModels = [];
+      });
+    } finally {
+      setState(() {
+        _isValidating = false;
+      });
+    }
   }
 
   Future<void> _saveAiConfig() async {
@@ -233,12 +290,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           hint: 'Ej: https://api.openai.com/v1/chat/completions',
         ),
         SizedBox(height: 16),
-        _buildFieldLabel('MODELO'),
-        _buildUnderlineInput(
-          controller: _modelController,
-          hint: 'Ej: gpt-3.5-turbo, llama-3',
-        ),
-        SizedBox(height: 16),
         _buildFieldLabel('API KEY'),
         SizedBox(height: 8),
         _buildUnderlineInput(
@@ -246,6 +297,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
           hint: 'sk-…',
           obscureText: true,
         ),
+        SizedBox(height: 16),
+        if (_isValidating)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(_kAccent),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  'VALIDANDO CREDENCIALES...',
+                  style: TextStyle(color: _kTextSecondary, fontSize: 9, letterSpacing: 1.0),
+                ),
+              ],
+            ),
+          )
+        else
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: _kDivider),
+                padding: EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              ),
+              onPressed: _validateAndLoadModels,
+              child: Text(
+                'VERIFICAR CREDENCIALES',
+                style: TextStyle(color: _kTextPrimary, fontSize: 9, letterSpacing: 1.5, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        if (_errorMessage != null) ...[
+          SizedBox(height: 8),
+          Text(
+            _errorMessage!.toUpperCase(),
+            style: TextStyle(color: _kDanger, fontSize: 9, letterSpacing: 0.5),
+          ),
+        ],
+        SizedBox(height: 24),
+        _buildFieldLabel('MODELO'),
+        SizedBox(height: 8),
+        if (_availableModels.isNotEmpty)
+          DropdownButtonFormField<String>(
+            initialValue: _availableModels.contains(_selectedModel) ? _selectedModel : _availableModels.first,
+            dropdownColor: _kBg,
+            style: TextStyle(color: _kTextPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: _kDivider),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: _kAccent),
+              ),
+              contentPadding: EdgeInsets.only(bottom: 8),
+            ),
+            items: _availableModels.map((String model) {
+              return DropdownMenuItem<String>(
+                value: model,
+                child: Text(model, style: TextStyle(color: _kTextPrimary, fontSize: 13)),
+              );
+            }).toList(),
+            onChanged: (String? value) {
+              setState(() {
+                _selectedModel = value;
+                if (value != null) {
+                  _modelController.text = value;
+                }
+              });
+            },
+          )
+        else
+          _buildUnderlineInput(
+            controller: _modelController,
+            hint: 'Ej: gpt-3.5-turbo, llama-3',
+          ),
         SizedBox(height: 28),
         SizedBox(
           width: double.infinity,

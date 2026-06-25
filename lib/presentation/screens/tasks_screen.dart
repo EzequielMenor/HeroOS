@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -727,11 +728,6 @@ class _TaskTile extends StatelessWidget {
 
   const _TaskTile({required this.task, required this.vm});
 
-  static final _energyDots = [
-    Color(0xFF6DBF6D), // baja
-    Color(0xFFE8A84A), // media
-    Color(0xFFF44336), // alta
-  ];
   static final _energyLabels = ['Baja', 'Media', 'Alta'];
 
   @override
@@ -813,21 +809,35 @@ class _TaskTile extends StatelessWidget {
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _energyDots[energyIdx],
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          _energyLabels[energyIdx],
-                          style: TextStyle(
-                            color: _kTextSecondary,
-                            fontSize: 11,
-                            letterSpacing: 0.3,
+                        // Tappable energy indicator (three bars style)
+                        GestureDetector(
+                          onTap: task.isDone
+                              ? null
+                              : () {
+                                  HapticFeedback.lightImpact();
+                                  vm.cycleTaskEnergy(task);
+                                },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Three bars energy indicator
+                                  _energyBars(energy: task.energy ?? Energy.medium),
+                                SizedBox(width: 6),
+                                Text(
+                                  _energyLabels[energyIdx],
+                                  style: TextStyle(
+                                    color: _kTextSecondary,
+                                    fontSize: 11,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         if (task.dueDate != null) ...[
@@ -858,6 +868,35 @@ class _TaskTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Three-bar energy indicator widget.
+  static final _energyColors = [
+    Color(0xFF6DBF6D), // low - green
+    Color(0xFFE8A84A), // medium - amber
+    Color(0xFFF44336), // high - red
+  ];
+
+  /// Energy bars indicator - displays 1, 2, or 3 bars based on energy level.
+  static Widget _energyBars({required Energy energy}) {
+    final level = energy.index; // 0=low, 1=medium, 2=high
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (i) {
+        final isActive = i <= level;
+        return Container(
+          width: 3,
+          height: 10 + (i * 2), // Increasing height: 10, 12, 14
+          margin: EdgeInsets.only(right: 2),
+          decoration: BoxDecoration(
+            color: isActive
+                ? _energyColors[level]
+                : _kTextSecondary.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(1),
+          ),
+        );
+      }),
     );
   }
 

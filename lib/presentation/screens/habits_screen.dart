@@ -63,7 +63,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 Container(width: 1, color: AppColors.divider),
                 Expanded(
                   child: _StatsView(
-                    vm: vm,
                     selectedHabitId: _selectedHabitId,
                     onHabitSelected: (id) =>
                         setState(() => _selectedHabitId = id),
@@ -155,7 +154,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
                     )
                   : _showStats
                       ? _StatsView(
-                          vm: vm,
                           selectedHabitId: _selectedHabitId,
                           onHabitSelected: (id) =>
                               setState(() => _selectedHabitId = id),
@@ -317,18 +315,17 @@ class _ListView extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 
 class _StatsView extends StatelessWidget {
-  final HabitsViewModel vm;
   final String? selectedHabitId;
   final ValueChanged<String?> onHabitSelected;
 
   const _StatsView({
-    required this.vm,
     required this.selectedHabitId,
     required this.onHabitSelected,
   });
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<HabitsViewModel>();
     final analytics = vm.analytics;
     final habits = vm.habits;
 

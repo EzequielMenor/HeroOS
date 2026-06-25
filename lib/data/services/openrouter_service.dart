@@ -1,32 +1,42 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/config/secrets.dart';
 import '../../domain/entities/sleep_log_entity.dart';
 import '../../domain/services/sleep_diagnosis_service.dart';
 
-/// Llama a Groq (100% gratis) para analizar un registro de sueño.
-/// Crea tu API key gratis en: https://console.groq.com/keys
+/// Llama a la IA configurada (o Groq como fallback) para analizar un registro de sueño.
 class OpenRouterService {
-  static final String _apiKey = Secrets.groqApiKey;
-  static final String _model = 'llama-3.1-8b-instant';
-  static final String _endpoint =
-      'https://api.groq.com/openai/v1/chat/completions';
+  static final String _defaultApiKey = Secrets.groqApiKey;
+  static const String _defaultModel = 'llama-3.1-8b-instant';
+  static const String _defaultEndpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
-  /// Devuelve un [SleepDiagnosis] generado por IA con análisis estructurado.
+  /// Devuelve un [SleepDiagnosis] generado por la IA configurada con análisis estructurado.
   static Future<SleepDiagnosis> analyzeSleep(SleepLogEntity log) async {
+    final prefs = await SharedPreferences.getInstance();
+    final apiKey = prefs.getString('ai_api_key') ?? _defaultApiKey;
+    final endpoint = prefs.getString('ai_endpoint') ?? _defaultEndpoint;
+    final aiModel = prefs.getString('ai_model') ?? _defaultModel;
+
+    // Si no hay API key y no se configuró fallback, devolvemos diagnóstico por reglas local
+    if (apiKey.isEmpty) {
+      final fallback = SleepDiagnosisService.diagnose(log);
+      if (fallback != null) return fallback;
+      throw Exception('No hay clave de API configurada para el análisis de sueño');
+    }
+
     final prompt = _buildPrompt(log);
 
     final response = await http
         .post(
-          Uri.parse(_endpoint),
+          Uri.parse(endpoint.trim().isNotEmpty ? endpoint.trim() : _defaultEndpoint),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $_apiKey',
+            'Authorization': 'Bearer $apiKey',
           },
           body: jsonEncode({
-            'model': _model,
+            'model': aiModel.trim().isNotEmpty ? aiModel.trim() : _defaultModel,
             'messages': [
               {
                 'role': 'system',
@@ -43,23 +53,24 @@ class OpenRouterService {
               },
               {'role': 'user', 'content': prompt},
             ],
-            'response_format': {'type': 'json_object'},
             'max_tokens': 600,
             'temperature': 0.7,
           }),
         )
-        .timeout(Duration(seconds: 30));
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode != 200) {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final content =
-        data['choices']?[0]?['message']?['content'] as String? ?? '';
-    if (content.isEmpty) throw Exception('Respuesta vacía de la IA');
+    final rawContent = data['choices']?[0]?['message']?['content'] as String? ?? '';
+    if (rawContent.isEmpty) throw Exception('Respuesta vacía de la IA');
 
-    final json = jsonDecode(content) as Map<String, dynamic>;
+    // Regex para extraer el bloque JSON de la respuesta (por si incluye markdown o texto extra)
+    final jsonStr = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawContent)?.group(0) ?? rawContent;
+    final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+
     return SleepDiagnosis(
       title: (json['title'] as String?) ?? 'Análisis de tu noche',
       physicalAnalysis: (json['physicalAnalysis'] as String?) ?? '',

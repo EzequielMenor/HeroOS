@@ -4,6 +4,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/dev_repository.dart';
 import '../../domain/entities/task_entity.dart';
+import '../../domain/entities/sync_status.dart';
 
 /// ViewModel de Tareas (Misiones).
 /// CRUD for tasks.
@@ -115,5 +116,22 @@ class TasksViewModel extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  /// Alterna la energía de una tarea cíclicamente (low -> medium -> high -> low).
+  /// Marca la tarea como userModified si estaba en pendingAi.
+  Future<void> cycleTaskEnergy(TaskEntity task) async {
+    final currentEnergy = task.energy ?? Energy.medium;
+    final nextEnergy = switch (currentEnergy) {
+      Energy.low => Energy.medium,
+      Energy.medium => Energy.high,
+      Energy.high => Energy.low,
+    };
+    // If task was pendingAi, mark as userModified to invalidate AI response
+    final newSyncStatus = task.syncStatus == SyncStatus.pendingAi
+        ? SyncStatus.userModified
+        : task.syncStatus;
+    final updated = task.copyWith(energy: nextEnergy, syncStatus: newSyncStatus);
+    await updateTask(updated);
   }
 }

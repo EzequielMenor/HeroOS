@@ -31,7 +31,8 @@ class NoteModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      // Only include id when it's a real value, so Supabase can auto-generate it.
+      if (id.isNotEmpty) 'id': id,
       'user_id': userId,
       'title': title,
       'content': content,
