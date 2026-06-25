@@ -24,7 +24,7 @@ class NotesViewModel extends ChangeNotifier {
   bool _hasPendingChanges = false;
   NoteEntity? _pendingNoteState;
   NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
-  Completer<void>? _flushCompleter; // For flushAutosave to wait
+  Completer<bool?>? _flushCompleter; // For flushAutosave to wait
 
   NotesViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : NoteRepository();
 
@@ -50,14 +50,15 @@ class NotesViewModel extends ChangeNotifier {
   NoteEntity? get lastCreatedNote => _lastCreatedNote;
 
   /// Cancels pending debounce and immediately saves any pending note.
-  /// Returns a Future that completes when the save is done.
-  Future<void> flushAutosave() {
+  /// Returns true if saved, false if failed, null if nothing to save.
+  Future<bool?> flushAutosave() async {
     _debounceTimer?.cancel();
     _debounceTimer = null;
-    if (_pendingNoteState == null) return Future.value();
-    _flushCompleter = Completer<void>();
+    if (_pendingNoteState == null) return null;
+    _flushCompleter = Completer<bool?>();
     _executeSave();
-    return _flushCompleter!.future;
+    final result = await _flushCompleter!.future;
+    return result;
   }
 
   /// Carga todas las notas del usuario.
@@ -168,7 +169,7 @@ class NotesViewModel extends ChangeNotifier {
             final created = _notes
                 .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
                 .firstOrNull;
-            if (created != null) {
+              if (created != null) {
               _lastCreatedNote = created;
             }
           }
@@ -184,13 +185,14 @@ class NotesViewModel extends ChangeNotifier {
           }
         }
       }
+      _flushCompleter?.complete(true);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      _flushCompleter?.complete(false);
+      _flushCompleter = null;
     } finally {
       _isSaving = false;
-      _flushCompleter?.complete();
-      _flushCompleter = null;
       if (_hasPendingChanges) {
         _executeSave();
       }

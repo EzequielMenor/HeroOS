@@ -23,6 +23,7 @@ import 'presentation/viewmodels/goals_viewmodel.dart';
 import 'presentation/viewmodels/profile_viewmodel.dart';
 import 'presentation/viewmodels/notes_viewmodel.dart';
 import 'presentation/viewmodels/quick_capture_viewmodel.dart';
+import 'presentation/viewmodels/shell_controller.dart';
 
 
 /// — Configuración del router —
@@ -94,6 +95,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
   late final FinanceViewModel _financeVm;
   late final SleepViewModel _sleepVm;
   late final QuickCaptureViewModel _quickCaptureVm;
+  late final ShellController _shellVm;
   late final GoRouter _router;
 
   @override
@@ -105,6 +107,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
     _financeVm = FinanceViewModel();
     _sleepVm = SleepViewModel();
     _quickCaptureVm = QuickCaptureViewModel();
+    _shellVm = ShellController();
     _router = _buildRouter(_authVm);
   }
 
@@ -119,6 +122,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
     _profileVm.dispose();
     _notesVm.dispose();
     _quickCaptureVm.dispose();
+    _shellVm.dispose();
     _router.dispose();
     super.dispose();
   }
@@ -136,6 +140,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
         ChangeNotifierProvider.value(value: _profileVm),
         ChangeNotifierProvider.value(value: _notesVm),
         ChangeNotifierProvider.value(value: _quickCaptureVm),
+        ChangeNotifierProvider.value(value: _shellVm),
       ],
       child: ValueListenableBuilder<ThemeMode>(
         valueListenable: AppColors.themeMode,

@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:heroos/presentation/viewmodels/shell_controller.dart';
 
 void main() {
@@ -22,5 +24,25 @@ void main() {
     controller.toggleSidebar();
     expect(controller.isSidebarCollapsed, true);
     expect(notificationsCount, 3);
+  });
+
+  testWidgets('ShellController provider resolution', (tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ShellController()),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Consumer<ShellController>(
+              builder: (context, controller, child) {
+                return Text('Index: ${controller.currentIndex}');
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Index: 0'), findsOneWidget);
   });
 }
