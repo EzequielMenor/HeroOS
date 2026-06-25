@@ -11,7 +11,9 @@ import '../viewmodels/tasks_viewmodel.dart';
 import '../viewmodels/sleep_viewmodel.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/quick_capture_viewmodel.dart';
+import '../viewmodels/shell_controller.dart';
 
+import '../widgets/responsive_shell.dart';
 import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import '../widgets/liquid_glass_indicator.dart';
 import 'habits_screen.dart';
@@ -98,6 +100,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final shell = context.watch<ShellController>();
+    if (_currentIndex != shell.currentIndex) {
+      _currentIndex = shell.currentIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(_currentIndex);
+        }
+      });
+    }
+
     if (context.isWeb && MediaQuery.of(context).size.width >= 900) {
       return _buildWebLayout();
     }
@@ -114,6 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _currentIndex = index;
           });
+          context.read<ShellController>().setTab(index);
         },
         children: [
           _TodayOverview(),
@@ -142,27 +155,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildWebLayout() {
-    return Scaffold(
-      body: Row(
+    final shell = context.watch<ShellController>();
+    return ResponsiveShell(
+      child: Row(
         children: [
-          NavigationRail(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: _onTabTapped,
-            backgroundColor: AppColors.surface,
-            indicatorColor: _tabs[_currentIndex].color.withValues(alpha: 0.2),
-            labelType: NavigationRailLabelType.all,
-            destinations: _tabs
-                .map((t) => NavigationRailDestination(
-                      icon: Icon(t.icon, color: AppColors.textSecondary),
-                      selectedIcon: Icon(t.icon, color: t.color),
-                      label: Text(t.label),
-                    ))
-                .toList(),
-          ),
-          VerticalDivider(thickness: 1, width: 1, color: AppColors.divider),
           Expanded(
             child: IndexedStack(
-              index: _currentIndex,
+              index: shell.currentIndex,
               children: [
                 _TodayOverview(),
                 TasksScreen(),
@@ -176,7 +175,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      floatingActionButton: _buildQuickCapture(),
     );
   }
 

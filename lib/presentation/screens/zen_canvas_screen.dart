@@ -50,6 +50,9 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
     }
 
     final vm = context.read<NotesViewModel>();
+    if (_createdNoteId == null && vm.lastCreatedNote != null) {
+      _createdNoteId = vm.lastCreatedNote!.id;
+    }
 
     // Si ya se creó la nota, usa su id; si no, empty id → ViewModel crea
     final noteId = _createdNoteId ?? '';
@@ -64,11 +67,6 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
       tags: widget.note?.tags ?? [],
     );
     vm.queueAutosave(noteToSave);
-
-    // After first create, update _createdNoteId so subsequent saves use update
-    if (_createdNoteId == null && vm.lastCreatedNote != null) {
-      _createdNoteId = vm.lastCreatedNote!.id;
-    }
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,9 +10,20 @@ import 'package:heroos/presentation/viewmodels/habits_viewmodel.dart';
 import 'package:heroos/presentation/viewmodels/tasks_viewmodel.dart';
 import 'package:heroos/presentation/viewmodels/sleep_viewmodel.dart';
 import 'package:heroos/presentation/viewmodels/profile_viewmodel.dart';
+import 'package:heroos/presentation/viewmodels/finance_viewmodel.dart';
+import 'package:heroos/presentation/viewmodels/goals_viewmodel.dart';
+import 'package:heroos/presentation/viewmodels/notes_viewmodel.dart';
+import 'package:heroos/presentation/viewmodels/shell_controller.dart';
+import 'package:heroos/presentation/widgets/responsive_shell.dart';
+import 'package:heroos/core/utils/responsive.dart';
+import 'package:heroos/presentation/screens/notes_screen.dart';
 import 'package:heroos/domain/entities/habit_entity.dart';
 import 'package:heroos/domain/entities/task_entity.dart';
 import 'package:heroos/domain/entities/sleep_log_entity.dart';
+import 'package:heroos/domain/entities/note_entity.dart';
+import 'package:heroos/domain/entities/account_entity.dart';
+import 'package:heroos/domain/entities/transaction_entity.dart';
+import 'package:heroos/domain/entities/category_entity.dart';
 
 // Elegant Mocking using Dart's native noSuchMethod feature to avoid mock library dependencies
 class MockHabitsViewModel extends ChangeNotifier implements HabitsViewModel {
@@ -64,6 +76,58 @@ class MockProfileViewModel extends ChangeNotifier implements ProfileViewModel {
   }
 }
 
+class MockFinanceViewModel extends ChangeNotifier implements FinanceViewModel {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    final name = invocation.memberName;
+    if (name == #accounts) return <AccountEntity>[];
+    if (name == #transactions) return <TransactionEntity>[];
+    if (name == #categories) return <CategoryEntity>[];
+    if (name == #isLoading) return false;
+    if (name == #error) return null;
+    if (name == #totalBalance) return 0.0;
+    if (invocation.isMethod) return Future<void>.value();
+    return null;
+  }
+}
+
+class MockGoalsViewModel extends ChangeNotifier implements GoalsViewModel {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    final name = invocation.memberName;
+    if (name == #isLoading) return false;
+    if (invocation.isMethod) return Future<void>.value();
+    return null;
+  }
+}
+
+class MockNotesViewModel extends ChangeNotifier implements NotesViewModel {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    final name = invocation.memberName;
+    if (name == #notes) return <NoteEntity>[];
+    if (name == #allTags) return <String>{};
+    if (name == #selectedTag) return null;
+    if (name == #searchQuery) return '';
+    if (name == #isLoading) return false;
+    if (invocation.isMethod) return Future<void>.value();
+    return null;
+  }
+}
+
+List<SingleChildWidget> _buildMockProviders({ShellController? shellController}) {
+  return [
+    ChangeNotifierProvider<HabitsViewModel>.value(value: MockHabitsViewModel()),
+    ChangeNotifierProvider<TasksViewModel>.value(value: MockTasksViewModel()),
+    ChangeNotifierProvider<SleepViewModel>.value(value: MockSleepViewModel()),
+    ChangeNotifierProvider<ProfileViewModel>.value(value: MockProfileViewModel()),
+    ChangeNotifierProvider<FinanceViewModel>.value(value: MockFinanceViewModel()),
+    ChangeNotifierProvider<GoalsViewModel>.value(value: MockGoalsViewModel()),
+    ChangeNotifierProvider<NotesViewModel>.value(value: MockNotesViewModel()),
+    ChangeNotifierProvider<ShellController>.value(value: shellController ?? ShellController()),
+  ];
+}
+
 void main() {
   setUpAll(() async {
     // Mock SharedPreferences native platform channel
@@ -82,16 +146,15 @@ void main() {
     );
   });
 
+  tearDown(() {
+    debugOverrideIsWeb = false;
+  });
+
   testWidgets('DashboardScreen PageView swipe transition test', (WidgetTester tester) async {
     // Pump DashboardScreen inside required providers
     await tester.pumpWidget(
       MultiProvider(
-        providers: [
-          ChangeNotifierProvider<HabitsViewModel>.value(value: MockHabitsViewModel()),
-          ChangeNotifierProvider<TasksViewModel>.value(value: MockTasksViewModel()),
-          ChangeNotifierProvider<SleepViewModel>.value(value: MockSleepViewModel()),
-          ChangeNotifierProvider<ProfileViewModel>.value(value: MockProfileViewModel()),
-        ],
+        providers: _buildMockProviders(),
         child: const MaterialApp(
           home: DashboardScreen(),
         ),
@@ -114,12 +177,7 @@ void main() {
   testWidgets('DashboardScreen bottom navbar drag transition test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
-        providers: [
-          ChangeNotifierProvider<HabitsViewModel>.value(value: MockHabitsViewModel()),
-          ChangeNotifierProvider<TasksViewModel>.value(value: MockTasksViewModel()),
-          ChangeNotifierProvider<SleepViewModel>.value(value: MockSleepViewModel()),
-          ChangeNotifierProvider<ProfileViewModel>.value(value: MockProfileViewModel()),
-        ],
+        providers: _buildMockProviders(),
         child: const MaterialApp(
           home: DashboardScreen(),
         ),
@@ -144,12 +202,7 @@ void main() {
   testWidgets('DashboardScreen bottom navbar drag gesture test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
-        providers: [
-          ChangeNotifierProvider<HabitsViewModel>.value(value: MockHabitsViewModel()),
-          ChangeNotifierProvider<TasksViewModel>.value(value: MockTasksViewModel()),
-          ChangeNotifierProvider<SleepViewModel>.value(value: MockSleepViewModel()),
-          ChangeNotifierProvider<ProfileViewModel>.value(value: MockProfileViewModel()),
-        ],
+        providers: _buildMockProviders(),
         child: const MaterialApp(
           home: DashboardScreen(),
         ),
@@ -192,5 +245,58 @@ void main() {
 
     // Verify it transitioned to page 2
     expect(pageView.controller?.page, 2.0);
+  });
+
+  testWidgets('DashboardScreen renders ResponsiveShell on web layout', (WidgetTester tester) async {
+    // Enable web layout simulation
+    debugOverrideIsWeb = true;
+    // Set viewport width to >= 900
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1.0;
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: _buildMockProviders(),
+        child: const MaterialApp(
+          home: DashboardScreen(),
+        ),
+      ),
+    );
+
+    // Verify ResponsiveShell is rendered instead of mobile PageView
+    expect(find.byType(ResponsiveShell), findsOneWidget);
+    expect(find.byType(PageView), findsNothing);
+
+    // Reset physicalSize and devicePixelRatio
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
+  testWidgets('NoteEditorSheet triggers isWriting state in ShellController on focus', (WidgetTester tester) async {
+    final shell = ShellController();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ShellController>.value(
+        value: shell,
+        child: MaterialApp(
+          home: Scaffold(
+            body: NoteEditorSheet(
+              note: null,
+              onSave: (title, content, tags) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Since TextField has autofocus: true, it gets focus immediately upon being pumped
+    expect(shell.isWriting, isTrue);
+
+    // Unfocus the TextField
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+
+    // Verify isWriting returns to false when focus is lost
+    expect(shell.isWriting, isFalse);
   });
 }
