@@ -13,12 +13,14 @@ import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/quick_capture_viewmodel.dart';
 
 import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
+import '../widgets/liquid_glass_indicator.dart';
 import 'habits_screen.dart';
 import 'tasks_screen.dart';
 import 'finance_screen.dart';
 import 'sleep_screen.dart';
 import 'profile_screen.dart';
 import 'notes_screen.dart';
+import 'global_add_screen.dart';
 
 /// Dashboard con BottomNavigationBar (6 tabs).
 /// Zen OS pivot: Today Overview + Notes module + Quick Capture.
@@ -32,16 +34,27 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
   late final QuickCaptureViewModel _qcVm;
+  late final PageController _pageController;
+  late final ValueNotifier<double> _pageOffsetNotifier;
 
   @override
   void initState() {
     super.initState();
     _qcVm = QuickCaptureViewModel();
+    _pageController = PageController(initialPage: _currentIndex);
+    _pageOffsetNotifier = ValueNotifier<double>(_currentIndex.toDouble());
+    _pageController.addListener(_onPageScroll);
     // Defer to post-frame so Provider tree is ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadData();
     });
+  }
+
+  void _onPageScroll() {
+    if (_pageController.hasClients) {
+      _pageOffsetNotifier.value = _pageController.page ?? 0.0;
+    }
   }
 
   void _loadData() {
@@ -53,6 +66,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    _pageController.removeListener(_onPageScroll);
+    _pageController.dispose();
+    _pageOffsetNotifier.dispose();
     _qcVm.dispose();
     super.dispose();
   }
@@ -81,10 +97,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildMobileLayout() {
+    const double tabWidth = 80.0;
+    const double navHeight = 44.0;
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
+      body: PageView(
+        controller: _pageController,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+        },
         children: [
           _TodayOverview(),
           TasksScreen(),
@@ -95,62 +117,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ProfileScreen(),
         ],
       ),
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.scaffold.withValues(alpha: 0.85),
-            ),
-        padding: EdgeInsets.only(
-          top: 10,
-          bottom: MediaQuery.of(context).padding.bottom > 0
-              ? MediaQuery.of(context).padding.bottom
-              : 24,
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            children: List.generate(_tabs.length, (index) {
-              final isSelected = _currentIndex == index;
-              final tab = _tabs[index];
-              return GestureDetector(
-                onTap: () => _onTabTapped(index),
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.textPrimary : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        tab.label.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                          color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.scaffold.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
-              );
-            }),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: SizedBox(
+                          height: navHeight,
+                          width: _tabs.length * tabWidth,
+                          child: Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              // Liquid Indicator driven by PageNotifier
+                              ValueListenableBuilder<double>(
+                                valueListenable: _pageOffsetNotifier,
+                                builder: (context, offset, child) {
+                                  return LiquidGlassIndicator(
+                                    pageOffset: offset,
+                                    tabWidth: tabWidth,
+                                    height: navHeight,
+                                  );
+                                },
+                              ),
+                              // Tab labels/icons
+                              Row(
+                                children: List.generate(_tabs.length, (index) {
+                                  final isSelected = _currentIndex == index;
+                                  final tab = _tabs[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      _pageController.animateToPage(
+                                        index,
+                                        duration: const Duration(milliseconds: 350),
+                                        curve: Curves.easeInOutCubic,
+                                      );
+                                    },
+                                    behavior: HitTestBehavior.opaque,
+                                    child: SizedBox(
+                                      width: tabWidth,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            tab.label.toUpperCase(),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 1.1,
+                                              color: isSelected
+                                                  ? AppColors.textPrimary
+                                                  : AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: AppColors.divider,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, color: AppColors.textPrimary, size: 28),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      onPressed: () => showGlobalAdd(context),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-      ))),
-      floatingActionButton: _buildQuickCapture(),
+      ),
     );
   }
 
