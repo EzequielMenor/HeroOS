@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -20,6 +22,7 @@ import 'presentation/viewmodels/sleep_viewmodel.dart';
 import 'presentation/viewmodels/goals_viewmodel.dart';
 import 'presentation/viewmodels/profile_viewmodel.dart';
 import 'presentation/viewmodels/notes_viewmodel.dart';
+import 'presentation/viewmodels/quick_capture_viewmodel.dart';
 
 
 /// — Configuración del router —
@@ -90,6 +93,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
   late final TasksViewModel _tasksVm;
   late final FinanceViewModel _financeVm;
   late final SleepViewModel _sleepVm;
+  late final QuickCaptureViewModel _quickCaptureVm;
   late final GoRouter _router;
 
   @override
@@ -100,6 +104,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
     _tasksVm = TasksViewModel();
     _financeVm = FinanceViewModel();
     _sleepVm = SleepViewModel();
+    _quickCaptureVm = QuickCaptureViewModel();
     _router = _buildRouter(_authVm);
   }
 
@@ -113,6 +118,7 @@ class _HeroOSAppState extends State<HeroOSApp> {
     _goalsVm.dispose();
     _profileVm.dispose();
     _notesVm.dispose();
+    _quickCaptureVm.dispose();
     _router.dispose();
     super.dispose();
   }
@@ -129,11 +135,13 @@ class _HeroOSAppState extends State<HeroOSApp> {
         ChangeNotifierProvider.value(value: _goalsVm),
         ChangeNotifierProvider.value(value: _profileVm),
         ChangeNotifierProvider.value(value: _notesVm),
+        ChangeNotifierProvider.value(value: _quickCaptureVm),
       ],
       child: ValueListenableBuilder<ThemeMode>(
         valueListenable: AppColors.themeMode,
         builder: (context, mode, child) {
           return MaterialApp.router(
+            scrollBehavior: AppScrollBehavior(),
             title: AppStrings.appName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
@@ -145,4 +153,14 @@ class _HeroOSAppState extends State<HeroOSApp> {
       ),
     );
   }
+}
+
+/// Enables mouse and trackpad drag gestures for scrollable widgets on web/desktop.
+class AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
 }

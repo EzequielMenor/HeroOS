@@ -43,18 +43,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _qcVm = QuickCaptureViewModel();
     _pageController = PageController(initialPage: _currentIndex);
     _pageOffsetNotifier = ValueNotifier<double>(_currentIndex.toDouble());
-    _pageController.addListener(_onPageScroll);
-    // Defer to post-frame so Provider tree is ready.
+
+    _pageController.addListener(() {
+      if (_pageController.hasClients) {
+        try {
+          final position = _pageController.position;
+          // Verificamos que ya existan dimensiones de viewport válidas
+          if (position.hasPixels && position.viewportDimension > 0) {
+            final double calculatedPage = _pageController.offset / position.viewportDimension;
+            // Limitamos el rango de manera segura
+            _pageOffsetNotifier.value = calculatedPage.clamp(0.0, (_tabs.length - 1).toDouble());
+          }
+        } catch (e) {
+          // Captura silenciosa para evitar bloquear el hilo de gestos en rebuilds rápidos
+        }
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadData();
     });
-  }
-
-  void _onPageScroll() {
-    if (_pageController.hasClients) {
-      _pageOffsetNotifier.value = _pageController.page ?? 0.0;
-    }
   }
 
   void _loadData() {
@@ -66,7 +75,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
-    _pageController.removeListener(_onPageScroll);
     _pageController.dispose();
     _pageOffsetNotifier.dispose();
     _qcVm.dispose();
@@ -75,13 +83,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Note: Zen OS uses text-only navigation on mobile, but icons are kept for web rail if needed.
   static final List<_TabInfo> _tabs = [
-    _TabInfo('Hoy', Icons.today_outlined, AppColors.habits),
-    _TabInfo('Misiones', Icons.task_alt_outlined, AppColors.habits),
-    _TabInfo('Hábitos', Icons.repeat_outlined, AppColors.habits),
-    _TabInfo('Finanzas', Icons.account_balance_wallet_outlined, AppColors.finance),
-    _TabInfo('Descanso', Icons.nightlight_round, AppColors.sleep),
-    _TabInfo('Notas', Icons.note_alt_outlined, AppColors.habits),
-    _TabInfo('Perfil', Icons.person_outline, AppColors.textPrimary),
+    _TabInfo('Hoy', 'HOY', Icons.today_outlined, AppColors.habits),
+    _TabInfo('Misiones', 'MIS', Icons.task_alt_outlined, AppColors.habits),
+    _TabInfo('Hábitos', 'HÁB', Icons.repeat_outlined, AppColors.habits),
+    _TabInfo('Finanzas', 'FIN', Icons.account_balance_wallet_outlined, AppColors.finance),
+    _TabInfo('Descanso', 'DES', Icons.nightlight_round, AppColors.sleep),
+    _TabInfo('Notas', 'NOT', Icons.note_alt_outlined, AppColors.habits),
+    _TabInfo('Perfil', 'PER', Icons.person_outline, AppColors.textPrimary),
   ];
 
   void _onTabTapped(int index) {
@@ -97,15 +105,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildMobileLayout() {
-    const double tabWidth = 80.0;
-    const double navHeight = 44.0;
     return Scaffold(
       extendBody: true,
       body: PageView(
         controller: _pageController,
         physics: const BouncingScrollPhysics(),
         onPageChanged: (index) {
-          setState(() => _currentIndex = index);
+          setState(() {
+            _currentIndex = index;
+          });
         },
         children: [
           _TodayOverview(),
@@ -117,106 +125,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ProfileScreen(),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.scaffold.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: SizedBox(
-                          height: navHeight,
-                          width: _tabs.length * tabWidth,
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              // Liquid Indicator driven by PageNotifier
-                              ValueListenableBuilder<double>(
-                                valueListenable: _pageOffsetNotifier,
-                                builder: (context, offset, child) {
-                                  return LiquidGlassIndicator(
-                                    pageOffset: offset,
-                                    tabWidth: tabWidth,
-                                    height: navHeight,
-                                  );
-                                },
-                              ),
-                              // Tab labels/icons
-                              Row(
-                                children: List.generate(_tabs.length, (index) {
-                                  final isSelected = _currentIndex == index;
-                                  final tab = _tabs[index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      _pageController.animateToPage(
-                                        index,
-                                        duration: const Duration(milliseconds: 350),
-                                        curve: Curves.easeInOutCubic,
-                                      );
-                                    },
-                                    behavior: HitTestBehavior.opaque,
-                                    child: SizedBox(
-                                      width: tabWidth,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            tab.label.toUpperCase(),
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 1.1,
-                                              color: isSelected
-                                                  ? AppColors.textPrimary
-                                                  : AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 1,
-                      height: 24,
-                      color: AppColors.divider,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add, color: AppColors.textPrimary, size: 28),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                      onPressed: () => showGlobalAdd(context),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: _LiquidNavBar(
+        pageController: _pageController,
+        pageOffsetNotifier: _pageOffsetNotifier,
+        currentIndex: _currentIndex,
+        tabs: _tabs,
+        onTap: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutCubic,
+          );
+        },
       ),
     );
   }
@@ -310,9 +230,159 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class _TabInfo {
   final String label;
+  final String shortLabel;
   final IconData icon;
   final Color color;
-  _TabInfo(this.label, this.icon, this.color);
+  _TabInfo(this.label, this.shortLabel, this.icon, this.color);
+}
+
+class _LiquidNavBar extends StatelessWidget {
+  final PageController pageController;
+  final ValueNotifier<double> pageOffsetNotifier;
+  final int currentIndex;
+  final List<_TabInfo> tabs;
+  final ValueChanged<int> onTap;
+
+  const _LiquidNavBar({
+    required this.pageController,
+    required this.pageOffsetNotifier,
+    required this.currentIndex,
+    required this.tabs,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.scaffold.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // El botón de "+" ocupa un ancho fijo a la derecha
+                  const double addButtonWidth = 56.0;
+                  final double barWidth = constraints.maxWidth - addButtonWidth - 8.0 - 1.0 - 8.0;
+                  final double tabWidth = barWidth / tabs.length;
+                  const double navHeight = 44.0;
+
+                  return Row(
+                    children: [
+                      // Área interactiva de arrastre de pestañas
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: (details) {
+                          final localX = details.localPosition.dx;
+                          final index = (localX / tabWidth).floor().clamp(0, tabs.length - 1);
+                          onTap(index);
+                        },
+                        onHorizontalDragStart: (details) {
+                          final localX = details.localPosition.dx;
+                          final double pageValue = (localX / tabWidth) - 0.5;
+                          final double clampedPage = pageValue.clamp(0.0, (tabs.length - 1).toDouble());
+                          if (pageController.hasClients) {
+                            final position = pageController.position;
+                            pageController.jumpTo(clampedPage * position.viewportDimension);
+                          }
+                        },
+                        onHorizontalDragUpdate: (details) {
+                          final localX = details.localPosition.dx;
+                          final double pageValue = (localX / tabWidth) - 0.5;
+                          final double clampedPage = pageValue.clamp(0.0, (tabs.length - 1).toDouble());
+                          if (pageController.hasClients) {
+                            final position = pageController.position;
+                            pageController.jumpTo(clampedPage * position.viewportDimension);
+                          }
+                        },
+                        onHorizontalDragEnd: (details) {
+                          final nearestPage = pageOffsetNotifier.value.round();
+                          pageController.animateToPage(
+                            nearestPage,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutCubic,
+                          );
+                        },
+                        child: SizedBox(
+                          height: navHeight,
+                          width: barWidth,
+                          child: Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              // Indicador de cristal líquido
+                              ValueListenableBuilder<double>(
+                                valueListenable: pageOffsetNotifier,
+                                builder: (context, offset, _) {
+                                  return LiquidGlassIndicator(
+                                    pageOffset: offset,
+                                    tabWidth: tabWidth,
+                                    height: navHeight,
+                                  );
+                                },
+                              ),
+                              // Fila de etiquetas de texto abreviadas (sin scroll)
+                              Row(
+                                children: List.generate(tabs.length, (index) {
+                                  final isSelected = currentIndex == index;
+                                  final tab = tabs[index];
+                                  return SizedBox(
+                                    width: tabWidth,
+                                    child: Center(
+                                      child: Text(
+                                        tab.shortLabel,
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
+                                          color: isSelected
+                                              ? AppColors.textPrimary
+                                              : AppColors.textSecondary.withValues(alpha: 0.7),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 24,
+                        color: AppColors.divider,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                      // Botón de captura rápida
+                      SizedBox(
+                        width: addButtonWidth,
+                        child: IconButton(
+                          icon: const Icon(Icons.add, color: AppColors.textPrimary, size: 28),
+                          padding: EdgeInsets.zero,
+                          onPressed: () => showGlobalAdd(context),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Today Overview widget: greeting, habits %, top tasks, sleep quality.

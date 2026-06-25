@@ -26,7 +26,7 @@
 - Consumes: `double pageOffset` (current fractional scroll position), `double tabWidth` (pixel width of a tab).
 - Produces: `LiquidGlassMath` (pure mathematical calculations) and `LiquidGlassIndicator` (UI rendering widget).
 
-- [ ] **Step 1: Write the failing unit test for the liquid math**
+- [x] **Step 1: Write the failing unit test for the liquid math**
   Create `test/liquid_glass_indicator_test.dart` with tests validating that:
   - At integer pages, width is exactly equal to `tabWidth`.
   - At fractional pages (e.g. `0.5`), the width is greater than `tabWidth` (stretching occurs).
@@ -61,11 +61,11 @@
   }
   ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
   Run: `flutter test test/liquid_glass_indicator_test.dart`
   Expected: FAIL with compilation error (no `LiquidGlassMath` class found).
 
-- [ ] **Step 3: Implement the math calculator and the LiquidGlassIndicator widget**
+- [x] **Step 3: Implement the math calculator and the LiquidGlassIndicator widget**
   Create `lib/presentation/widgets/liquid_glass_indicator.dart` containing both the calculation engine and the UI widget.
 
   Code:
@@ -140,11 +140,11 @@
   }
   ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
   Run: `flutter test test/liquid_glass_indicator_test.dart`
   Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   Run:
   ```bash
   git add lib/presentation/widgets/liquid_glass_indicator.dart test/liquid_glass_indicator_test.dart
@@ -162,7 +162,7 @@
 - Consumes: `LiquidGlassIndicator` (custom indicator widget).
 - Produces: Updated `DashboardScreen` utilizing swipe gestures and a floating glass navbar.
 
-- [ ] **Step 1: Write a test verifying DashboardScreen uses PageView**
+- [x] **Step 1: Write a test verifying DashboardScreen uses PageView**
   Add a widget test to `test/dashboard_navigation_test.dart` verifying the presence of the `PageView` and verifying tab items change the page index.
 
   Code:
@@ -226,11 +226,11 @@
   }
   ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
   Run: `flutter test test/dashboard_navigation_test.dart`
   Expected: FAIL (no `PageView` found, since it currently uses `IndexedStack`).
 
-- [ ] **Step 3: Modify DashboardScreen implementation**
+- [x] **Step 3: Modify DashboardScreen implementation**
   Update `lib/presentation/screens/dashboard_screen.dart` to:
   1. Replace `IndexedStack` with `PageView` using `PageController`.
   2. Implement `BouncingScrollPhysics` for native iOS-like inertia.
@@ -396,11 +396,11 @@
     }
     ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
   Run: `flutter test`
   Expected: PASS
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
   Run:
   ```bash
   git add lib/presentation/screens/dashboard_screen.dart test/dashboard_navigation_test.dart
