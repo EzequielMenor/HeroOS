@@ -26,6 +26,7 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<NotesViewModel>().clearLastCreatedNote();
     _title = widget.note?.title ?? '';
     _createdNoteId = widget.note?.id.isNotEmpty == true ? widget.note!.id : null;
     _controller = ZenMarkdownController(text: widget.note?.content ?? '');
@@ -93,7 +94,6 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
                       onPressed: () {
-                        context.read<NotesViewModel>().flushAutosave();
                         Navigator.pop(context);
                       },
                     ),

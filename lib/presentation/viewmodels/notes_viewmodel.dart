@@ -48,6 +48,10 @@ class NotesViewModel extends ChangeNotifier {
   String? get error => _error;
   NoteEntity? get lastCreatedNote => _lastCreatedNote;
 
+  void clearLastCreatedNote() {
+    _lastCreatedNote = null;
+  }
+
   /// Cancels pending debounce and immediately saves any pending note.
   /// Returns true if saved, false if failed, null if nothing to save.
   Future<bool?> flushAutosave() async {
