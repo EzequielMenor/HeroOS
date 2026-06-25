@@ -493,6 +493,7 @@ class NoteEditorSheet extends StatefulWidget {
 }
 
 class _NoteEditorSheetState extends State<NoteEditorSheet> {
+  late ShellController _shellController;
   late bool _isEditing;
   late TextEditingController _contentCtrl;
   final FocusNode _editorFocusNode = FocusNode();
@@ -517,6 +518,12 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
     _editorFocusNode.addListener(_onFocusChange);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _shellController = Provider.of<ShellController>(context, listen: false);
+  }
+
   void _onFocusChange() {
     if (!mounted) return;
     context.read<ShellController>().setWriting(_editorFocusNode.hasFocus);
@@ -524,9 +531,7 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
 
   @override
   void dispose() {
-    try {
-      context.read<ShellController>().setWriting(false);
-    } catch (_) {}
+    _shellController.setWriting(false);
     _editorFocusNode.removeListener(_onFocusChange);
     _editorFocusNode.dispose();
     _contentCtrl.dispose();

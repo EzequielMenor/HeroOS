@@ -100,6 +100,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final shell = context.watch<ShellController>();
+    if (_currentIndex != shell.currentIndex) {
+      _currentIndex = shell.currentIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(_currentIndex);
+        }
+      });
+    }
+
     if (context.isWeb && MediaQuery.of(context).size.width >= 900) {
       return _buildWebLayout();
     }
@@ -116,6 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _currentIndex = index;
           });
+          context.read<ShellController>().setTab(index);
         },
         children: [
           _TodayOverview(),
