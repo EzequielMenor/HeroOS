@@ -23,6 +23,7 @@ class NotesViewModel extends ChangeNotifier {
   bool _isSaving = false;
   bool _hasPendingChanges = false;
   NoteEntity? _pendingNoteState;
+  NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
 
   NotesViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : NoteRepository();
 
@@ -45,6 +46,7 @@ class NotesViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get error => _error;
+  NoteEntity? get lastCreatedNote => _lastCreatedNote;
 
   /// Carga todas las notas del usuario.
   Future<void> loadNotes() async {
@@ -125,7 +127,7 @@ class NotesViewModel extends ChangeNotifier {
   }
 
   /// Queues an autosave with 1.5s debounce.
-  /// Only the last update in a burst is saved.
+  /// Handles create (id empty) vs update (id present) automatically.
   void queueAutosave(NoteEntity updatedNote) {
     _pendingNoteState = updatedNote;
     _debounceTimer?.cancel();
@@ -144,13 +146,30 @@ class NotesViewModel extends ChangeNotifier {
     try {
       final noteToSave = _pendingNoteState;
       if (noteToSave != null) {
-        await _repo.updateNote(noteToSave);
-        final idx = _notes.indexWhere((n) => n.id == noteToSave.id);
-        if (idx != -1) {
-          final updatedNotes = List<NoteEntity>.from(_notes);
-          updatedNotes[idx] = noteToSave;
-          _notes = updatedNotes;
-          notifyListeners();
+        if (noteToSave.id.isEmpty) {
+          // Nueva nota: crear solo si es contenido nuevo (no duplicar)
+          final isDuplicate = _lastCreatedNote != null &&
+              _lastCreatedNote!.content == noteToSave.content;
+          if (!isDuplicate) {
+            await _repo.createNote(noteToSave);
+            await loadNotes();
+            final created = _notes
+                .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
+                .firstOrNull;
+            if (created != null) {
+              _lastCreatedNote = created;
+            }
+          }
+        } else {
+          // Nota existente: actualizar in-place
+          await _repo.updateNote(noteToSave);
+          final idx = _notes.indexWhere((n) => n.id == noteToSave.id);
+          if (idx != -1) {
+            final updatedNotes = List<NoteEntity>.from(_notes);
+            updatedNotes[idx] = noteToSave;
+            _notes = updatedNotes;
+            notifyListeners();
+          }
         }
       }
     } catch (e) {

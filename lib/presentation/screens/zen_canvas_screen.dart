@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
 import '../widgets/zen_markdown_controller.dart';
@@ -19,11 +20,13 @@ class ZenCanvasScreen extends StatefulWidget {
 class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
   late final ZenMarkdownController _controller;
   late String _title;
+  String? _createdNoteId; // Tracks the note id after first create
 
   @override
   void initState() {
     super.initState();
     _title = widget.note?.title ?? '';
+    _createdNoteId = widget.note?.id.isNotEmpty == true ? widget.note!.id : null;
     _controller = ZenMarkdownController(text: widget.note?.content ?? '');
     _controller.addListener(_onContentChanged);
   }
@@ -38,20 +41,33 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
   void _onContentChanged() {
     final content = _controller.text;
     final lines = content.split('\n');
-    final newTitle = lines.isNotEmpty ? lines[0] : '';
+    final newTitle = lines.isNotEmpty ? lines[0].replaceFirst(RegExp(r'^#+\s*'), '') : '';
 
     if (newTitle != _title) {
       _title = newTitle;
     }
 
-    if (widget.note != null) {
-      // Queue autosave on content change
-      final updatedNote = widget.note!.copyWith(
-        title: _title,
-        content: content,
-        date: DateTime.now(),
-      );
-      context.read<NotesViewModel>().queueAutosave(updatedNote);
+    final vm = context.read<NotesViewModel>();
+
+    // Si ya se creó la nota, usa su id; si no, empty id → ViewModel crea
+    final noteId = _createdNoteId ?? '';
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : (widget.note?.userId ?? 'dev-user');
+
+    final noteToSave = NoteEntity(
+      id: noteId,
+      userId: userId,
+      title: newTitle,
+      content: content,
+      date: DateTime.now(),
+      tags: widget.note?.tags ?? [],
+    );
+    vm.queueAutosave(noteToSave);
+
+    // After first create, update _createdNoteId so subsequent saves use update
+    if (_createdNoteId == null && vm.lastCreatedNote != null) {
+      _createdNoteId = vm.lastCreatedNote!.id;
     }
   }
 

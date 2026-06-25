@@ -79,7 +79,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField), 'Test note content');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2000)); // Let debounce timer fire
 
     expect(find.text('Test note content'), findsOneWidget);
   });
