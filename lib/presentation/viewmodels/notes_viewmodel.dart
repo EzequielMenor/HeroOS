@@ -24,6 +24,7 @@ class NotesViewModel extends ChangeNotifier {
   bool _hasPendingChanges = false;
   NoteEntity? _pendingNoteState;
   NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
+  Completer<void>? _flushCompleter; // For flushAutosave to wait
 
   NotesViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : NoteRepository();
 
@@ -49,12 +50,14 @@ class NotesViewModel extends ChangeNotifier {
   NoteEntity? get lastCreatedNote => _lastCreatedNote;
 
   /// Cancels pending debounce and immediately saves any pending note.
-  void flushAutosave() {
+  /// Returns a Future that completes when the save is done.
+  Future<void> flushAutosave() {
     _debounceTimer?.cancel();
     _debounceTimer = null;
-    if (_pendingNoteState != null) {
-      _executeSave();
-    }
+    if (_pendingNoteState == null) return Future.value();
+    _flushCompleter = Completer<void>();
+    _executeSave();
+    return _flushCompleter!.future;
   }
 
   /// Carga todas las notas del usuario.
@@ -186,6 +189,8 @@ class NotesViewModel extends ChangeNotifier {
       notifyListeners();
     } finally {
       _isSaving = false;
+      _flushCompleter?.complete();
+      _flushCompleter = null;
       if (_hasPendingChanges) {
         _executeSave();
       }

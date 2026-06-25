@@ -112,8 +112,17 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.check, color: AppColors.accent, size: 20),
-                      onPressed: () {
-                        context.read<NotesViewModel>().flushAutosave();
+                      onPressed: () async {
+                        final vm = context.read<NotesViewModel>();
+                        await vm.flushAutosave();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Nota guardada'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
