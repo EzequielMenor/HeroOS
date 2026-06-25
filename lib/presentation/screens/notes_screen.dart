@@ -10,6 +10,7 @@ import '../../core/utils/adaptive_modal.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
+import '../viewmodels/shell_controller.dart';
 import 'zen_canvas_screen.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -494,6 +495,7 @@ class NoteEditorSheet extends StatefulWidget {
 class _NoteEditorSheetState extends State<NoteEditorSheet> {
   late bool _isEditing;
   late TextEditingController _contentCtrl;
+  final FocusNode _editorFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -512,10 +514,18 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
       }
     }
     _contentCtrl = TextEditingController(text: initialText);
+    _editorFocusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (!mounted) return;
+    context.read<ShellController>().setWriting(_editorFocusNode.hasFocus);
   }
 
   @override
   void dispose() {
+    _editorFocusNode.removeListener(_onFocusChange);
+    _editorFocusNode.dispose();
     _contentCtrl.dispose();
     super.dispose();
   }
@@ -613,6 +623,7 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
               child: _isEditing
                   ? TextField(
                       controller: _contentCtrl,
+                      focusNode: _editorFocusNode,
                       maxLines: null,
                       minLines: 5,
                       keyboardType: TextInputType.multiline,
