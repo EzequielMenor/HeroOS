@@ -63,6 +63,10 @@ class NotesViewModel extends ChangeNotifier {
     while (_pendingNoteState != null || _isSaving) {
       if (_isSaving) {
         await _activeSaveFuture;
+        if (_error != null) {
+          hadError = true;
+          break;
+        }
       } else {
         await _executeSave();
         if (_error != null) {
