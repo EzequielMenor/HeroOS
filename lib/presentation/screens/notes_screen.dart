@@ -524,6 +524,9 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
 
   @override
   void dispose() {
+    try {
+      context.read<ShellController>().setWriting(false);
+    } catch (_) {}
     _editorFocusNode.removeListener(_onFocusChange);
     _editorFocusNode.dispose();
     _contentCtrl.dispose();
