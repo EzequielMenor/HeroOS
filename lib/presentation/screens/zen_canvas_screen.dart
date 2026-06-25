@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../domain/entities/note_entity.dart';
@@ -53,7 +54,7 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
     final noteId = _createdNoteId ?? '';
     final userId = AuthRepository.devQuickAccess
         ? 'dev-user'
-        : (widget.note?.userId ?? 'dev-user');
+        : Supabase.instance.client.auth.currentUser?.id ?? '';
 
     final noteToSave = NoteEntity(
       id: noteId,
