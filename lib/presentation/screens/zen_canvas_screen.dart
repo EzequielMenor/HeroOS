@@ -93,7 +93,10 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: AppColors.textSecondary, size: 20),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        context.read<NotesViewModel>().flushAutosave();
+                        Navigator.pop(context);
+                      },
                     ),
                     const Expanded(
                       child: Text(
@@ -107,7 +110,12 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48), // Balance the back button
+                    IconButton(
+                      icon: const Icon(Icons.check, color: AppColors.accent, size: 20),
+                      onPressed: () {
+                        context.read<NotesViewModel>().flushAutosave();
+                      },
+                    ),
                   ],
                 ),
               ),
