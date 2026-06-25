@@ -114,14 +114,23 @@ class _ZenCanvasScreenState extends State<ZenCanvasScreen> {
                       icon: const Icon(Icons.check, color: AppColors.accent, size: 20),
                       onPressed: () async {
                         final vm = context.read<NotesViewModel>();
-                        await vm.flushAutosave();
+                        final saved = await vm.flushAutosave();
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Nota guardada'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
+                          if (saved == false) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Error: no hay usuario logueado'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Nota guardada'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
                         }
                       },
                     ),
