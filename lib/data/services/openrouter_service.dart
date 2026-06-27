@@ -103,7 +103,7 @@ class OpenRouterService {
     }
 
     return SleepDiagnosis(
-      title: (json!['title'] as String?) ?? 'Análisis de tu noche',
+      title: (json['title'] as String?) ?? 'Análisis de tu noche',
       physicalAnalysis: (json['physicalAnalysis'] as String?) ?? '',
       mentalAnalysis: (json['mentalAnalysis'] as String?) ?? '',
       reason: (json['reason'] as String?) ?? '',

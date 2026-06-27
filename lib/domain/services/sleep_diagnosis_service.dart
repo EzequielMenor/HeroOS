@@ -156,15 +156,17 @@ class SleepDiagnosisService {
         : '';
 
     if (deep == null) {
-      if (hours >= 7)
+      if (hours >= 7) {
         return '$deepStr Registro suficiente para recuperación básica.$lpmStr';
+      }
       return '$deepStr Pocas horas limitan la reparación muscular.$lpmStr';
     }
 
     if (deep >= 20) return '$deepStr Tejidos y músculos bien reparados.$lpmStr';
     if (deep >= 15) return '$deepStr Recuperación física aceptable.$lpmStr';
-    if (deep >= 10)
+    if (deep >= 10) {
       return '$deepStr Recuperación física por debajo de lo óptimo.$lpmStr';
+    }
     return '$deepStr Muy poco sueño profundo — el cuerpo quedó con deuda.$lpmStr';
   }
 
@@ -177,23 +179,30 @@ class SleepDiagnosisService {
     final remStr = rem != null ? ' con un $rem% de REM (ideal 20–25%).' : '.';
 
     if (rem == null) {
-      if (hours >= 8)
+      if (hours >= 8) {
         return '$hoursStr$remStr Memoria y creatividad tienen base sólida.';
-      if (hours >= 7)
+      }
+      if (hours >= 7) {
         return '$hoursStr$remStr Función cognitiva probable en buen estado.';
-      if (hours >= 6)
+      }
+      if (hours >= 6) {
         return '$hoursStr$remStr Puede haber algo de niebla mental durante el día.';
+      }
       return '$hoursStr$remStr Alta probabilidad de irritabilidad y dificultad de concentración.';
     }
 
-    if (rem >= 20 && hours >= 7)
+    if (rem >= 20 && hours >= 7) {
       return '$hoursStr$remStr Memoria, creatividad y estado de ánimo en forma.';
-    if (rem >= 20)
+    }
+    if (rem >= 20) {
       return '$hoursStr$remStr Buen porcentaje REM, aunque las horas totales limitan el beneficio.';
-    if (rem >= 15 && hours >= 7)
+    }
+    if (rem >= 15 && hours >= 7) {
       return '$hoursStr$remStr Función cognitiva correcta, aunque con margen de mejora en REM.';
-    if (rem >= 15)
+    }
+    if (rem >= 15) {
       return '$hoursStr$remStr REM justo y horas cortas — posible neblina mental leve.';
+    }
     return '$hoursStr$remStr REM insuficiente — espera algo de niebla mental o irritabilidad hoy.';
   }
 
@@ -252,8 +261,9 @@ class SleepDiagnosisService {
     int? rem,
   ) {
     // Casos críticos primero
-    if (hours < 5.5)
+    if (hours < 5.5) {
       return 'Prioriza una siesta de 20 min esta tarde si puedes. Evita decisiones importantes.';
+    }
 
     if (mentalScore == 0) {
       return 'Evita decisiones complejas o creativas hoy. Trabaja en tareas rutinarias y bebe agua al despertar.';

@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 
 /// Bottom sheet with native BackdropFilter glass effect.
 ///

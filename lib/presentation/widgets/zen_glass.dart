@@ -11,15 +11,15 @@ class ZenGlass extends StatelessWidget {
   final double? height;
 
   const ZenGlass({
-    Key? key,
+    super.key,
     required this.child,
     this.borderRadius = 24.0,
-    this.blur = 20.0, // Blur alto pero suave
-    this.opacity = 0.03, // Blanco ultra sutil, NUNCA oscuro
+    this.blur = 24.0, // Blur a 24
+    this.opacity = 0.03, // Blanco 3%
     this.padding,
     this.width,
     this.height,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class ZenGlass extends StatelessWidget {
             color: Colors.white.withOpacity(opacity),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: Colors.white.withOpacity(0.08), // Borde Fresnel
+              color: Colors.white.withOpacity(0.08), // Borde blanco 8%
               width: 0.5,
             ),
           ),

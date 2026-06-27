@@ -25,8 +25,9 @@ class ParsedInput {
 class InputParserService {
   static InputCategory determineCategory(String text) {
     if (text.isEmpty) return InputCategory.note;
-    if (SyntaxPatterns.financePrefix.hasMatch(text))
+    if (SyntaxPatterns.financePrefix.hasMatch(text)) {
       return InputCategory.finance;
+    }
     if (SyntaxPatterns.taskPrefix.hasMatch(text)) return InputCategory.task;
     return InputCategory.note;
   }

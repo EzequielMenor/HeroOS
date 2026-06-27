@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import 'zen_solid_card.dart';
+import 'zen_card.dart';
 
 /// Habit stats card with key metrics: current streak, best streak, completion rate.
 ///
@@ -21,7 +21,7 @@ class HabitStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = (completionRate * 100).round();
 
-    return ZenSolidCard(
+    return ZenCard(
       padding: const EdgeInsets.all(16),
       borderRadius: 16,
       child: Column(

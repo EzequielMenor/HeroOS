@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heroos/data/repositories/auth_repository.dart';
 import 'package:heroos/data/repositories/dev_repository.dart';
-import 'package:heroos/domain/entities/note_entity.dart';
 import 'package:heroos/presentation/viewmodels/notes_viewmodel.dart';
 
 void main() {

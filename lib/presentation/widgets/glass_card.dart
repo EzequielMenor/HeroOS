@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'zen_solid_card.dart';
+import 'zen_card.dart';
 
 /// Wrapper card for dashboard bento grid and content lists.
 ///
 /// Per the Zen Glass Hierarchy: content cards do NOT use glass.
-/// They use the elevated dark surface from [ZenSolidCard].
+/// They use the elevated dark surface from [ZenCard].
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -27,7 +27,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZenSolidCard(
+    return ZenCard(
       onTap: onTap,
       padding: padding ?? const EdgeInsets.all(16),
       borderRadius: borderRadius,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/zen_glass.dart';
-import '../widgets/zen_solid_card.dart';
+import '../widgets/zen_card.dart';
 import '../widgets/glass_input.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +13,6 @@ import '../../core/utils/responsive.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
 import '../viewmodels/shell_controller.dart';
-import '../widgets/glass_input.dart';
 import 'zen_canvas_screen.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -897,7 +896,7 @@ class _ZenNoteTile extends StatelessWidget {
       child: GestureDetector(
         onTap: () => _showEditSheet(context),
         onLongPress: () => _showBacklinksSheet(context),
-        child: ZenSolidCard(
+        child: ZenCard(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1101,7 +1100,7 @@ class _BacklinksSheet extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: backlinks.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (ctx, i) {
                   final note = backlinks[i];
                   final preview = note.content

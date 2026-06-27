@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/zen_glass.dart';
-import '../widgets/zen_solid_card.dart';
 import '../widgets/glass_input.dart';
 import 'package:provider/provider.dart';
 

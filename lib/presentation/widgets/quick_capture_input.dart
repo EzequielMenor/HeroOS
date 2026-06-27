@@ -96,7 +96,7 @@ void showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {
 
 class AIVoiceSheet extends StatefulWidget {
   final QuickCaptureViewModel vm;
-  const AIVoiceSheet(this.vm);
+  const AIVoiceSheet(this.vm, {super.key});
 
   @override
   State<AIVoiceSheet> createState() => AIVoiceSheetState();

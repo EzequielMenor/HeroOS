@@ -97,6 +97,6 @@ void main() {
     );
     
     expect(span.children, isNotNull);
-    expect(span.children!.length > 0, true);
+    expect(span.children!.isNotEmpty, true);
   });
 }

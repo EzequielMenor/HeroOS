@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/shell_controller.dart';
-import '../../core/theme/app_colors.dart';
 import 'zen_glass.dart';
 
 /// Zen sidebar for web layout.

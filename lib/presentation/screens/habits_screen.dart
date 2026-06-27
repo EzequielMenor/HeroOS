@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/zen_glass.dart';
 import '../widgets/glass_sheet.dart';
-import '../widgets/zen_solid_card.dart';
-import '../widgets/glass_input.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
