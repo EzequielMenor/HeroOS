@@ -11,7 +11,12 @@ class AppColors {
   static const Color habits = Color(0xFF8FBC8F); // Sage green
   static const Color tasks = Color(0xFF448AFF); // Blue
   static const Color sleep = Color(0xFF7C4DFF); // Purple
-  static const Color finance = Color(0xFF00BFA5); // Teal
+  static const Color finance = Color(0xFF00BFA5); // Teal;
+
+  // Zen OS UI Accents (Apple Industrial)
+  // Tokens del prototipo CSS — sólo para decoración UI, no semánticos.
+  static const Color gold = Color(0xFFD4AF37);
+  static const Color coral = Color(0xFFFF6B6B);
 
   // Theme control (Forced to Dark Mode always, as requested)
   static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.dark);

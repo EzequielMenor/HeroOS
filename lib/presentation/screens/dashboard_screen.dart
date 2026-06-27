@@ -1,11 +1,11 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as pkg;
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive.dart';
-import '../../domain/entities/task_entity.dart';
+import '../viewmodels/finance_viewmodel.dart';
 import '../viewmodels/habits_viewmodel.dart';
 import '../viewmodels/tasks_viewmodel.dart';
 import '../viewmodels/sleep_viewmodel.dart';
@@ -16,6 +16,7 @@ import '../viewmodels/shell_controller.dart';
 import '../widgets/responsive_shell.dart';
 import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import '../widgets/liquid_glass_indicator.dart';
+import '../widgets/glass_card.dart';
 import 'habits_screen.dart';
 import 'tasks_screen.dart';
 import 'finance_screen.dart';
@@ -73,6 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     context.read<TasksViewModel>().loadTasks();
     context.read<SleepViewModel>().loadLogs();
     context.read<ProfileViewModel>().loadProfile();
+    context.read<FinanceViewModel>().loadAll();
   }
 
   @override
@@ -255,19 +257,18 @@ class _LiquidNavBar extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.scaffold.withValues(alpha: 0.75),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
-              ),
+        child: pkg.GlassContainer(
+          height: 60,
+          settings: const pkg.LiquidGlassSettings(
+            thickness: 40,
+            blur: 15,
+            refractiveIndex: 0.6,
+            lightIntensity: 0.7,
+            saturation: 1.2,
+          ),
+          quality: pkg.GlassQuality.premium,
+          useOwnLayer: true,
+          shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 28),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // El botón de "+" ocupa un ancho fijo a la derecha
@@ -377,36 +378,51 @@ class _LiquidNavBar extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 }
 
-/// Today Overview widget: greeting, habits %, top tasks, sleep quality.
+/// Today Overview widget: greeting + bento grid (Sleep / Habits / Tasks / Balance).
 class _TodayOverview extends StatelessWidget {
   const _TodayOverview();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: Text('Hoy', style: TextStyle(color: AppColors.textPrimary)),
+      appBar: pkg.GlassAppBar(
+        backgroundColor: Colors.transparent,
         centerTitle: false,
+        buttonSettings: const pkg.LiquidGlassSettings(
+          thickness: 40,
+          blur: 15,
+        ),
+        title: const Text(
+          'Hoy',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _GreetingSection(),
-            SizedBox(height: 24),
-            _HabitsProgressSection(),
-            SizedBox(height: 24),
-            _TopTasksSection(),
-            SizedBox(height: 24),
-            _SleepQualitySection(),
+            const _GreetingSection(),
+            const SizedBox(height: 24),
+            const _SleepBentoCard(),
+            const SizedBox(height: 10),
+            const Row(
+              children: [
+                Expanded(child: _HabitsBentoCard()),
+                SizedBox(width: 10),
+                Expanded(child: _TasksBentoCard()),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const _BalanceBentoCard(),
           ],
         ),
       ),
@@ -415,6 +431,8 @@ class _TodayOverview extends StatelessWidget {
 }
 
 class _GreetingSection extends StatelessWidget {
+  const _GreetingSection();
+
   @override
   Widget build(BuildContext context) {
     final profileVm = context.watch<ProfileViewModel>();
@@ -448,252 +466,314 @@ class _GreetingSection extends StatelessWidget {
   }
 }
 
-class _HabitsProgressSection extends StatelessWidget {
+class _BentoKicker extends StatelessWidget {
+  final String text;
+  const _BentoKicker(this.text);
   @override
-  Widget build(BuildContext context) {
-    final habitsVm = context.watch<HabitsViewModel>();
-    final todayHabits = habitsVm.todayHabits;
-    final completed = todayHabits.where((h) => habitsVm.isCompletedToday(h.id)).length;
-    final total = todayHabits.length;
-    final pct = total > 0 ? completed / total : 0.0;
-
-    return _OverviewCard(
-      title: 'Hábitos de hoy',
-      icon: Icons.repeat,
-      iconColor: AppColors.habits,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            height: 80,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: pct,
-                  strokeWidth: 8,
-                  backgroundColor: AppColors.divider,
-                  color: AppColors.habits,
-                ),
-                Text(
-                  '${(pct * 100).toInt()}%',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$completed de $total completados',
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                ),
-                if (total == 0)
-                  Text(
-                    'No hay hábitos programados',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.5,
+        ),
+      );
 }
 
-class _TopTasksSection extends StatelessWidget {
+class _BentoMetric extends StatelessWidget {
+  final String text;
+  final double size;
+  const _BentoMetric(this.text, {this.size = 20});
   @override
-  Widget build(BuildContext context) {
-    final tasksVm = context.watch<TasksViewModel>();
-    final urgent = tasksVm.pendingTasks.take(3).toList();
-
-    return _OverviewCard(
-      title: 'Tareas urgentes',
-      icon: Icons.task_alt,
-      iconColor: AppColors.danger,
-      child: urgent.isEmpty
-          ? Text(
-              'Sin tareas pendientes',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            )
-          : Column(
-              children: urgent.map((t) => _TaskRow(task: t)).toList(),
-            ),
-    );
-  }
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: size,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'serif',
+          letterSpacing: -0.5,
+        ),
+      );
 }
 
-class _TaskRow extends StatelessWidget {
-  final TaskEntity task;
-  const _TaskRow({required this.task});
-
+class _BentoMuted extends StatelessWidget {
+  final String text;
+  const _BentoMuted(this.text);
   @override
-  Widget build(BuildContext context) {
-    final energyColors = [AppColors.habits, Colors.orange, AppColors.danger];
-    final energyLabels = ['Baja', 'Media', 'Alta'];
-    final energyIdx = task.energy?.index ?? 1;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(
-            task.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-            size: 18,
-            color: task.isDone ? AppColors.habits : AppColors.textSecondary,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              task.title,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                decoration: task.isDone ? TextDecoration.lineThrough : null,
-              ),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: energyColors[energyIdx].withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              energyLabels[energyIdx],
-              style: TextStyle(color: energyColors[energyIdx], fontSize: 10),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 12,
+          letterSpacing: 0.15,
+        ),
+      );
 }
 
-class _SleepQualitySection extends StatelessWidget {
+void _goToTab(BuildContext context, int index) {
+  context.read<ShellController>().setTab(index);
+}
+
+String _formatEur(double v) {
+  // 358.6 → "358,60 €" (es-ES style, no thousands for sub-10k balances).
+  return '${v.toStringAsFixed(2).replaceAll('.', ',')} €';
+}
+
+String _formatHours(double hours) {
+  final h = hours.floor();
+  final m = ((hours - h) * 60).round();
+  return '${h}h ${m}m';
+}
+
+class _SleepBentoCard extends StatelessWidget {
+  const _SleepBentoCard();
+
   @override
   Widget build(BuildContext context) {
     final sleepVm = context.watch<SleepViewModel>();
-    final todayLog = sleepVm.todayLog;
+    final log = sleepVm.todayLog;
+    final rating = log?.qualityRating ?? 0;
 
-    return _OverviewCard(
-      title: 'Calidad del sueño',
-      icon: Icons.nightlight_round,
-      iconColor: AppColors.sleep,
-      child: todayLog == null
-          ? Text(
-              'Sin datos de sueño hoy',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+    return GlassCard(
+      onTap: () => _goToTab(context, 4),
+      padding: const EdgeInsets.all(14),
+      child: log == null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                _BentoKicker('FASES DE SUEÑO'),
+                SizedBox(height: 10),
+                _BentoMuted('Sin registro de anoche'),
+              ],
             )
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '${todayLog.totalHours.toStringAsFixed(1)} horas',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _SleepPill('Profundo', todayLog.deepSleepPct ?? 0),
-                    SizedBox(width: 8),
-                    _SleepPill('Ligero', todayLog.lightSleepPct ?? 0),
-                    SizedBox(width: 8),
-                    _SleepPill('REM', todayLog.remSleepPct ?? 0),
-                  ],
-                ),
-                if (todayLog.qualityRating != null) ...[
-                  SizedBox(height: 8),
-                  Row(
-                    children: List.generate(
-                      5,
-                      (i) => Icon(
-                        i < todayLog.qualityRating! ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: AppColors.sleep,
+                    const _BentoKicker('FASES DE SUEÑO'),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < rating ? Icons.star : Icons.star_border,
+                          size: 13,
+                          color: AppColors.gold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    _BentoMetric(_formatHours(log.totalHours)),
+                    const SizedBox(width: 8),
+                    Text(
+                      '· ${DateFormat.Hm().format(log.startTime)} – ${DateFormat.Hm().format(log.endTime)}',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _SleepBarTrack(
+                  deep: log.deepSleepPct ?? 0,
+                  light: log.lightSleepPct ?? 0,
+                  rem: log.remSleepPct ?? 0,
+                ),
               ],
             ),
     );
   }
 }
 
-class _SleepPill extends StatelessWidget {
-  final String label;
-  final int pct;
-  const _SleepPill(this.label, this.pct);
+class _SleepBarTrack extends StatelessWidget {
+  final int deep;
+  final int light;
+  final int rem;
+  const _SleepBarTrack({required this.deep, required this.light, required this.rem});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.sleep.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '$label $pct%',
-        style: TextStyle(color: AppColors.sleep, fontSize: 11),
+    final total = deep + light + rem;
+    if (total <= 0) {
+      return Container(
+        height: 8,
+        decoration: BoxDecoration(
+          color: AppColors.divider,
+          borderRadius: BorderRadius.circular(5),
+        ),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(5),
+      child: SizedBox(
+        height: 8,
+        child: Row(
+          children: [
+            Expanded(flex: deep, child: Container(color: AppColors.habits)),
+            const SizedBox(width: 3),
+            Expanded(flex: light, child: Container(color: AppColors.gold)),
+            const SizedBox(width: 3),
+            Expanded(flex: rem, child: Container(color: AppColors.coral)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _OverviewCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color iconColor;
-  final Widget child;
-
-  const _OverviewCard({
-    required this.title,
-    required this.icon,
-    required this.iconColor,
-    required this.child,
-  });
+class _HabitsBentoCard extends StatelessWidget {
+  const _HabitsBentoCard();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 24, horizontal: 4),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
+    final habitsVm = context.watch<HabitsViewModel>();
+    final today = habitsVm.todayHabits;
+    final completed = today.where((h) => habitsVm.isCompletedToday(h.id)).length;
+    final total = today.length;
+    final pct = total > 0 ? completed / total : 0.0;
+
+    return GlassCard(
+      onTap: () => _goToTab(context, 2),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: 16),
-              SizedBox(width: 8),
-              Text(
-                title.toUpperCase(),
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.5,
+          const _BentoKicker('HÁBITOS'),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: CircularProgressIndicator(
+                    value: pct,
+                    strokeWidth: 4,
+                    backgroundColor: AppColors.divider,
+                    color: AppColors.habits,
+                  ),
                 ),
-              ),
-            ],
+                Text(
+                  '${(pct * 100).toInt()}%',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 12),
-          child,
+          const SizedBox(height: 8),
+          _BentoMuted('$completed de $total completados'),
+        ],
+      ),
+    );
+  }
+}
+
+class _TasksBentoCard extends StatelessWidget {
+  const _TasksBentoCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final tasksVm = context.watch<TasksViewModel>();
+    final pending = tasksVm.pendingTasks;
+    final next = pending.isNotEmpty ? pending.first : null;
+
+    return GlassCard(
+      onTap: () => _goToTab(context, 1),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _BentoKicker('TAREAS'),
+          const SizedBox(height: 6),
+          _BentoMetric('${pending.length}'),
+          const SizedBox(height: 2),
+          const _BentoMuted('Pendientes'),
+          if (next != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Media',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    next.title,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BalanceBentoCard extends StatelessWidget {
+  const _BalanceBentoCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final financeVm = context.watch<FinanceViewModel>();
+    final balance = financeVm.totalBalance;
+    final count = financeVm.accounts.length;
+
+    return GlassCard(
+      onTap: () => _goToTab(context, 3),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _BentoKicker('BALANCE TOTAL'),
+          const SizedBox(height: 6),
+          _BentoMetric(_formatEur(balance), size: 30),
+          const SizedBox(height: 4),
+          _BentoMuted(
+            '$count cuenta${count == 1 ? '' : 's'} activa${count == 1 ? '' : 's'}',
+          ),
         ],
       ),
     );
