@@ -7,6 +7,7 @@ class SleepDiagnosis {
   final String mentalAnalysis;
   final String reason;
   final String advice;
+  final String source; // 'ai' o 'local'
 
   SleepDiagnosis({
     required this.title,
@@ -14,6 +15,7 @@ class SleepDiagnosis {
     required this.mentalAnalysis,
     required this.reason,
     required this.advice,
+    this.source = 'ai',
   });
 }
 
@@ -40,6 +42,7 @@ class SleepDiagnosisService {
       mentalAnalysis: _buildMental(rem, hours),
       reason: _buildReason(hours, deep, rem, lpm),
       advice: _buildAdvice(physicalScore, mentalScore, hours, deep, rem),
+      source: 'local',
     );
   }
 
@@ -116,7 +119,7 @@ class SleepDiagnosisService {
       return 'Recuperación física de élite, mente a medias';
     }
     if (physScore == 2 && mentalScore == 0) {
-      return 'Cuerpo reparado, pero la mente lo necesita';
+      return 'Cuerpo reparado, pero la mente queda corta';
     }
     if (physScore == 1 && mentalScore == 2) {
       return 'Mente fresca, cuerpo con margen de mejora';
@@ -153,35 +156,44 @@ class SleepDiagnosisService {
         : '';
 
     if (deep == null) {
-      if (hours >= 7) return '$deepStr Registro suficiente para recuperación básica.$lpmStr';
+      if (hours >= 7)
+        return '$deepStr Registro suficiente para recuperación básica.$lpmStr';
       return '$deepStr Pocas horas limitan la reparación muscular.$lpmStr';
     }
 
     if (deep >= 20) return '$deepStr Tejidos y músculos bien reparados.$lpmStr';
     if (deep >= 15) return '$deepStr Recuperación física aceptable.$lpmStr';
-    if (deep >= 10) return '$deepStr Recuperación física por debajo de lo óptimo.$lpmStr';
+    if (deep >= 10)
+      return '$deepStr Recuperación física por debajo de lo óptimo.$lpmStr';
     return '$deepStr Muy poco sueño profundo — el cuerpo quedó con deuda.$lpmStr';
   }
 
   // ─── Análisis mental ─────────────────────────────────────────────────────
 
   static String _buildMental(int? rem, double hours) {
-    final hoursStr = hours >= 7 ? 'Dormiste ${hours.toStringAsFixed(1)}h' : 'Solo ${hours.toStringAsFixed(1)}h de sueño';
-    final remStr = rem != null
-        ? ' con un $rem% de REM (ideal 20–25%).'
-        : '.';
+    final hoursStr = hours >= 7
+        ? 'Dormiste ${hours.toStringAsFixed(1)}h'
+        : 'Solo ${hours.toStringAsFixed(1)}h de sueño';
+    final remStr = rem != null ? ' con un $rem% de REM (ideal 20–25%).' : '.';
 
     if (rem == null) {
-      if (hours >= 8) return '$hoursStr$remStr Memoria y creatividad tienen base sólida.';
-      if (hours >= 7) return '$hoursStr$remStr Función cognitiva probable en buen estado.';
-      if (hours >= 6) return '$hoursStr$remStr Puede haber algo de niebla mental durante el día.';
+      if (hours >= 8)
+        return '$hoursStr$remStr Memoria y creatividad tienen base sólida.';
+      if (hours >= 7)
+        return '$hoursStr$remStr Función cognitiva probable en buen estado.';
+      if (hours >= 6)
+        return '$hoursStr$remStr Puede haber algo de niebla mental durante el día.';
       return '$hoursStr$remStr Alta probabilidad de irritabilidad y dificultad de concentración.';
     }
 
-    if (rem >= 20 && hours >= 7) return '$hoursStr$remStr Memoria, creatividad y estado de ánimo en forma.';
-    if (rem >= 20) return '$hoursStr$remStr Buen porcentaje REM, aunque las horas totales limitan el beneficio.';
-    if (rem >= 15 && hours >= 7) return '$hoursStr$remStr Función cognitiva correcta, aunque con margen de mejora en REM.';
-    if (rem >= 15) return '$hoursStr$remStr REM justo y horas cortas — posible neblina mental leve.';
+    if (rem >= 20 && hours >= 7)
+      return '$hoursStr$remStr Memoria, creatividad y estado de ánimo en forma.';
+    if (rem >= 20)
+      return '$hoursStr$remStr Buen porcentaje REM, aunque las horas totales limitan el beneficio.';
+    if (rem >= 15 && hours >= 7)
+      return '$hoursStr$remStr Función cognitiva correcta, aunque con margen de mejora en REM.';
+    if (rem >= 15)
+      return '$hoursStr$remStr REM justo y horas cortas — posible neblina mental leve.';
     return '$hoursStr$remStr REM insuficiente — espera algo de niebla mental o irritabilidad hoy.';
   }
 
@@ -191,23 +203,33 @@ class SleepDiagnosisService {
     final reasons = <String>[];
 
     if (hours < 6) {
-      reasons.add('Dormir menos de 6h recorta drásticamente el sueño REM, que ocurre en las últimas horas de la noche.');
+      reasons.add(
+        'Dormir menos de 6h recorta drásticamente el sueño REM, que ocurre en las últimas horas de la noche.',
+      );
     } else if (hours < 7) {
-      reasons.add('Con menos de 7h el cuerpo prioriza el sueño profundo sobre el REM, sacrificando recuperación mental.');
+      reasons.add(
+        'Con menos de 7h el cuerpo prioriza el sueño profundo sobre el REM, sacrificando recuperación mental.',
+      );
     }
 
     if (rem != null && rem < 15) {
       if (hours >= 7) {
-        reasons.add('El sueño REM bajo puede deberse a estrés, alcohol, o haber interrumpido el ciclo justo antes del amanecer.');
+        reasons.add(
+          'El sueño REM bajo puede deberse a estrés, alcohol, o haber interrumpido el ciclo justo antes del amanecer.',
+        );
       }
     }
 
     if (deep != null && deep < 10) {
-      reasons.add('Poco sueño profundo suele estar relacionado con ambiente ruidoso, temperatura alta o mucho estrés antes de dormir.');
+      reasons.add(
+        'Poco sueño profundo suele estar relacionado con ambiente ruidoso, temperatura alta o mucho estrés antes de dormir.',
+      );
     }
 
     if (lpm != null && lpm > 70) {
-      reasons.add('El ritmo cardíaco elevado durante el sueño puede indicar estrés acumulado, hidratación insuficiente o temperatura ambiente alta.');
+      reasons.add(
+        'El ritmo cardíaco elevado durante el sueño puede indicar estrés acumulado, hidratación insuficiente o temperatura ambiente alta.',
+      );
     }
 
     if (reasons.isEmpty) {
@@ -230,7 +252,8 @@ class SleepDiagnosisService {
     int? rem,
   ) {
     // Casos críticos primero
-    if (hours < 5.5) return 'Prioriza una siesta de 20 min esta tarde si puedes. Evita decisiones importantes.';
+    if (hours < 5.5)
+      return 'Prioriza una siesta de 20 min esta tarde si puedes. Evita decisiones importantes.';
 
     if (mentalScore == 0) {
       return 'Evita decisiones complejas o creativas hoy. Trabaja en tareas rutinarias y bebe agua al despertar.';

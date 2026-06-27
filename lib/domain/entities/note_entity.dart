@@ -1,3 +1,6 @@
+/// WikiLink regex: [[Target]] or [[Target|Label]]
+final wikiLinkRegex = RegExp(r'\[\[([^\]|]+)(?:\|([^\]]+))?\]\]');
+
 /// Domain entity for notes.
 /// Zen OS pivot: lightweight note-taking with tags.
 class NoteEntity {
@@ -31,5 +34,14 @@ class NoteEntity {
       date: date ?? this.date,
       tags: tags ?? this.tags,
     );
+  }
+
+  /// Extracts all WikiLink targets from note content.
+  /// Matches [[Target]] and [[Target|Label]] patterns.
+  List<String> getLinkedTargets() {
+    return wikiLinkRegex
+        .allMatches(content)
+        .map((m) => m.group(1)!.trim())
+        .toList();
   }
 }

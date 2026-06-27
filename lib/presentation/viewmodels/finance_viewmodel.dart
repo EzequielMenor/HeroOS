@@ -19,7 +19,10 @@ class FinanceViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  FinanceViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : FinanceRepository();
+  FinanceViewModel()
+    : _repo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : FinanceRepository();
 
   List<AccountEntity> get accounts => _accounts;
   List<TransactionEntity> get transactions => _transactions;
@@ -54,7 +57,9 @@ class FinanceViewModel extends ChangeNotifier {
     String currency = 'EUR',
     double initialBalance = 0,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final account = AccountEntity(
@@ -92,7 +97,9 @@ class FinanceViewModel extends ChangeNotifier {
     required String category,
     String? note,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final txn = TransactionEntity(
@@ -136,7 +143,10 @@ class FinanceViewModel extends ChangeNotifier {
   }
 
   /// Actualiza solo la categoría de una transacción y marca como userModified.
-  Future<void> updateTransactionCategory(String txnId, String newCategory) async {
+  Future<void> updateTransactionCategory(
+    String txnId,
+    String newCategory,
+  ) async {
     final idx = _transactions.indexWhere((t) => t.id == txnId);
     if (idx == -1) return;
     final updated = _transactions[idx].copyWith(
@@ -153,7 +163,9 @@ class FinanceViewModel extends ChangeNotifier {
     required double amount,
     String? note,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
@@ -188,7 +200,9 @@ class FinanceViewModel extends ChangeNotifier {
     required bool isExpense,
     String? accountType,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final category = CategoryEntity(

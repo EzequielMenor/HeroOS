@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,7 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _apiKeyController.text = prefs.getString('ai_api_key') ?? '';
       _endpointController.text = prefs.getString('ai_endpoint') ?? '';
       _modelController.text = prefs.getString('ai_model') ?? '';
-      _selectedModel = _modelController.text.isNotEmpty ? _modelController.text : null;
+      _selectedModel = _modelController.text.isNotEmpty
+          ? _modelController.text
+          : null;
     });
   }
 
@@ -100,7 +105,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error al validar: ${e.toString().replaceAll('Exception: ', '')}';
+        _errorMessage =
+            'Error al validar: ${e.toString().replaceAll('Exception: ', '')}';
         _availableModels = [];
       });
     } finally {
@@ -149,7 +155,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildWebLayout(ProfileEntity? profile, GoalsViewModel goalsVm) {
     return Scaffold(
-      backgroundColor: _kBg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(40),
@@ -200,7 +205,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildMobileLayout(ProfileEntity? profile, GoalsViewModel goalsVm) {
     return Scaffold(
-      backgroundColor: _kBg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -235,31 +239,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildHeader(ProfileEntity? profile) {
     final name = profile?.username ?? '—';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'PERFIL',
-          style: TextStyle(
-            color: _kTextSecondary,
-            fontSize: 9,
-            letterSpacing: 2.0,
-            fontWeight: FontWeight.w600,
+    return ZenGlass(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PERFIL',
+            style: TextStyle(
+              color: _kTextSecondary,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          name,
-          style: GoogleFonts.inter(
-            fontSize: 36,
-            fontWeight: FontWeight.w600,
-            color: _kTextPrimary,
-            height: 1.1,
+          SizedBox(height: 4),
+          Text(
+            name,
+            style: GoogleFonts.inter(
+              fontSize: 36,
+              fontWeight: FontWeight.w600,
+              color: _kTextPrimary,
+              height: 1.1,
+            ),
           ),
-        ),
-        SizedBox(height: 16),
-        Divider(height: 1, thickness: 1, color: _kDivider),
-      ],
+          SizedBox(height: 16),
+          Divider(height: 1, thickness: 1, color: _kDivider),
+        ],
+      ),
     );
   }
 
@@ -285,17 +291,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _buildFieldLabel('ENDPOINT'),
         SizedBox(height: 8),
-        _buildUnderlineInput(
+        GlassInput(
           controller: _endpointController,
           hint: 'Ej: https://api.openai.com/v1/chat/completions',
+          style: TextStyle(color: _kTextPrimary, fontSize: 14),
         ),
         SizedBox(height: 16),
         _buildFieldLabel('API KEY'),
         SizedBox(height: 8),
-        _buildUnderlineInput(
+        GlassInput(
           controller: _apiKeyController,
-          hint: 'sk-…',
           obscureText: true,
+          hint: 'sk-…',
+          style: TextStyle(color: _kTextPrimary, fontSize: 14),
         ),
         SizedBox(height: 16),
         if (_isValidating)
@@ -314,7 +322,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(width: 12),
                 Text(
                   'VALIDANDO CREDENCIALES...',
-                  style: TextStyle(color: _kTextSecondary, fontSize: 9, letterSpacing: 1.0),
+                  style: TextStyle(
+                    color: _kTextSecondary,
+                    fontSize: 9,
+                    letterSpacing: 1.0,
+                  ),
                 ),
               ],
             ),
@@ -322,16 +334,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         else
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: _kDivider),
-                padding: EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-              ),
-              onPressed: _validateAndLoadModels,
+            child: InkWell(
+              onTap: _validateAndLoadModels,
               child: Text(
                 'VERIFICAR CREDENCIALES',
-                style: TextStyle(color: _kTextPrimary, fontSize: 9, letterSpacing: 1.5, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: _kTextPrimary,
+                  fontSize: 9,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -347,7 +359,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: 8),
         if (_availableModels.isNotEmpty)
           DropdownButtonFormField<String>(
-            initialValue: _availableModels.contains(_selectedModel) ? _selectedModel : _availableModels.first,
+            initialValue: _availableModels.contains(_selectedModel)
+                ? _selectedModel
+                : _availableModels.first,
             dropdownColor: _kBg,
             style: TextStyle(color: _kTextPrimary, fontSize: 14),
             decoration: InputDecoration(
@@ -362,7 +376,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             items: _availableModels.map((String model) {
               return DropdownMenuItem<String>(
                 value: model,
-                child: Text(model, style: TextStyle(color: _kTextPrimary, fontSize: 13)),
+                child: Text(
+                  model,
+                  style: TextStyle(color: _kTextPrimary, fontSize: 13),
+                ),
               );
             }).toList(),
             onChanged: (String? value) {
@@ -375,24 +392,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           )
         else
-          _buildUnderlineInput(
+          GlassInput(
             controller: _modelController,
             hint: 'Ej: gpt-3.5-turbo, llama-3',
+            style: TextStyle(color: _kTextPrimary, fontSize: 14),
           ),
         SizedBox(height: 28),
         SizedBox(
           width: double.infinity,
-          child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: AppColors.textPrimary,
-              foregroundColor: Colors.black,
-              padding: EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-            ),
-            onPressed: _saveAiConfig,
+          child: InkWell(
+            onTap: _saveAiConfig,
             child: Text(
               'GUARDAR',
-              style: TextStyle(fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 10,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w600,
+                color: AppColors.scaffold,
+              ),
             ),
           ),
         ),
@@ -429,7 +446,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final g = vm.goals!;
     return Column(
       children: [
-        _ZenGoalRow(label: 'Sueño', value: '${g.sleepHoursTarget.toStringAsFixed(1)} h / noche'),
+        _ZenGoalRow(
+          label: 'Sueño',
+          value: '${g.sleepHoursTarget.toStringAsFixed(1)} h / noche',
+        ),
         _ZenGoalRow(label: 'Hábitos', value: 'mín ${g.minHabitsDaily} / día'),
         _ZenGoalRow(
           label: 'Gasto máximo',
@@ -443,16 +463,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── Sign out ──────────────────────────────────────────────────────────────
 
   Widget _buildSignOutButton() {
-    return GestureDetector(
-      onTap: () => context.read<AuthViewModel>().signOut(),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: _kDivider),
-            bottom: BorderSide(color: _kDivider),
-          ),
-        ),
+    return ZenGlass(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      child: GestureDetector(
+        onTap: () => context.read<AuthViewModel>().signOut(),
         child: Row(
           children: [
             Text(
@@ -526,14 +540,8 @@ class _ZenGoalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ZenGlass(
       padding: EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: _kDivider),
-          bottom: isLast ? BorderSide(color: _kDivider) : BorderSide.none,
-        ),
-      ),
       child: Row(
         children: [
           Text(
@@ -545,10 +553,7 @@ class _ZenGoalRow extends StatelessWidget {
             ),
           ),
           Spacer(),
-          Text(
-            value,
-            style: TextStyle(color: _kAccent, fontSize: 13),
-          ),
+          Text(value, style: TextStyle(color: _kAccent, fontSize: 13)),
         ],
       ),
     );

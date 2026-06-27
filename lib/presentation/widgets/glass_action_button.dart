@@ -47,11 +47,7 @@ class GlassActionButton extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  icon,
-                  color: iconColor ?? AppColors.textPrimary,
-                  size: 18,
-                ),
+                Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 18),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

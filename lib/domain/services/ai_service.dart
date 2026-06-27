@@ -62,7 +62,9 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
 
     try {
       final body = jsonEncode({
-        'model': (aiModel != null && aiModel.trim().isNotEmpty) ? aiModel.trim() : 'gpt-3.5-turbo',
+        'model': (aiModel != null && aiModel.trim().isNotEmpty)
+            ? aiModel.trim()
+            : 'gpt-3.5-turbo',
         'messages': [
           {'role': 'system', 'content': _systemPrompt},
           {'role': 'user', 'content': text},
@@ -73,9 +75,10 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
       String uriStr = (endpoint != null && endpoint.trim().isNotEmpty)
           ? endpoint.trim()
           : 'https://api.openai.com/v1/chat/completions';
-          
+
       // Auto-fix common mistakes where the user puts the base URL but forgets the path
-      if (!uriStr.endsWith('/chat/completions') && !uriStr.contains('generativelanguage')) {
+      if (!uriStr.endsWith('/chat/completions') &&
+          !uriStr.contains('generativelanguage')) {
         if (uriStr.endsWith('/')) {
           uriStr += 'chat/completions';
         } else {
@@ -84,22 +87,27 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
       }
       final uri = Uri.parse(uriStr);
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: body,
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $apiKey',
+            },
+            body: body,
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
-        print('AiService Error: Status ${response.statusCode}, Body: ${response.body}');
+        print(
+          'AiService Error: Status ${response.statusCode}, Body: ${response.body}',
+        );
         return _fallback(text);
       }
 
       final jsonResp = jsonDecode(response.body) as Map<String, dynamic>;
-      final content = jsonResp['choices']?[0]?['message']?['content'] as String? ?? '';
+      final content =
+          jsonResp['choices']?[0]?['message']?['content'] as String? ?? '';
       print('AiService Response: $content');
       return _parseResponse(content, text);
     } catch (e) {
@@ -141,16 +149,20 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
 
     final httpClient = client ?? http.Client();
     try {
-      final response = await httpClient.get(
-        Uri.parse(uriStr),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-      ).timeout(const Duration(seconds: 10));
+      final response = await httpClient
+          .get(
+            Uri.parse(uriStr),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $apiKey',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
-        throw Exception('Error del servidor (${response.statusCode}): ${response.body}');
+        throw Exception(
+          'Error del servidor (${response.statusCode}): ${response.body}',
+        );
       }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -174,7 +186,7 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
       final jsonStrMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(content);
       final jsonStr = jsonStrMatch?.group(0) ?? content;
       final json = jsonDecode(jsonStr) as Map<String, dynamic>;
-      
+
       final typeStr = (json['type'] as String? ?? 'NOTA').toUpperCase();
       final type = switch (typeStr) {
         'GASTO' => AiClassification.gasto,
@@ -188,13 +200,15 @@ NO escribas código markdown, NO escribas explicaciones. SOLO EL JSON.
       final amount = (json['amount'] as num?)?.toDouble() ?? 0.0;
       final category = json['category'] as String? ?? 'Varios';
       final isIncome = json['isIncome'] as bool? ?? false;
-      
+
       DateTime? dueDate;
       if (json['dueDate'] != null) {
         dueDate = DateTime.tryParse(json['dueDate'].toString());
       }
-      
-      final tags = (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+
+      final tags =
+          (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+          [];
 
       return AiExtractionResult(
         type: type,

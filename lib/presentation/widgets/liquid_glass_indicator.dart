@@ -1,5 +1,8 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
+import 'zen_glass.dart';
 
 class LiquidGlassPosition {
   final double left;
@@ -17,12 +20,17 @@ class LiquidGlassMath {
 
     // Calculate stretched edges using asymmetric curves
     final double leftPos = (leftTab + Curves.easeIn.transform(t)) * tabWidth;
-    final double rightPos = (leftTab + 1 + Curves.easeOut.transform(t)) * tabWidth;
+    final double rightPos =
+        (leftTab + 1 + Curves.easeOut.transform(t)) * tabWidth;
 
     return LiquidGlassPosition(leftPos, rightPos - leftPos);
   }
 }
 
+/// Animated glass indicator for the PageView-based navbar.
+///
+/// Uses native [BackdropFilter] for the blur + sage-green tint.
+/// Per Zen Glass Hierarchy: this is nav chrome → it gets glass.
 class LiquidGlassIndicator extends StatelessWidget {
   final double pageOffset;
   final double tabWidth;
@@ -46,23 +54,7 @@ class LiquidGlassIndicator extends StatelessWidget {
       left: pos.left,
       width: pos.width,
       height: height,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(height / 2),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.12),
-            width: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-      ),
+      child: ZenGlass(borderRadius: height / 2, child: const SizedBox.expand()),
     );
   }
 }

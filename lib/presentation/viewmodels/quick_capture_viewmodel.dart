@@ -33,9 +33,15 @@ class QuickCaptureViewModel extends ChangeNotifier {
   final Map<String, Completer<void>> _pendingAiRequests = {};
 
   QuickCaptureViewModel()
-      : _taskRepo = AuthRepository.devQuickAccess ? DevRepository() : TaskRepository(),
-        _noteRepo = AuthRepository.devQuickAccess ? DevRepository() : NoteRepository(),
-        _financeRepo = AuthRepository.devQuickAccess ? DevRepository() : FinanceRepository();
+    : _taskRepo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : TaskRepository(),
+      _noteRepo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : NoteRepository(),
+      _financeRepo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : FinanceRepository();
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -50,7 +56,10 @@ class QuickCaptureViewModel extends ChangeNotifier {
 
   /// Finds a matching category from transaction history based on note/concept similarity.
   /// Deterministic fallback when AI is unavailable.
-  Future<String> _findCategoryFromHistory(String note, List<TransactionEntity> history) async {
+  Future<String> _findCategoryFromHistory(
+    String note,
+    List<TransactionEntity> history,
+  ) async {
     if (note.isEmpty || history.isEmpty) return 'General';
 
     final normalizedNote = note.toLowerCase().trim();
@@ -63,10 +72,17 @@ class QuickCaptureViewModel extends ChangeNotifier {
     }
 
     // Keyword-based matching
-    final keywords = normalizedNote.split(RegExp(r'\s+')).where((w) => w.length > 2).toSet();
+    final keywords = normalizedNote
+        .split(RegExp(r'\s+'))
+        .where((w) => w.length > 2)
+        .toSet();
     for (final txn in history.reversed) {
       if (txn.note == null) continue;
-      final txnKeywords = txn.note!.toLowerCase().split(RegExp(r'\s+')).where((w) => w.length > 2).toSet();
+      final txnKeywords = txn.note!
+          .toLowerCase()
+          .split(RegExp(r'\s+'))
+          .where((w) => w.length > 2)
+          .toSet();
       final intersection = keywords.intersection(txnKeywords);
       if (intersection.length >= 2) {
         return txn.category;
@@ -168,13 +184,15 @@ class QuickCaptureViewModel extends ChangeNotifier {
         targetAccountId = accounts.first.id;
       } else {
         // Create default account if none exists
-        await _financeRepo.createAccount(AccountEntity(
-          id: '',
-          userId: userId,
-          name: 'Principal',
-          balance: 0,
-          type: 'Cash',
-        ));
+        await _financeRepo.createAccount(
+          AccountEntity(
+            id: '',
+            userId: userId,
+            name: 'Principal',
+            balance: 0,
+            type: 'Cash',
+          ),
+        );
         final newAccounts = await _financeRepo.getAccounts();
         if (newAccounts.isNotEmpty) {
           targetAccountId = newAccounts.first.id;
@@ -312,8 +330,8 @@ class QuickCaptureViewModel extends ChangeNotifier {
       // In a full implementation, we would track the created transaction ID.
       final dynamic rawTransactions = await _financeRepo.getTransactions();
       if (rawTransactions is! List) return;
-      final List<TransactionEntity> transactions =
-          rawTransactions.cast<TransactionEntity>();
+      final List<TransactionEntity> transactions = rawTransactions
+          .cast<TransactionEntity>();
       if (transactions.isEmpty) return;
 
       // Use `where` + `firstOrNull` to avoid firstWhere/orElse typing issues

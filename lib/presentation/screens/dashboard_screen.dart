@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as pkg;
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -16,7 +15,8 @@ import '../viewmodels/shell_controller.dart';
 import '../widgets/responsive_shell.dart';
 import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import '../widgets/liquid_glass_indicator.dart';
-import '../widgets/glass_card.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
 import '../widgets/bento_helpers.dart';
 import '../widgets/zen_aura_background.dart';
 import 'habits_screen.dart';
@@ -27,7 +27,7 @@ import 'profile_screen.dart';
 import 'notes_screen.dart';
 import 'global_add_screen.dart';
 
-/// Dashboard con BottomNavigationBar (6 tabs).
+/// Dashboard with BottomNavigationBar (7 tabs).
 /// Zen OS pivot: Today Overview + Notes module + Quick Capture.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -53,14 +53,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (_pageController.hasClients) {
         try {
           final position = _pageController.position;
-          // Verificamos que ya existan dimensiones de viewport válidas
           if (position.hasPixels && position.viewportDimension > 0) {
-            final double calculatedPage = _pageController.offset / position.viewportDimension;
-            // Limitamos el rango de manera segura
-            _pageOffsetNotifier.value = calculatedPage.clamp(0.0, (_tabs.length - 1).toDouble());
+            final double calculatedPage =
+                _pageController.offset / position.viewportDimension;
+            _pageOffsetNotifier.value = calculatedPage.clamp(
+              0.0,
+              (_tabs.length - 1).toDouble(),
+            );
           }
         } catch (e) {
-          // Captura silenciosa para evitar bloquear el hilo de gestos en rebuilds rápidos
+          // Silent catch to avoid blocking the gesture thread on rapid rebuilds
         }
       }
     });
@@ -87,12 +89,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  // Note: Zen OS uses text-only navigation on mobile, but icons are kept for web rail if needed.
   static final List<_TabInfo> _tabs = [
     _TabInfo('Hoy', 'HOY', Icons.today_outlined, AppColors.habits),
     _TabInfo('Misiones', 'MIS', Icons.task_alt_outlined, AppColors.habits),
     _TabInfo('Hábitos', 'HÁB', Icons.repeat_outlined, AppColors.habits),
-    _TabInfo('Finanzas', 'FIN', Icons.account_balance_wallet_outlined, AppColors.finance),
+    _TabInfo(
+      'Finanzas',
+      'FIN',
+      Icons.account_balance_wallet_outlined,
+      AppColors.finance,
+    ),
     _TabInfo('Descanso', 'DES', Icons.nightlight_round, AppColors.sleep),
     _TabInfo('Notas', 'NOT', Icons.note_alt_outlined, AppColors.habits),
     _TabInfo('Perfil', 'PER', Icons.person_outline, AppColors.textPrimary),
@@ -127,9 +133,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           const ZenAuraBackground(),
           Theme(
-            data: Theme.of(context).copyWith(
-              scaffoldBackgroundColor: Colors.transparent,
-            ),
+            data: Theme.of(
+              context,
+            ).copyWith(scaffoldBackgroundColor: Colors.transparent),
             child: PageView(
               controller: _pageController,
               physics: const BouncingScrollPhysics(),
@@ -248,6 +254,7 @@ class _TabInfo {
   _TabInfo(this.label, this.shortLabel, this.icon, this.color);
 }
 
+/// Bottom navigation bar — uses [ZenGlassLayer] (overlay chrome = glass).
 class _LiquidNavBar extends StatelessWidget {
   final PageController pageController;
   final ValueNotifier<double> pageOffsetNotifier;
@@ -269,128 +276,139 @@ class _LiquidNavBar extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: pkg.GlassContainer(
+        child: SizedBox(
           height: 60,
-          settings: const pkg.LiquidGlassSettings(
-            thickness: 40,
-            blur: 15,
-            refractiveIndex: 0.6,
-            lightIntensity: 0.7,
-            saturation: 1.2,
-          ),
-          quality: pkg.GlassQuality.premium,
-          useOwnLayer: true,
-          shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 28),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // El botón de "+" ocupa un ancho fijo a la derecha
-                  const double addButtonWidth = 56.0;
-                  final double barWidth = constraints.maxWidth - addButtonWidth - 8.0 - 1.0 - 8.0;
-                  final double tabWidth = barWidth / tabs.length;
-                  const double navHeight = 44.0;
+          child: ZenGlass(
+            borderRadius: 28,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const double addButtonWidth = 56.0;
+                final double barWidth =
+                    constraints.maxWidth - addButtonWidth - 8.0 - 1.0 - 8.0;
+                final double tabWidth = barWidth / tabs.length;
+                const double navHeight = 44.0;
 
-                  return Row(
-                    children: [
-                      // Área interactiva de arrastre de pestañas
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTapDown: (details) {
-                          final localX = details.localPosition.dx;
-                          final index = (localX / tabWidth).floor().clamp(0, tabs.length - 1);
-                          onTap(index);
-                        },
-                        onHorizontalDragStart: (details) {
-                          final localX = details.localPosition.dx;
-                          final double pageValue = (localX / tabWidth) - 0.5;
-                          final double clampedPage = pageValue.clamp(0.0, (tabs.length - 1).toDouble());
-                          if (pageController.hasClients) {
-                            final position = pageController.position;
-                            pageController.jumpTo(clampedPage * position.viewportDimension);
-                          }
-                        },
-                        onHorizontalDragUpdate: (details) {
-                          final localX = details.localPosition.dx;
-                          final double pageValue = (localX / tabWidth) - 0.5;
-                          final double clampedPage = pageValue.clamp(0.0, (tabs.length - 1).toDouble());
-                          if (pageController.hasClients) {
-                            final position = pageController.position;
-                            pageController.jumpTo(clampedPage * position.viewportDimension);
-                          }
-                        },
-                        onHorizontalDragEnd: (details) {
-                          final nearestPage = pageOffsetNotifier.value.round();
-                          pageController.animateToPage(
-                            nearestPage,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
+                return Row(
+                  children: [
+                    // Interactive tab drag area
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (details) {
+                        final localX = details.localPosition.dx;
+                        final index = (localX / tabWidth).floor().clamp(
+                          0,
+                          tabs.length - 1,
+                        );
+                        onTap(index);
+                      },
+                      onHorizontalDragStart: (details) {
+                        final localX = details.localPosition.dx;
+                        final double pageValue = (localX / tabWidth) - 0.5;
+                        final double clampedPage = pageValue.clamp(
+                          0.0,
+                          (tabs.length - 1).toDouble(),
+                        );
+                        if (pageController.hasClients) {
+                          final position = pageController.position;
+                          pageController.jumpTo(
+                            clampedPage * position.viewportDimension,
                           );
-                        },
-                        child: SizedBox(
-                          height: navHeight,
-                          width: barWidth,
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              // Indicador de cristal líquido
-                              ValueListenableBuilder<double>(
-                                valueListenable: pageOffsetNotifier,
-                                builder: (context, offset, _) {
-                                  return LiquidGlassIndicator(
-                                    pageOffset: offset,
-                                    tabWidth: tabWidth,
-                                    height: navHeight,
-                                  );
-                                },
-                              ),
-                              // Fila de etiquetas de texto abreviadas (sin scroll)
-                              Row(
-                                children: List.generate(tabs.length, (index) {
-                                  final isSelected = currentIndex == index;
-                                  final tab = tabs[index];
-                                  return SizedBox(
-                                    width: tabWidth,
-                                    child: Center(
-                                      child: Text(
-                                        tab.shortLabel,
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.5,
-                                          color: isSelected
-                                              ? AppColors.textPrimary
-                                              : AppColors.textSecondary.withValues(alpha: 0.7),
-                                        ),
+                        }
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        final localX = details.localPosition.dx;
+                        final double pageValue = (localX / tabWidth) - 0.5;
+                        final double clampedPage = pageValue.clamp(
+                          0.0,
+                          (tabs.length - 1).toDouble(),
+                        );
+                        if (pageController.hasClients) {
+                          final position = pageController.position;
+                          pageController.jumpTo(
+                            clampedPage * position.viewportDimension,
+                          );
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        final nearestPage = pageOffsetNotifier.value.round();
+                        pageController.animateToPage(
+                          nearestPage,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOutCubic,
+                        );
+                      },
+                      child: SizedBox(
+                        height: navHeight,
+                        width: barWidth,
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            // Liquid glass indicator
+                            ValueListenableBuilder<double>(
+                              valueListenable: pageOffsetNotifier,
+                              builder: (context, offset, _) {
+                                return LiquidGlassIndicator(
+                                  pageOffset: offset,
+                                  tabWidth: tabWidth,
+                                  height: navHeight,
+                                );
+                              },
+                            ),
+                            // Abbreviated text labels row
+                            Row(
+                              children: List.generate(tabs.length, (index) {
+                                final isSelected = currentIndex == index;
+                                final tab = tabs[index];
+                                return SizedBox(
+                                  width: tabWidth,
+                                  child: Center(
+                                    child: Text(
+                                      tab.shortLabel,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
+                                        color: isSelected
+                                            ? AppColors.textPrimary
+                                            : AppColors.textSecondary
+                                                  .withValues(alpha: 0.7),
                                       ),
                                     ),
-                                  );
-                                }),
-                              ),
-                            ],
-                          ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
                         ),
                       ),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        color: AppColors.divider,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                      ),
-                      // Botón de captura rápida
-                      SizedBox(
-                        width: addButtonWidth,
-                        child: IconButton(
-                          icon: const Icon(Icons.add, color: AppColors.textPrimary, size: 28),
-                          padding: EdgeInsets.zero,
-                          onPressed: () => showGlobalAdd(context),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: AppColors.divider,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    // Quick capture button
+                    SizedBox(
+                      width: addButtonWidth,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.add,
+                          color: AppColors.textPrimary,
+                          size: 28,
                         ),
+                        padding: EdgeInsets.zero,
+                        onPressed: () => showGlobalAdd(context),
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-        );
+        ),
+      ),
+    );
   }
 }
 
@@ -401,13 +419,10 @@ class _TodayOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: pkg.GlassAppBar(
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: false,
-        buttonSettings: const pkg.LiquidGlassSettings(
-          thickness: 40,
-          blur: 15,
-        ),
         title: const Text(
           'Hoy',
           style: TextStyle(
@@ -449,7 +464,11 @@ class _GreetingSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final profileVm = context.watch<ProfileViewModel>();
     final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+    final greeting = hour < 12
+        ? 'Buenos días'
+        : hour < 18
+        ? 'Buenas tardes'
+        : 'Buenas noches';
     final name = profileVm.profile?.username ?? '';
 
     return Column(
@@ -483,7 +502,6 @@ void _goToTab(BuildContext context, int index) {
 }
 
 String _formatEur(double v) {
-  // 358.6 → "358,60 €" (es-ES style, no thousands for sub-10k balances).
   return '${v.toStringAsFixed(2).replaceAll('.', ',')} €';
 }
 
@@ -493,6 +511,7 @@ String _formatHours(double hours) {
   return '${h}h ${m}m';
 }
 
+/// Bento cards use [ZenSolidCard] — content cards do NOT get glass.
 class _SleepBentoCard extends StatelessWidget {
   const _SleepBentoCard();
 
@@ -502,7 +521,7 @@ class _SleepBentoCard extends StatelessWidget {
     final log = sleepVm.todayLog;
     final rating = log?.qualityRating ?? 0;
 
-    return GlassCard(
+    return ZenSolidCard(
       onTap: () => _goToTab(context, 4),
       padding: const EdgeInsets.all(14),
       child: log == null
@@ -567,7 +586,11 @@ class _SleepBarTrack extends StatelessWidget {
   final int deep;
   final int light;
   final int rem;
-  const _SleepBarTrack({required this.deep, required this.light, required this.rem});
+  const _SleepBarTrack({
+    required this.deep,
+    required this.light,
+    required this.rem,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -587,11 +610,20 @@ class _SleepBarTrack extends StatelessWidget {
         height: 8,
         child: Row(
           children: [
-            Expanded(flex: deep, child: Container(color: AppColors.habits)),
+            Expanded(
+              flex: deep,
+              child: Container(color: AppColors.habits),
+            ),
             const SizedBox(width: 3),
-            Expanded(flex: light, child: Container(color: AppColors.gold)),
+            Expanded(
+              flex: light,
+              child: Container(color: AppColors.gold),
+            ),
             const SizedBox(width: 3),
-            Expanded(flex: rem, child: Container(color: AppColors.coral)),
+            Expanded(
+              flex: rem,
+              child: Container(color: AppColors.coral),
+            ),
           ],
         ),
       ),
@@ -606,11 +638,13 @@ class _HabitsBentoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final habitsVm = context.watch<HabitsViewModel>();
     final today = habitsVm.todayHabits;
-    final completed = today.where((h) => habitsVm.isCompletedToday(h.id)).length;
+    final completed = today
+        .where((h) => habitsVm.isCompletedToday(h.id))
+        .length;
     final total = today.length;
     final pct = total > 0 ? completed / total : 0.0;
 
-    return GlassCard(
+    return ZenSolidCard(
       onTap: () => _goToTab(context, 2),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -663,7 +697,7 @@ class _TasksBentoCard extends StatelessWidget {
     final pending = tasksVm.pendingTasks;
     final next = pending.isNotEmpty ? pending.first : null;
 
-    return GlassCard(
+    return ZenSolidCard(
       onTap: () => _goToTab(context, 1),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -680,7 +714,10 @@ class _TasksBentoCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.gold.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(8),
@@ -726,7 +763,7 @@ class _BalanceBentoCard extends StatelessWidget {
     final balance = financeVm.totalBalance;
     final count = financeVm.accounts.length;
 
-    return GlassCard(
+    return ZenSolidCard(
       onTap: () => _goToTab(context, 3),
       padding: const EdgeInsets.all(14),
       child: Column(

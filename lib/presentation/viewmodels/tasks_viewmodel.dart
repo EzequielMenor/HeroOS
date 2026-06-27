@@ -14,14 +14,31 @@ class TasksViewModel extends ChangeNotifier {
   List<TaskEntity> _tasks = [];
   bool _isLoading = false;
   String? _error;
+  Energy? _selectedEnergyFilter;
 
-  TasksViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : TaskRepository();
+  TasksViewModel()
+    : _repo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : TaskRepository();
 
   List<TaskEntity> get tasks => _tasks;
-  List<TaskEntity> get pendingTasks => _tasks.where((t) => !t.isDone).toList();
+  List<TaskEntity> get pendingTasks {
+    var list = _tasks.where((t) => !t.isDone);
+    if (_selectedEnergyFilter != null) {
+      list = list.where((t) => t.energy == _selectedEnergyFilter);
+    }
+    return list.toList();
+  }
+
   List<TaskEntity> get doneTasks => _tasks.where((t) => t.isDone).toList();
   bool get isLoading => _isLoading;
   String? get error => _error;
+  Energy? get selectedEnergyFilter => _selectedEnergyFilter;
+
+  void setEnergyFilter(Energy? filter) {
+    _selectedEnergyFilter = filter;
+    notifyListeners();
+  }
 
   /// Carga todas las tareas del usuario.
   Future<void> loadTasks() async {
@@ -59,8 +76,13 @@ class TasksViewModel extends ChangeNotifier {
     required String title,
     DateTime? dueDate,
     Energy? energy,
+    String? noteId,
+    bool isHighlight = false,
+    FocusDuration? duration,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final task = TaskEntity(
@@ -69,6 +91,9 @@ class TasksViewModel extends ChangeNotifier {
       title: title,
       dueDate: dueDate,
       energy: energy,
+      noteId: noteId,
+      isHighlight: isHighlight,
+      duration: duration,
     );
     try {
       await _repo.createTask(task);
@@ -131,7 +156,27 @@ class TasksViewModel extends ChangeNotifier {
     final newSyncStatus = task.syncStatus == SyncStatus.pendingAi
         ? SyncStatus.userModified
         : task.syncStatus;
-    final updated = task.copyWith(energy: nextEnergy, syncStatus: newSyncStatus);
+    final updated = task.copyWith(
+      energy: nextEnergy,
+      syncStatus: newSyncStatus,
+    );
+    await updateTask(updated);
+  }
+
+  /// Alterna el highlight de una tarea (Foco del Día).
+  /// Solo una tarea no completada puede estar marcada como highlight.
+  Future<void> toggleTaskHighlight(TaskEntity task) async {
+    final newHighlight = !task.isHighlight;
+    // Si estamos marcando como highlight, desmarcar los demás primero
+    if (newHighlight) {
+      for (var i = 0; i < _tasks.length; i++) {
+        if (!_tasks[i].isDone && _tasks[i].isHighlight) {
+          _tasks[i] = _tasks[i].copyWith(isHighlight: false);
+          await _repo.updateTask(_tasks[i]);
+        }
+      }
+    }
+    final updated = task.copyWith(isHighlight: newHighlight);
     await updateTask(updated);
   }
 }

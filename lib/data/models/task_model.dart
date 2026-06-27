@@ -10,6 +10,9 @@ class TaskModel {
   final DateTime? dueDate;
   final Energy? energy;
   final SyncStatus? syncStatus;
+  final String? noteId;
+  final bool isHighlight;
+  final FocusDuration? duration;
 
   TaskModel({
     required this.id,
@@ -19,6 +22,9 @@ class TaskModel {
     this.dueDate,
     this.energy,
     this.syncStatus,
+    this.noteId,
+    this.isHighlight = false,
+    this.duration,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +44,14 @@ class TaskModel {
         orElse: () => SyncStatus.completed,
       );
     }
+    final durationStr = json['duration'] as String?;
+    FocusDuration? duration;
+    if (durationStr != null) {
+      duration = FocusDuration.values.firstWhere(
+        (d) => d.name == durationStr,
+        orElse: () => FocusDuration.short,
+      );
+    }
     return TaskModel(
       id: json['id'] as String,
       userId: json['user_id'] as String,
@@ -48,6 +62,9 @@ class TaskModel {
           : null,
       energy: energy,
       syncStatus: syncStatus,
+      noteId: json['note_id'] as String?,
+      isHighlight: json['is_highlight'] as bool? ?? false,
+      duration: duration,
     );
   }
 
@@ -57,8 +74,10 @@ class TaskModel {
     'is_done': isDone,
     'due_date': dueDate?.toIso8601String(),
     'energy': energy?.name,
-    if (syncStatus != null)
-      'sync_status': syncStatus!.name,
+    if (syncStatus != null) 'sync_status': syncStatus!.name,
+    'note_id': noteId,
+    'is_highlight': isHighlight,
+    'duration': duration?.name,
   };
 
   TaskEntity toEntity() => TaskEntity(
@@ -69,6 +88,9 @@ class TaskModel {
     dueDate: dueDate,
     energy: energy,
     syncStatus: syncStatus,
+    noteId: noteId,
+    isHighlight: isHighlight,
+    duration: duration,
   );
 
   factory TaskModel.fromEntity(TaskEntity e) => TaskModel(
@@ -79,5 +101,8 @@ class TaskModel {
     dueDate: e.dueDate,
     energy: e.energy,
     syncStatus: e.syncStatus,
+    noteId: e.noteId,
+    isHighlight: e.isHighlight,
+    duration: e.duration,
   );
 }

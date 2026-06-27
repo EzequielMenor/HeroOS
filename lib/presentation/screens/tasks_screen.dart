@@ -12,17 +12,17 @@ import '../viewmodels/tasks_viewmodel.dart';
 
 // ── Paleta Zen OS (local refs) ───────────────────────────────────────────────
 Color get _kBg => AppColors.scaffold;
-             // #060606
+// #060606
 Color get _kTextPrimary => AppColors.textPrimary;
- // #F0EDE8
+// #F0EDE8
 Color get _kTextSecondary => AppColors.textSecondary;
- // rgba bone 45%
+// rgba bone 45%
 Color get _kDivider => AppColors.divider;
-         // rgba white 5%
+// rgba white 5%
 Color get _kAccent => AppColors.accent;
-        // #8FBC8F
+// #8FBC8F
 Color get _kDanger => AppColors.danger;
-           // #F44336
+// #F44336
 
 /// Pantalla de Tareas — diseño Zen OS consistente con el resto de pantallas.
 /// Web: split-panel. Mobile: toggle lista/calendario con SafeArea.
@@ -90,10 +90,7 @@ class _TasksScreenState extends State<TasksScreen> {
           child: SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(
-              color: _kAccent,
-              strokeWidth: 1.5,
-            ),
+            child: CircularProgressIndicator(color: _kAccent, strokeWidth: 1.5),
           ),
         ),
       );
@@ -110,8 +107,9 @@ class _TasksScreenState extends State<TasksScreen> {
   Widget _buildWebLayout(TasksViewModel vm) {
     final grouped = _groupByDay(vm.tasks);
     final selectedTasks = _tasksForDay(_selectedDay, grouped);
-    final unscheduled =
-        vm.tasks.where((t) => t.dueDate == null && !t.isDone).toList();
+    final unscheduled = vm.tasks
+        .where((t) => t.dueDate == null && !t.isDone)
+        .toList();
 
     return Scaffold(
       backgroundColor: _kBg,
@@ -134,9 +132,10 @@ class _TasksScreenState extends State<TasksScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              DateFormat('EEEE d MMMM', 'es')
-                                  .format(DateTime.now())
-                                  .toUpperCase(),
+                              DateFormat(
+                                'EEEE d MMMM',
+                                'es',
+                              ).format(DateTime.now()).toUpperCase(),
                               style: TextStyle(
                                 color: _kTextSecondary,
                                 fontSize: 9,
@@ -159,8 +158,16 @@ class _TasksScreenState extends State<TasksScreen> {
                                 ),
                                 Spacer(),
                                 GestureDetector(
-                                  onTap: () => showTaskCreateSheet(context, vm, initialDate: _selectedDay),
-                                  child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                                  onTap: () => showTaskCreateSheet(
+                                    context,
+                                    vm,
+                                    initialDate: _selectedDay,
+                                  ),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 18,
+                                    color: _kTextSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -183,9 +190,10 @@ class _TasksScreenState extends State<TasksScreen> {
                     Padding(
                       padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                       child: Text(
-                        DateFormat('EEEE d MMMM', 'es')
-                            .format(_selectedDay)
-                            .toUpperCase(),
+                        DateFormat(
+                          'EEEE d MMMM',
+                          'es',
+                        ).format(_selectedDay).toUpperCase(),
                         style: TextStyle(
                           color: _kTextSecondary,
                           fontSize: 9,
@@ -214,13 +222,15 @@ class _TasksScreenState extends State<TasksScreen> {
                               ),
                             )
                           else
-                            ...selectedTasks
-                                .map((t) => _TaskTile(task: t, vm: vm)),
+                            ...selectedTasks.map(
+                              (t) => _TaskTile(task: t, vm: vm),
+                            ),
                           if (unscheduled.isNotEmpty) ...[
                             SizedBox(height: 8),
                             _ZenSectionLabel('SIN FECHA'),
-                            ...unscheduled
-                                .map((t) => _TaskTile(task: t, vm: vm)),
+                            ...unscheduled.map(
+                              (t) => _TaskTile(task: t, vm: vm),
+                            ),
                           ],
                         ],
                       ),
@@ -253,9 +263,10 @@ class _TasksScreenState extends State<TasksScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('EEEE d MMMM', 'es')
-                            .format(DateTime.now())
-                            .toUpperCase(),
+                        DateFormat(
+                          'EEEE d MMMM',
+                          'es',
+                        ).format(DateTime.now()).toUpperCase(),
                         style: TextStyle(
                           color: _kTextSecondary,
                           fontSize: 9,
@@ -278,8 +289,16 @@ class _TasksScreenState extends State<TasksScreen> {
                           ),
                           Spacer(),
                           GestureDetector(
-                            onTap: () => showTaskCreateSheet(context, vm, initialDate: _selectedDay),
-                            child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                            onTap: () => showTaskCreateSheet(
+                              context,
+                              vm,
+                              initialDate: _selectedDay,
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              size: 18,
+                              color: _kTextSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -391,8 +410,9 @@ class _TasksScreenState extends State<TasksScreen> {
   Widget _buildCalendarViewMobile(TasksViewModel vm) {
     final grouped = _groupByDay(vm.tasks);
     final selectedTasks = _tasksForDay(_selectedDay, grouped);
-    final unscheduled =
-        vm.tasks.where((t) => t.dueDate == null && !t.isDone).toList();
+    final unscheduled = vm.tasks
+        .where((t) => t.dueDate == null && !t.isDone)
+        .toList();
 
     return ListView(
       padding: EdgeInsets.only(bottom: 100),
@@ -401,9 +421,7 @@ class _TasksScreenState extends State<TasksScreen> {
         Container(height: 1, color: _kDivider),
         SizedBox(height: 16),
         _ZenSectionLabel(
-          DateFormat('EEEE d MMMM', 'es')
-              .format(_selectedDay)
-              .toUpperCase(),
+          DateFormat('EEEE d MMMM', 'es').format(_selectedDay).toUpperCase(),
         ),
         if (selectedTasks.isEmpty)
           Padding(
@@ -482,10 +500,8 @@ class _TasksScreenState extends State<TasksScreen> {
       ),
       calendarStyle: CalendarStyle(
         tablePadding: EdgeInsets.symmetric(horizontal: 8),
-        defaultTextStyle:
-            TextStyle(color: _kTextPrimary, fontSize: 13),
-        weekendTextStyle:
-            TextStyle(color: _kTextPrimary, fontSize: 13),
+        defaultTextStyle: TextStyle(color: _kTextPrimary, fontSize: 13),
+        weekendTextStyle: TextStyle(color: _kTextPrimary, fontSize: 13),
         outsideTextStyle: TextStyle(
           color: _kTextSecondary.withValues(alpha: 0.35),
           fontSize: 13,
@@ -524,8 +540,8 @@ class _TasksScreenState extends State<TasksScreen> {
           final dotColor = hasOverdue
               ? _kDanger
               : hasPending
-                  ? _kAccent
-                  : _kAccent.withValues(alpha: 0.5);
+              ? _kAccent
+              : _kAccent.withValues(alpha: 0.5);
           return Positioned(
             bottom: 1,
             child: Row(
@@ -550,7 +566,6 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   // ── Modal Crear Tarea ───────────────────────────────────────────────────────
-
 }
 
 // ── Widgets privados ─────────────────────────────────────────────────────────
@@ -572,9 +587,7 @@ class _ZenSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: Color(0x14FFFFFF), width: 1),
-        ),
+        border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
       ),
       padding: EdgeInsets.fromLTRB(
         22,
@@ -611,7 +624,6 @@ class _ZenSheet extends StatelessWidget {
     );
   }
 }
-
 
 /// Toggle de vista (Lista / Calendario): texto uppercase con línea blanca.
 class _ZenViewToggle extends StatelessWidget {
@@ -741,20 +753,14 @@ class _TaskTile extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: EdgeInsets.only(right: 24),
         color: _kDanger,
-        child: Icon(
-          Icons.delete_outline,
-          color: Colors.white,
-          size: 20,
-        ),
+        child: Icon(Icons.delete_outline, color: Colors.white, size: 20),
       ),
       onDismissed: (_) => vm.deleteTask(task.id),
       child: GestureDetector(
         onLongPress: task.isDone ? null : () => _showEditSheet(context),
         child: Container(
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: _kDivider, width: 1),
-            ),
+            border: Border(bottom: BorderSide(color: _kDivider, width: 1)),
           ),
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
@@ -818,7 +824,10 @@ class _TaskTile extends StatelessWidget {
                                   vm.cycleTaskEnergy(task);
                                 },
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -826,7 +835,9 @@ class _TaskTile extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Three bars energy indicator
-                                  _energyBars(energy: task.energy ?? Energy.medium),
+                                _energyBars(
+                                  energy: task.energy ?? Energy.medium,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   _energyLabels[energyIdx],
@@ -998,7 +1009,9 @@ class _TaskTile extends StatelessWidget {
                           ? DateFormat('d MMM yyyy', 'es').format(dueDate!)
                           : 'Fecha límite (opcional)',
                       style: TextStyle(
-                        color: dueDate != null ? _kTextPrimary : _kTextSecondary,
+                        color: dueDate != null
+                            ? _kTextPrimary
+                            : _kTextSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -1062,167 +1075,166 @@ class _TaskTile extends StatelessWidget {
   }
 }
 
+void showTaskCreateSheet(
+  BuildContext context,
+  TasksViewModel vm, {
+  DateTime? initialDate,
+}) {
+  final titleCtrl = TextEditingController();
+  Energy energy = Energy.medium;
+  DateTime? dueDate = initialDate;
 
-  void showTaskCreateSheet(BuildContext context, TasksViewModel vm, {DateTime? initialDate}) {
-    final titleCtrl = TextEditingController();
-    Energy energy = Energy.medium;
-    DateTime? dueDate = initialDate;
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => _ZenSheet(
-          title: 'Crear tarea',
-          label: 'NUEVA MISIÓN',
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Título
-              TextField(
-                controller: titleCtrl,
-                autofocus: true,
-                style: TextStyle(color: _kTextPrimary, fontSize: 16),
-                cursorColor: _kAccent,
-                decoration: InputDecoration(
-                  hintText: 'Nombre de la misión',
-                  hintStyle: TextStyle(color: _kTextSecondary, fontSize: 16),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: _kDivider, width: 1),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: _kAccent, width: 1),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.8),
+    isScrollControlled: true,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setSheetState) => _ZenSheet(
+        title: 'Crear tarea',
+        label: 'NUEVA MISIÓN',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título
+            TextField(
+              controller: titleCtrl,
+              autofocus: true,
+              style: TextStyle(color: _kTextPrimary, fontSize: 16),
+              cursorColor: _kAccent,
+              decoration: InputDecoration(
+                hintText: 'Nombre de la misión',
+                hintStyle: TextStyle(color: _kTextSecondary, fontSize: 16),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _kDivider, width: 1),
                 ),
-              ),
-              SizedBox(height: 24),
-              // Energía
-              Text(
-                'ENERGÍA',
-                style: TextStyle(
-                  color: _kTextSecondary,
-                  fontSize: 9,
-                  letterSpacing: 2.0,
-                  fontWeight: FontWeight.w500,
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _kAccent, width: 1),
                 ),
+                contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
-              SizedBox(height: 12),
-              Row(
-                children: Energy.values.map((e) {
-                  final labels = ['Baja', 'Media', 'Alta'];
-                  final isActive = energy == e;
-                  return Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: _ZenFilter(
-                      label: labels[e.index].toUpperCase(),
-                      isActive: isActive,
-                      onTap: () => setSheetState(() => energy = e),
-                    ),
-                  );
-                }).toList(),
+            ),
+            SizedBox(height: 24),
+            // Energía
+            Text(
+              'ENERGÍA',
+              style: TextStyle(
+                color: _kTextSecondary,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
               ),
-              SizedBox(height: 24),
-              // Fecha límite
-              GestureDetector(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: ctx,
-                    initialDate:
-                        dueDate ?? DateTime.now().add(Duration(days: 1)),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(Duration(days: 365)),
-                    builder: (context, child) => Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: ColorScheme.dark(
-                          primary: _kAccent,
-                          onPrimary: Colors.black,
-                          surface: AppColors.surface,
-                          onSurface: _kTextPrimary,
-                        ),
-                      ),
-                      child: child!,
-                    ),
-                  );
-                  if (picked != null) {
-                    setSheetState(() => dueDate = picked);
-                  }
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 13,
-                      color: _kTextSecondary,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      dueDate != null
-                          ? DateFormat('d MMM yyyy', 'es').format(dueDate!)
-                          : 'Fecha límite (opcional)',
-                      style: TextStyle(
-                        color: dueDate != null ? _kTextPrimary : _kTextSecondary,
-                        fontSize: 14,
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: Energy.values.map((e) {
+                final labels = ['Baja', 'Media', 'Alta'];
+                final isActive = energy == e;
+                return Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: _ZenFilter(
+                    label: labels[e.index].toUpperCase(),
+                    isActive: isActive,
+                    onTap: () => setSheetState(() => energy = e),
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 24),
+            // Fecha límite
+            GestureDetector(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: ctx,
+                  initialDate: dueDate ?? DateTime.now().add(Duration(days: 1)),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
+                  builder: (context, child) => Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.dark(
+                        primary: _kAccent,
+                        onPrimary: Colors.black,
+                        surface: AppColors.surface,
+                        onSurface: _kTextPrimary,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 32),
-              // Botones
-              Row(
+                    child: child!,
+                  ),
+                );
+                if (picked != null) {
+                  setSheetState(() => dueDate = picked);
+                }
+              },
+              child: Row(
                 children: [
-                  // Cancel
-                  GestureDetector(
-                    onTap: () => Navigator.pop(ctx),
-                    child: Text(
-                      'CANCELAR',
-                      style: TextStyle(
-                        color: _kTextSecondary,
-                        fontSize: 11,
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 13,
+                    color: _kTextSecondary,
                   ),
-                  Spacer(),
-                  // Add
-                  GestureDetector(
-                    onTap: () {
-                      final title = titleCtrl.text.trim();
-                      if (title.isEmpty) return;
-                      vm.createTask(
-                        title: title,
-                        energy: energy,
-                        dueDate: dueDate,
-                      );
-                      Navigator.pop(ctx);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      color: AppColors.textPrimary,
-                      child: Text(
-                        'CREAR',
-                        style: TextStyle(
-                          color: AppColors.scaffold,
-                          fontSize: 11,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  SizedBox(width: 8),
+                  Text(
+                    dueDate != null
+                        ? DateFormat('d MMM yyyy', 'es').format(dueDate!)
+                        : 'Fecha límite (opcional)',
+                    style: TextStyle(
+                      color: dueDate != null ? _kTextPrimary : _kTextSecondary,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: 32),
+            // Botones
+            Row(
+              children: [
+                // Cancel
+                GestureDetector(
+                  onTap: () => Navigator.pop(ctx),
+                  child: Text(
+                    'CANCELAR',
+                    style: TextStyle(
+                      color: _kTextSecondary,
+                      fontSize: 11,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Spacer(),
+                // Add
+                GestureDetector(
+                  onTap: () {
+                    final title = titleCtrl.text.trim();
+                    if (title.isEmpty) return;
+                    vm.createTask(
+                      title: title,
+                      energy: energy,
+                      dueDate: dueDate,
+                    );
+                    Navigator.pop(ctx);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    color: AppColors.textPrimary,
+                    child: Text(
+                      'CREAR',
+                      style: TextStyle(
+                        color: AppColors.scaffold,
+                        fontSize: 11,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}

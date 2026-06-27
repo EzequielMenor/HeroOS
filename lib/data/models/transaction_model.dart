@@ -69,8 +69,7 @@ class TransactionModel {
       'date': date.toIso8601String(),
       if (relatedTransactionId != null)
         'related_transaction_id': relatedTransactionId,
-      if (syncStatus != null)
-        'sync_status': syncStatus!.name,
+      if (syncStatus != null) 'sync_status': syncStatus!.name,
     };
   }
 

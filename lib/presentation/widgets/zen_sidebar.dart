@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../viewmodels/shell_controller.dart';
+import '../../core/theme/app_colors.dart';
+import 'zen_glass.dart';
 
+/// Zen sidebar for web layout.
+///
+/// The sidebar is a permanent navigation element, we use ZenGlass for it.
 class ZenSidebar extends StatelessWidget {
   const ZenSidebar({super.key});
 
@@ -22,17 +26,26 @@ class ZenSidebar extends StatelessWidget {
 
     final bool isCollapsed = shell.isSidebarCollapsed;
 
-    return Container(
-      color: const Color(0xFF1C1C1E),
+    return ZenGlass(
+      borderRadius: 0,
       child: NavigationRail(
         extended: !isCollapsed && !shell.isWriting,
         selectedIndex: shell.currentIndex,
         onDestinationSelected: shell.setTab,
         backgroundColor: Colors.transparent,
-        unselectedIconTheme: const IconThemeData(color: Colors.white30, size: 22),
+        unselectedIconTheme: const IconThemeData(
+          color: Colors.white30,
+          size: 22,
+        ),
         selectedIconTheme: const IconThemeData(color: Colors.white, size: 22),
-        unselectedLabelTextStyle: const TextStyle(color: Colors.white30, fontSize: 13),
-        selectedLabelTextStyle: const TextStyle(color: Colors.white, fontSize: 13),
+        unselectedLabelTextStyle: const TextStyle(
+          color: Colors.white30,
+          fontSize: 13,
+        ),
+        selectedLabelTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+        ),
         indicatorColor: Colors.white10,
         destinations: destinations.map((d) {
           return NavigationRailDestination(

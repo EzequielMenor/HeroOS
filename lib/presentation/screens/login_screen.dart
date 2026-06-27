@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -73,76 +76,92 @@ class _LoginScreenState extends State<LoginScreen> {
     final emailCtrl = TextEditingController(text: _emailController.text.trim());
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text(
-          'Recuperar contraseña',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-            SizedBox(height: 12),
-            TextField(
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              style: TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Email',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-                prefixIcon: Icon(
-                  Icons.email_outlined,
-                  color: AppColors.textSecondary,
-                ),
-                filled: true,
-                fillColor: AppColors.scaffold,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.habits),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Cancelar',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.habits),
-            onPressed: () async {
-              final email = emailCtrl.text.trim();
-              if (email.isEmpty || !email.contains('@')) return;
-              Navigator.of(ctx).pop();
-              final vm = context.read<AuthViewModel>();
-              final ok = await vm.resetPassword(email);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok
-                        ? 'Revisa tu bandeja de entrada.'
-                        : vm.errorMessage ?? 'Error al enviar el email.',
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: ZenGlass(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Recuperar contraseña',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: ok ? AppColors.habits : AppColors.danger,
                 ),
-              );
-            },
-            child: Text('Enviar enlace'),
+                SizedBox(height: 12),
+                Text(
+                  'Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                SizedBox(height: 16),
+                GlassInput(
+                  controller: emailCtrl,
+                  hint: 'Email',
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      onTap: () => Navigator.of(ctx).pop(),
+
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    InkWell(
+                      onTap: () async {
+                        final email = emailCtrl.text.trim();
+                        if (email.isEmpty || !email.contains('@')) return;
+                        Navigator.of(ctx).pop();
+                        final vm = context.read<AuthViewModel>();
+                        final ok = await vm.resetPassword(email);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              ok
+                                  ? 'Revisa tu bandeja de entrada.'
+                                  : vm.errorMessage ??
+                                        'Error al enviar el email.',
+                            ),
+                            backgroundColor: ok
+                                ? AppColors.habits
+                                : AppColors.danger,
+                          ),
+                        );
+                      },
+
+                      child: Icon(
+                        Icons.send,
+                        color: AppColors.scaffold,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -165,13 +184,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Logo
-                    Container(
+                    ZenGlass(
                       width: 72,
                       height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.habits, width: 2),
-                      ),
+
                       child: Icon(
                         Icons.shield_outlined,
                         size: 36,
@@ -181,8 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 16),
                     Text(
                       'HeroOS',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 2,
@@ -191,68 +207,61 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 40),
 
                     // Email
-                    TextFormField(
+                    GlassInput(
                       controller: _emailController,
+                      hint: 'Email',
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: AppColors.textSecondary,
+                      ),
                       keyboardType: TextInputType.emailAddress,
-                      style: TextStyle(color: AppColors.textPrimary),
-                      decoration:
-                          _inputDecoration('Email', Icons.email_outlined),
-                      validator: (v) =>
-                          v != null && v.contains('@') ? null : 'Email inválido',
                     ),
                     SizedBox(height: 16),
 
                     // Password
-                    TextFormField(
+                    GlassInput(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: TextStyle(color: AppColors.textPrimary),
-                      decoration: _inputDecoration(
-                        'Contraseña',
+                      hint: 'Contraseña',
+                      prefixIcon: Icon(
                         Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: AppColors.textSecondary,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
                         ),
                       ),
-                      validator: (v) => v != null && v.length >= 6
-                          ? null
-                          : 'Mínimo 6 caracteres',
                     ),
 
                     // Confirmar contraseña (solo en modo registro)
                     if (_isRegisterMode) ...[
                       SizedBox(height: 16),
-                      TextFormField(
+                      GlassInput(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirm,
-                        style: TextStyle(color: AppColors.textPrimary),
-                        decoration: _inputDecoration(
-                          'Confirmar contraseña',
+                        hint: 'Confirmar contraseña',
+                        prefixIcon: Icon(
                           Icons.lock_outline,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirm
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscureConfirm = !_obscureConfirm,
-                            ),
+                          color: AppColors.textSecondary,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirm
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: AppColors.textSecondary,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscureConfirm = !_obscureConfirm,
                           ),
                         ),
-                        validator: (v) =>
-                            v == _passwordController.text
-                                ? null
-                                : 'Las contraseñas no coinciden',
                       ),
                     ],
                     SizedBox(height: 24),
@@ -261,14 +270,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 48,
-                      child: FilledButton(
-                        onPressed: vm.isLoading ? null : _submit,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.habits,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: InkWell(
+                        onTap: () => _submit(),
+
                         child: vm.isLoading
                             ? SizedBox(
                                 width: 20,
@@ -314,8 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _isRegisterMode
                             ? '¿Ya tienes cuenta? Inicia sesión'
                             : '¿No tienes cuenta? Regístrate',
-                        style:
-                            TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
 
@@ -327,8 +330,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 44,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
+                        child: InkWell(
+                          onTap: () async {
                             final vm = context.read<AuthViewModel>();
                             final ok = await vm.devQuickLogin();
                             if (!mounted) return;
@@ -336,14 +339,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               // El redirect en main.dart lleva a dashboard
                             }
                           },
-                          icon: Icon(Icons.flash_on, size: 18),
-                          label: Text('Acceso rápido (Dev)'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.habits,
-                            side: BorderSide(color: AppColors.habits),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.flash_on, size: 18),
+                              SizedBox(width: 8),
+                              Text('Acceso rápido (Dev)'),
+                            ],
                           ),
                         ),
                       ),

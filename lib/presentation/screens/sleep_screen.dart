@@ -1,5 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +14,7 @@ import '../../data/services/openrouter_service.dart';
 import '../../domain/entities/sleep_log_entity.dart';
 import '../../domain/services/sleep_diagnosis_service.dart';
 import '../viewmodels/sleep_viewmodel.dart';
+import '../widgets/glass_card.dart';
 
 // ─── Zen OS Design Tokens ───────────────────────────────
 Color get _kBg => AppColors.scaffold;
@@ -19,7 +23,7 @@ Color get _kTextPrimary => AppColors.textPrimary;
 Color get _kTextSecondary => AppColors.textSecondary;
 Color get _kDivider => AppColors.divider;
 Color get _kAccent => AppColors.accent;
- // sage green
+// sage green
 Color get _kDanger => AppColors.danger;
 
 // Colores fases
@@ -56,7 +60,6 @@ class _SleepScreenState extends State<SleepScreen> {
     final vm = context.watch<SleepViewModel>();
 
     return Scaffold(
-      backgroundColor: _kBg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,14 +87,12 @@ class _SleepScreenState extends State<SleepScreen> {
                       _ => _TodayView(vm: vm),
                     },
             ),
-
           ],
         ),
       ),
     );
   }
 }
-
 
 // ─── Header + Tab toggle ─────────────────────────────────
 
@@ -109,7 +110,10 @@ class _ZenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final dateLabel = DateFormat('EEEE, d MMMM', 'es').format(now).toUpperCase();
+    final dateLabel = DateFormat(
+      'EEEE, d MMMM',
+      'es',
+    ).format(now).toUpperCase();
 
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -142,12 +146,12 @@ class _ZenHeader extends StatelessWidget {
               ),
               Spacer(),
               GestureDetector(
-                onTap: () => showSleepModal(context, context.read<SleepViewModel>(), null),
-                child: Icon(
-                  Icons.add,
-                  size: 20,
-                  color: _kTextSecondary,
+                onTap: () => showSleepModal(
+                  context,
+                  context.read<SleepViewModel>(),
+                  null,
                 ),
+                child: Icon(Icons.add, size: 20, color: _kTextSecondary),
               ),
             ],
           ),
@@ -162,11 +166,26 @@ class _ZenHeader extends StatelessWidget {
           // Tabs planos
           Row(
             children: [
-              _Tab(label: 'Hoy', index: 0, selected: viewIndex, onSelect: onSelect),
+              _Tab(
+                label: 'Hoy',
+                index: 0,
+                selected: viewIndex,
+                onSelect: onSelect,
+              ),
               SizedBox(width: 24),
-              _Tab(label: 'Historial', index: 1, selected: viewIndex, onSelect: onSelect),
+              _Tab(
+                label: 'Historial',
+                index: 1,
+                selected: viewIndex,
+                onSelect: onSelect,
+              ),
               SizedBox(width: 24),
-              _Tab(label: 'Stats', index: 2, selected: viewIndex, onSelect: onSelect),
+              _Tab(
+                label: 'Stats',
+                index: 2,
+                selected: viewIndex,
+                onSelect: onSelect,
+              ),
             ],
           ),
           SizedBox(height: 12),
@@ -376,8 +395,10 @@ class _PhaseRows extends StatelessWidget {
 
     return Column(
       children: [
-        if (deep != null) _PhaseRow(label: 'Sueño profundo', value: deep, color: _kDeepColor),
-        if (light != null) _PhaseRow(label: 'Sueño ligero', value: light, color: _kLightColor),
+        if (deep != null)
+          _PhaseRow(label: 'Sueño profundo', value: deep, color: _kDeepColor),
+        if (light != null)
+          _PhaseRow(label: 'Sueño ligero', value: light, color: _kLightColor),
         if (rem != null) _PhaseRow(label: 'REM', value: rem, color: _kRemColor),
       ],
     );
@@ -389,7 +410,11 @@ class _PhaseRow extends StatelessWidget {
   final int value;
   final Color color;
 
-  const _PhaseRow({required this.label, required this.value, required this.color});
+  const _PhaseRow({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -403,9 +428,15 @@ class _PhaseRow extends StatelessWidget {
           Container(width: 3, height: 16, color: color),
           SizedBox(width: 12),
           Expanded(
-            child: Text(label, style: TextStyle(color: _kTextPrimary, fontSize: 14)),
+            child: Text(
+              label,
+              style: TextStyle(color: _kTextPrimary, fontSize: 14),
+            ),
           ),
-          Text('$value%', style: TextStyle(color: _kTextSecondary, fontSize: 14)),
+          Text(
+            '$value%',
+            style: TextStyle(color: _kTextSecondary, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -519,11 +550,21 @@ class _HistoryView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('CANCELAR', style: TextStyle(color: _kTextSecondary, fontSize: 12, letterSpacing: 1)),
+            child: Text(
+              'CANCELAR',
+              style: TextStyle(
+                color: _kTextSecondary,
+                fontSize: 12,
+                letterSpacing: 1,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('BORRAR', style: TextStyle(color: _kDanger, fontSize: 12, letterSpacing: 1)),
+            child: Text(
+              'BORRAR',
+              style: TextStyle(color: _kDanger, fontSize: 12, letterSpacing: 1),
+            ),
           ),
         ],
       ),
@@ -586,7 +627,8 @@ class _HistoryRow extends StatelessWidget {
           Spacer(),
 
           // Estrellas
-          if (log.qualityRating != null) _StarRating(rating: log.qualityRating!, size: 12),
+          if (log.qualityRating != null)
+            _StarRating(rating: log.qualityRating!, size: 12),
           SizedBox(width: 8),
           Icon(Icons.chevron_right, color: _kTextSecondary, size: 14),
         ],
@@ -613,14 +655,24 @@ void _confirmDelete(BuildContext context, SleepViewModel vm, String logId) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('CANCELAR', style: TextStyle(color: _kTextSecondary, fontSize: 12, letterSpacing: 1)),
+          child: Text(
+            'CANCELAR',
+            style: TextStyle(
+              color: _kTextSecondary,
+              fontSize: 12,
+              letterSpacing: 1,
+            ),
+          ),
         ),
         TextButton(
           onPressed: () {
             vm.deleteSleepLog(logId);
             Navigator.pop(context);
           },
-          child: Text('BORRAR', style: TextStyle(color: _kDanger, fontSize: 12, letterSpacing: 1)),
+          child: Text(
+            'BORRAR',
+            style: TextStyle(color: _kDanger, fontSize: 12, letterSpacing: 1),
+          ),
         ),
       ],
     ),
@@ -669,111 +721,145 @@ class _DiagnosisSectionState extends State<_DiagnosisSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            _SectionLabel('DIAGNÓSTICO IA'),
-            Spacer(),
-            if (_loading)
-              SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(color: _kAccent, strokeWidth: 1.5),
-              ),
-            if (!_loading && _diagnosis != null)
-              GestureDetector(
-                onTap: _load,
-                child: Icon(Icons.refresh, color: _kTextSecondary, size: 16),
-              ),
-          ],
-        ),
-        SizedBox(height: 12),
-
-        if (_loading)
-          Text(
-            'Analizando tu sueño…',
-            style: TextStyle(color: _kTextSecondary, fontSize: 13, fontStyle: FontStyle.italic),
-          ),
-
-        if (_error != null && !_loading) ...[
-          Text(
-            'No se pudo obtener el análisis.',
-            style: TextStyle(color: _kTextSecondary, fontSize: 13),
-          ),
-          SizedBox(height: 10),
-          GestureDetector(
-            onTap: _load,
-            child: Text(
-              'Reintentar',
-              style: TextStyle(
-                color: _kAccent,
-                fontSize: 12,
-                decoration: TextDecoration.underline,
-                decorationColor: _kAccent,
-              ),
-            ),
-          ),
-        ],
-
-        if (_diagnosis != null && !_loading) ...[
-          Text(
-            _diagnosis!.title,
-            style: GoogleFonts.inter(
-              color: _kTextPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
-            ),
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _SectionLabel('DIAGNÓSTICO IA'),
+              if (_diagnosis != null && _diagnosis!.source == 'local') ...[
+                SizedBox(width: 8),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: _kTextSecondary, width: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: Text(
+                    'LOCAL',
+                    style: TextStyle(
+                      color: _kTextSecondary,
+                      fontSize: 8,
+                      letterSpacing: 1.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+              Spacer(),
+              if (_loading)
+                SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    color: _kAccent,
+                    strokeWidth: 1.5,
+                  ),
+                ),
+              if (!_loading && _diagnosis != null)
+                GestureDetector(
+                  onTap: _load,
+                  child: Icon(Icons.refresh, color: _kTextSecondary, size: 16),
+                ),
+            ],
           ),
           SizedBox(height: 12),
 
-          // Consejo con borde izquierdo sage
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(width: 2, height: 40, color: _kAccent),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  _diagnosis!.advice,
-                  style: TextStyle(color: _kTextSecondary, fontSize: 13, height: 1.6),
+          if (_loading)
+            Text(
+              'Analizando tu sueño…',
+              style: TextStyle(
+                color: _kTextSecondary,
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+
+          if (_error != null && !_loading) ...[
+            Text(
+              'No se pudo obtener el análisis.',
+              style: TextStyle(color: _kTextSecondary, fontSize: 13),
+            ),
+            SizedBox(height: 10),
+            GestureDetector(
+              onTap: _load,
+              child: Text(
+                'Reintentar',
+                style: TextStyle(
+                  color: _kAccent,
+                  fontSize: 12,
+                  decoration: TextDecoration.underline,
+                  decorationColor: _kAccent,
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: 14),
+            ),
+          ],
 
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Row(
+          if (_diagnosis != null && !_loading) ...[
+            Text(
+              _diagnosis!.title,
+              style: GoogleFonts.inter(
+                color: _kTextPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            SizedBox(height: 12),
+
+            // Consejo con borde izquierdo sage
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _expanded ? 'Ver menos' : 'Ver análisis completo',
-                  style: TextStyle(color: _kAccent, fontSize: 12),
-                ),
-                SizedBox(width: 4),
-                Icon(
-                  _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: _kAccent,
-                  size: 16,
+                Container(width: 2, height: 40, color: _kAccent),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _diagnosis!.advice,
+                    style: TextStyle(
+                      color: _kTextSecondary,
+                      fontSize: 13,
+                      height: 1.6,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+            SizedBox(height: 14),
 
-          if (_expanded) ...[
-            SizedBox(height: 16),
-            Divider(color: _kDivider),
-            SizedBox(height: 16),
-            _diagRow('FÍSICO', _diagnosis!.physicalAnalysis),
-            SizedBox(height: 14),
-            _diagRow('MENTAL', _diagnosis!.mentalAnalysis),
-            SizedBox(height: 14),
-            _diagRow('¿POR QUÉ?', _diagnosis!.reason),
+            GestureDetector(
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Row(
+                children: [
+                  Text(
+                    _expanded ? 'Ver menos' : 'Ver análisis completo',
+                    style: TextStyle(color: _kAccent, fontSize: 12),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    _expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: _kAccent,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+
+            if (_expanded) ...[
+              SizedBox(height: 16),
+              Divider(color: _kDivider),
+              SizedBox(height: 16),
+              _diagRow('FÍSICO', _diagnosis!.physicalAnalysis),
+              SizedBox(height: 14),
+              _diagRow('MENTAL', _diagnosis!.mentalAnalysis),
+              SizedBox(height: 14),
+              _diagRow('¿POR QUÉ?', _diagnosis!.reason),
+            ],
           ],
         ],
-      ],
+      ),
     );
   }
 
@@ -832,12 +918,7 @@ void showSleepModal(
         final totalPct = remPct + deepPct + lightPct;
         final pctValid = totalPct <= 100;
 
-        return Container(
-          // Fondo del sheet
-          decoration: BoxDecoration(
-            color: _kSurface,
-            border: Border(top: BorderSide(color: Color(0x14FFFFFF))),
-          ),
+        return ZenGlass(
           padding: EdgeInsets.fromLTRB(
             22,
             26,
@@ -922,7 +1003,9 @@ void showSleepModal(
                         child: Icon(
                           Icons.star,
                           size: 28,
-                          color: index < quality ? _kAccent : _kDivider.withValues(alpha: 0.35),
+                          color: index < quality
+                              ? _kAccent
+                              : _kDivider.withValues(alpha: 0.35),
                         ),
                       ),
                     ),
@@ -935,7 +1018,10 @@ void showSleepModal(
                 // — Fases toggle —
                 Row(
                   children: [
-                    Text('Fases de sueño', style: TextStyle(color: _kTextPrimary, fontSize: 14)),
+                    Text(
+                      'Fases de sueño',
+                      style: TextStyle(color: _kTextPrimary, fontSize: 14),
+                    ),
                     Spacer(),
                     Switch(
                       value: phasesEnabled,
@@ -989,7 +1075,10 @@ void showSleepModal(
                 // — Ritmo cardíaco —
                 Row(
                   children: [
-                    Text('Ritmo cardíaco (LPM)', style: TextStyle(color: _kTextPrimary, fontSize: 14)),
+                    Text(
+                      'Ritmo cardíaco (LPM)',
+                      style: TextStyle(color: _kTextPrimary, fontSize: 14),
+                    ),
                     Spacer(),
                     Switch(
                       value: heartRateEnabled,
@@ -1023,7 +1112,8 @@ void showSleepModal(
                             min: 40,
                             max: 100,
                             divisions: 60,
-                            onChanged: (v) => setSheetState(() => heartRate = v.round()),
+                            onChanged: (v) =>
+                                setSheetState(() => heartRate = v.round()),
                           ),
                         ),
                       ),
@@ -1095,11 +1185,15 @@ void showSleepModal(
                                   qualityRating: quality,
                                   remSleepPct: phasesEnabled ? remPct : null,
                                   deepSleepPct: phasesEnabled ? deepPct : null,
-                                  lightSleepPct: phasesEnabled ? lightPct : null,
+                                  lightSleepPct: phasesEnabled
+                                      ? lightPct
+                                      : null,
                                   notes: notesCtrl.text.trim().isEmpty
                                       ? null
                                       : notesCtrl.text.trim(),
-                                  avgHeartRate: heartRateEnabled ? heartRate : null,
+                                  avgHeartRate: heartRateEnabled
+                                      ? heartRate
+                                      : null,
                                 );
                                 Navigator.pop(ctx);
                               }
@@ -1144,7 +1238,8 @@ Widget _zenTimePickerTheme(BuildContext context, Widget? child) {
         primary: _kAccent,
         surface: _kSurface,
         onSurface: _kTextPrimary,
-      ), dialogTheme: DialogThemeData(backgroundColor: _kSurface),
+      ),
+      dialogTheme: DialogThemeData(backgroundColor: _kSurface),
     ),
     child: child!,
   );
@@ -1222,7 +1317,10 @@ class _ZenPhaseSlider extends StatelessWidget {
       children: [
         SizedBox(
           width: 65,
-          child: Text(label, style: TextStyle(color: _kTextSecondary, fontSize: 12)),
+          child: Text(
+            label,
+            style: TextStyle(color: _kTextSecondary, fontSize: 12),
+          ),
         ),
         Expanded(
           child: SliderTheme(
@@ -1340,11 +1438,28 @@ class _StatsViewState extends State<_StatsView> {
           SizedBox(height: 12),
           Row(
             children: [
-              _ZenStatMetric(label: 'MEDIA', value: '${avgHours.toStringAsFixed(1)}h'),
-              SizedBox(width: 1, height: 40, child: VerticalDivider(color: _kDivider, width: 1)),
-              _ZenStatMetric(label: 'CALIDAD', value: avgQuality.toStringAsFixed(1)),
-              SizedBox(width: 1, height: 40, child: VerticalDivider(color: _kDivider, width: 1)),
-              _ZenStatMetric(label: 'CONSISTENCIA', value: '${(consistency * 100).round()}%'),
+              _ZenStatMetric(
+                label: 'MEDIA',
+                value: '${avgHours.toStringAsFixed(1)}h',
+              ),
+              SizedBox(
+                width: 1,
+                height: 40,
+                child: VerticalDivider(color: _kDivider, width: 1),
+              ),
+              _ZenStatMetric(
+                label: 'CALIDAD',
+                value: avgQuality.toStringAsFixed(1),
+              ),
+              SizedBox(
+                width: 1,
+                height: 40,
+                child: VerticalDivider(color: _kDivider, width: 1),
+              ),
+              _ZenStatMetric(
+                label: 'CONSISTENCIA',
+                value: '${(consistency * 100).round()}%',
+              ),
             ],
           ),
           SizedBox(height: 32),
@@ -1377,7 +1492,10 @@ class _StatsViewState extends State<_StatsView> {
                             : 'HORAS / SEMANA (ÚLTIMAS 5)',
                       ),
                       SizedBox(height: 16),
-                      SizedBox(height: 200, child: _WeeklyBarChart(data: weeklyData)),
+                      SizedBox(
+                        height: 200,
+                        child: _WeeklyBarChart(data: weeklyData),
+                      ),
                     ],
                   ),
                 ),
@@ -1409,9 +1527,21 @@ class _StatsViewState extends State<_StatsView> {
             SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _ZenDayBlock(label: 'Mejor noche', log: best, accent: _kAccent)),
+                Expanded(
+                  child: _ZenDayBlock(
+                    label: 'Mejor noche',
+                    log: best,
+                    accent: _kAccent,
+                  ),
+                ),
                 SizedBox(width: 1),
-                Expanded(child: _ZenDayBlock(label: 'Peor noche', log: worst, accent: _kDanger)),
+                Expanded(
+                  child: _ZenDayBlock(
+                    label: 'Peor noche',
+                    log: worst,
+                    accent: _kDanger,
+                  ),
+                ),
               ],
             ),
           ],
@@ -1427,7 +1557,11 @@ class _TogglePill extends StatelessWidget {
   final bool active;
   final VoidCallback onTap;
 
-  const _TogglePill({required this.label, required this.active, required this.onTap});
+  const _TogglePill({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1492,14 +1626,17 @@ class _ZenDayBlock extends StatelessWidget {
   final SleepLogEntity log;
   final Color accent;
 
-  const _ZenDayBlock({required this.label, required this.log, required this.accent});
+  const _ZenDayBlock({
+    required this.label,
+    required this.log,
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
     final dateStr = DateFormat('d MMM', 'es').format(log.endTime);
-    return Container(
+    return GlassCard(
       padding: EdgeInsets.all(16),
-      color: _kSurface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1651,7 +1788,10 @@ class _WeeklyBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return Center(
-        child: Text('Sin datos suficientes', style: TextStyle(color: _kTextSecondary)),
+        child: Text(
+          'Sin datos suficientes',
+          style: TextStyle(color: _kTextSecondary),
+        ),
       );
     }
 
@@ -1744,14 +1884,15 @@ class _WeeklyBarChart extends StatelessWidget {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => _kSurface,
-            getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
-              '${rod.toY.toStringAsFixed(1)}h',
-              TextStyle(
-                color: _kAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) =>
+                BarTooltipItem(
+                  '${rod.toY.toStringAsFixed(1)}h',
+                  TextStyle(
+                    color: _kAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
           ),
         ),
       ),

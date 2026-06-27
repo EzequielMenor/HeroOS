@@ -14,7 +14,10 @@ class GoalsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  GoalsViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : GoalsRepository();
+  GoalsViewModel()
+    : _repo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : GoalsRepository();
 
   UserGoalsEntity? get goals => _goals;
   bool get isLoading => _isLoading;

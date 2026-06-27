@@ -15,7 +15,10 @@ class SleepViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  SleepViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : SleepRepository();
+  SleepViewModel()
+    : _repo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : SleepRepository();
 
   List<SleepLogEntity> get logs => _logs;
   SleepLogEntity? get todayLog => _todayLog;
@@ -54,14 +57,31 @@ class SleepViewModel extends ChangeNotifier {
     String? notes,
     int? avgHeartRate,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     // Si la hora de despertar es anterior a la de acostarse, el usuario
     // durmió pasando la medianoche: retrocedemos startTime al día anterior
     // para que el registro quede en el día en que se despertó (endTime).
-    final adjustedStart =
-        endTime.isBefore(startTime) ? startTime.subtract(Duration(days: 1)) : startTime;
+    //
+    // Adicionalmente, si startTime tiene hora en madrugada (0-5) y endTime tiene
+    // hora en mañana (5-12) Y la duración resultante supera las 20h, significa
+    // que el usuario seleccionó una hora de acostarse en la madrugada del
+    // "día siguiente" (ej: 00:09) pero el día de startTime quedó como el día
+    // anterior. En ese caso adelantamos startTime al día siguiente.
+    final isStartInDawn = startTime.hour >= 0 && startTime.hour <= 5;
+    final isEndInMorning = endTime.hour >= 5 && endTime.hour <= 12;
+    final rawDuration = endTime.difference(startTime);
+    final needsDawnCorrection =
+        isStartInDawn && isEndInMorning && rawDuration.inHours > 20;
+
+    final adjustedStart = needsDawnCorrection
+        ? startTime.add(Duration(days: 1))
+        : (endTime.isBefore(startTime)
+              ? startTime.subtract(Duration(days: 1))
+              : startTime);
     final duration = endTime.difference(adjustedStart);
     final totalHours = duration.inMinutes / 60.0;
 

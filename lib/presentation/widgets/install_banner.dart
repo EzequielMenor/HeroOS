@@ -49,7 +49,9 @@ class _InstallBannerState extends State<InstallBanner> {
 
   void _showInstallInstructions() {
     // ponytail: isIos detection only matters on web, guard here
-    final isIos = kIsWeb ? getUserAgent().contains('iphone') || getUserAgent().contains('ipad') : false;
+    final isIos = kIsWeb
+        ? getUserAgent().contains('iphone') || getUserAgent().contains('ipad')
+        : false;
 
     showDialog<void>(
       context: context,
@@ -63,18 +65,12 @@ class _InstallBannerState extends State<InstallBanner> {
           isIos
               ? 'Toca el botón Compartir (□↑) en Safari\n→ "Añadir a inicio"\n\nAbrirá sin barras del navegador.'
               : 'Abre el menú del navegador (⋮)\n→ "Instalar app" o "Añadir a inicio"\n\nAbrirá sin barras del navegador.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            height: 1.5,
-          ),
+          style: TextStyle(color: AppColors.textSecondary, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Entendido',
-              style: TextStyle(color: AppColors.habits),
-            ),
+            child: Text('Entendido', style: TextStyle(color: AppColors.habits)),
           ),
           TextButton(
             onPressed: () {
@@ -112,21 +108,14 @@ class _InstallBannerState extends State<InstallBanner> {
               onTap: _showInstallInstructions,
               child: Text(
                 'Instala HeroOS para la experiencia completa →',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
           GestureDetector(
             onTap: _dismiss,
-            child: Icon(
-              Icons.close,
-              color: AppColors.textSecondary,
-              size: 16,
-            ),
+            child: Icon(Icons.close, color: AppColors.textSecondary, size: 16),
           ),
         ],
       ),

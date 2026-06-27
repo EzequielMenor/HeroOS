@@ -18,7 +18,10 @@ class HabitsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  HabitsViewModel() : _repo = AuthRepository.devQuickAccess ? DevRepository() : HabitRepository();
+  HabitsViewModel()
+    : _repo = AuthRepository.devQuickAccess
+          ? DevRepository()
+          : HabitRepository();
 
   List<HabitEntity> get habits => _habits;
   Set<String> get completedTodayIds => _completedTodayIds;
@@ -72,7 +75,9 @@ class HabitsViewModel extends ChangeNotifier {
     required String title,
     required String frequencyMask,
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final habit = HabitEntity(

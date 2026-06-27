@@ -1,5 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +28,11 @@ class AccountSummary {
   final String id;
   final String name;
   final String type;
-  const AccountSummary({required this.id, required this.name, required this.type});
+  const AccountSummary({
+    required this.id,
+    required this.name,
+    required this.type,
+  });
 }
 
 /// Phase 1: Initial state with 3 glass action buttons.
@@ -226,22 +232,15 @@ class _PhaseTwoState extends State<_PhaseTwo> {
                     ),
                   )
                 else
-                  GestureDetector(
+                  InkWell(
                     onTap: widget.onSave,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: AppColors.textPrimary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'GUARDAR',
-                        style: TextStyle(
-                          color: AppColors.scaffold,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                        ),
+                    child: const Text(
+                      'GUARDAR',
+                      style: TextStyle(
+                        color: AppColors.scaffold,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
                       ),
                     ),
                   ),
@@ -292,34 +291,10 @@ class _PhaseTwoState extends State<_PhaseTwo> {
             ],
 
             // Primary field
-            TextField(
+            GlassInput(
               controller: _primaryController,
               focusNode: _primaryFocusNode,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w400,
-              ),
-              cursorColor: AppColors.textPrimary,
-              decoration: InputDecoration(
-                hintText: _primaryHint,
-                hintStyle: TextStyle(
-                  color: AppColors.textSecondary.withValues(alpha: 0.4),
-                  fontSize: 15,
-                ),
-                filled: false,
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.5)),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                isDense: true,
-              ),
+              hint: _primaryHint,
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 12),
@@ -327,34 +302,12 @@ class _PhaseTwoState extends State<_PhaseTwo> {
             // Secondary field - mode-specific
             if (widget.mode == CaptureMode.expense) ...[
               // Amount field for expense
-              TextField(
+              GlassInput(
                 controller: _secondaryController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                cursorColor: AppColors.textPrimary,
-                decoration: InputDecoration(
-                  hintText: _secondaryHint,
-                  hintStyle: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.4),
-                    fontSize: 15,
-                  ),
-                  filled: false,
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.textPrimary.withValues(alpha: 0.5)),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                  isDense: true,
-                ),
+                hint: _secondaryHint,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => widget.onSave(),
               ),
@@ -392,104 +345,103 @@ class _PhaseTwoState extends State<_PhaseTwo> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.95),
-                border: Border(
-                  top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 0.5),
+        return ZenGlass(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              padding: const EdgeInsets.only(top: 12, bottom: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(2),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Row(
+                  children: [
+                    const Text(
+                      'CUENTA',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  ],
+                ),
+              ),
+              ...widget.accounts.map((acc) {
+                final isActive = acc.id == _selectedAccountId;
+                final typeName = switch (acc.type) {
+                  'Bank' => 'Banco',
+                  'Investment' => 'Inversión',
+                  'Cash' => 'Efectivo',
+                  _ => acc.type,
+                };
+                return GestureDetector(
+                  onTap: () => Navigator.pop(ctx, acc.id),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppColors.habits.withValues(alpha: 0.1)
+                          : Colors.transparent,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                      ),
+                    ),
                     child: Row(
                       children: [
-                        const Text(
-                          'CUENTA',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 10,
-                            letterSpacing: 1.5,
-                            fontWeight: FontWeight.w500,
+                        Icon(
+                          Icons.account_balance_wallet_outlined,
+                          color: isActive
+                              ? AppColors.habits
+                              : AppColors.textSecondary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            acc.name,
+                            style: TextStyle(
+                              color: isActive
+                                  ? AppColors.habits
+                                  : AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: isActive
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
                           ),
                         ),
+                        Text(
+                          typeName,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        if (isActive) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.check, color: AppColors.habits, size: 16),
+                        ],
                       ],
                     ),
                   ),
-                  ...widget.accounts.map((acc) {
-                    final isActive = acc.id == _selectedAccountId;
-                    final typeName = switch (acc.type) {
-                      'Bank' => 'Banco',
-                      'Investment' => 'Inversión',
-                      'Cash' => 'Efectivo',
-                      _ => acc.type,
-                    };
-                    return GestureDetector(
-                      onTap: () => Navigator.pop(ctx, acc.id),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.habits.withValues(alpha: 0.1)
-                              : Colors.transparent,
-                          border: Border(
-                            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.account_balance_wallet_outlined,
-                              color: isActive ? AppColors.habits : AppColors.textSecondary,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                acc.name,
-                                style: TextStyle(
-                                  color: isActive ? AppColors.habits : AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              typeName,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 11,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            if (isActive) ...[
-                              const SizedBox(width: 8),
-                              Icon(Icons.check, color: AppColors.habits, size: 16),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
+                );
+              }),
+              SizedBox(height: 24),
+            ],
           ),
         );
       },
@@ -527,7 +479,10 @@ class _PhaseTwoState extends State<_PhaseTwo> {
       setState(() {
         _selectedDate = picked;
         // Also update the secondary field text to show the date
-        _secondaryController.text = DateFormat('d MMM yyyy', 'es').format(picked);
+        _secondaryController.text = DateFormat(
+          'd MMM yyyy',
+          'es',
+        ).format(picked);
       });
     }
   }
@@ -555,7 +510,9 @@ class _ExpenseToggle extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isActive ? activeColor.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1),
+            color: isActive
+                ? activeColor.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -773,9 +730,8 @@ class _GlobalAddScreenState extends State<GlobalAddScreen> {
     double? expenseAmount;
     if (_selectedMode == CaptureMode.expense &&
         phaseTwoState.secondaryText.isNotEmpty) {
-      expenseAmount = double.tryParse(
-            phaseTwoState.secondaryText.replaceAll(',', '.'),
-          ) ??
+      expenseAmount =
+          double.tryParse(phaseTwoState.secondaryText.replaceAll(',', '.')) ??
           0.0;
     }
 
@@ -798,7 +754,8 @@ class _GlobalAddScreenState extends State<GlobalAddScreen> {
         primaryText,
         accountId: phaseTwoState.selectedAccountId,
         dueDate: phaseTwoState.selectedDate,
-        isIncome: _selectedMode == CaptureMode.expense && !phaseTwoState.isExpense,
+        isIncome:
+            _selectedMode == CaptureMode.expense && !phaseTwoState.isExpense,
         amount: expenseAmount,
       );
 
@@ -846,35 +803,21 @@ class _GlobalAddScreenState extends State<GlobalAddScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    width: 0.5,
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.fastOutSlowIn,
-                  child: _selectedMode == null
-                      ? _PhaseOne(onSelectMode: _selectMode, onClose: _close)
-                      : _PhaseTwo(
-                          key: _phaseTwoKey,
-                          mode: _selectedMode!,
-                          onBack: _goBack,
-                          onSave: _save,
-                          onClose: _close,
-                          isSaving: _isSaving,
-                          accounts: accountSummaries,
-                        ),
-                ),
-              ),
+          child: ZenGlass(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.fastOutSlowIn,
+              child: _selectedMode == null
+                  ? _PhaseOne(onSelectMode: _selectMode, onClose: _close)
+                  : _PhaseTwo(
+                      key: _phaseTwoKey,
+                      mode: _selectedMode!,
+                      onBack: _goBack,
+                      onSave: _save,
+                      onClose: _close,
+                      isSaving: _isSaving,
+                      accounts: accountSummaries,
+                    ),
             ),
           ),
         ),

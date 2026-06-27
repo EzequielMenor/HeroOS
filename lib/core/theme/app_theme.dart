@@ -17,16 +17,33 @@ abstract final class AppTheme {
         primary: AppColors.primary,
         error: AppColors.danger,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        displayMedium: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        displaySmall: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        headlineLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        headlineMedium: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-      ).apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
-      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            displayMedium: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            displaySmall: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            headlineLarge: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            headlineMedium: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          )
+          .apply(
+            bodyColor: AppColors.textPrimary,
+            displayColor: AppColors.textPrimary,
+          ),
       cardTheme: CardThemeData(
         color: Colors.transparent,
         elevation: 0,
@@ -66,16 +83,33 @@ abstract final class AppTheme {
         primary: AppColors.primary,
         error: AppColors.danger,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        displayMedium: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        displaySmall: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        headlineLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        headlineMedium: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-      ).apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
-      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            displayMedium: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            displaySmall: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            headlineLarge: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            headlineMedium: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          )
+          .apply(
+            bodyColor: AppColors.textPrimary,
+            displayColor: AppColors.textPrimary,
+          ),
       cardTheme: CardThemeData(
         color: Colors.transparent,
         elevation: 0,

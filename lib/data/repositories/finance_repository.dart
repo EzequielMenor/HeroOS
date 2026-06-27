@@ -69,10 +69,7 @@ class FinanceRepository {
 
   Future<void> updateTransaction(TransactionEntity txn) async {
     final model = TransactionModel.fromEntity(txn);
-    await _client
-        .from('transactions')
-        .update(model.toJson())
-        .eq('id', txn.id);
+    await _client.from('transactions').update(model.toJson()).eq('id', txn.id);
   }
 
   Future<void> deleteTransaction(String txnId) async {

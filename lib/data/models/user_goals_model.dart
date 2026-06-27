@@ -21,8 +21,7 @@ class UserGoalsModel {
     return UserGoalsModel(
       id: json['id'] as String,
       userId: json['user_id'] as String,
-      sleepHoursTarget:
-          (json['sleep_hours_target'] as num?)?.toDouble() ?? 8.0,
+      sleepHoursTarget: (json['sleep_hours_target'] as num?)?.toDouble() ?? 8.0,
       minHabitsDaily: json['min_habits_daily'] as int? ?? 3,
       maxMonthlySpending:
           (json['max_monthly_spending'] as num?)?.toDouble() ?? 500.0,

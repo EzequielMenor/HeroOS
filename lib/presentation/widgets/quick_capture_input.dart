@@ -35,10 +35,14 @@ class QuickCaptureButtons extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
-                  )
+                  ),
                 ],
               ),
-              child: Icon(Icons.mic_none, size: 18, color: AppColors.textPrimary),
+              child: Icon(
+                Icons.mic_none,
+                size: 18,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -57,7 +61,7 @@ class QuickCaptureButtons extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
               ),
               child: Icon(Icons.add, size: 22, color: AppColors.scaffold),
@@ -78,20 +82,17 @@ class QuickCaptureButtons extends StatelessWidget {
   }
 
   // ── AI Voice Capture ─────────────────────────────────────────────────────
-
-  }
+}
 
 void showAIVoiceCapture(BuildContext context, QuickCaptureViewModel qcVm) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (ctx) => AIVoiceSheet(qcVm),
-    );
-  }
-
-
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.8),
+    builder: (ctx) => AIVoiceSheet(qcVm),
+  );
+}
 
 class AIVoiceSheet extends StatefulWidget {
   final QuickCaptureViewModel vm;
@@ -117,7 +118,10 @@ class AIVoiceSheetState extends State<AIVoiceSheet> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Procesando con IA...', style: TextStyle(color: AppColors.scaffold)),
+        content: Text(
+          'Procesando con IA...',
+          style: TextStyle(color: AppColors.scaffold),
+        ),
         backgroundColor: AppColors.textPrimary,
       ),
     );
@@ -156,7 +160,10 @@ class AIVoiceSheetState extends State<AIVoiceSheet> {
                 Expanded(
                   child: TextField(
                     controller: _textCtrl,
-                    style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Escribe para añadir...',
                       hintStyle: TextStyle(color: AppColors.textSecondary),
@@ -167,11 +174,7 @@ class AIVoiceSheetState extends State<AIVoiceSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.mic_none,
-                    color: AppColors.habits,
-                    size: 28,
-                  ),
+                  icon: Icon(Icons.mic_none, color: AppColors.habits, size: 28),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Captura por voz próximamente')),

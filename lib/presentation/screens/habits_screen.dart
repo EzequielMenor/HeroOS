@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/glass_sheet.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as pkg;
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/adaptive_modal.dart';
@@ -62,7 +65,12 @@ class _HabitsScreenState extends State<HabitsScreen> {
           : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _ListView(vm: vm, onAdd: () => showHabitCreateSheet(context, vm))),
+                Expanded(
+                  child: _ListView(
+                    vm: vm,
+                    onAdd: () => showHabitCreateSheet(context, vm),
+                  ),
+                ),
                 Container(width: 1, color: AppColors.divider),
                 Expanded(
                   child: _StatsView(
@@ -87,16 +95,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header compartido ──
-            pkg.GlassContainer(
-              settings: const pkg.LiquidGlassSettings(
-                thickness: 30,
-                blur: 12,
-                refractiveIndex: 0.6,
-                lightIntensity: 0.7,
-                saturation: 1.2,
-              ),
-              quality: pkg.GlassQuality.standard,
-              shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 16),
+            ZenGlass(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                 child: Column(
@@ -166,12 +165,15 @@ class _HabitsScreenState extends State<HabitsScreen> {
                       ),
                     )
                   : _showStats
-                      ? _StatsView(
-                          selectedHabitId: _selectedHabitId,
-                          onHabitSelected: (id) =>
-                              setState(() => _selectedHabitId = id),
-                        )
-                      : _ListView(vm: vm, onAdd: () => showHabitCreateSheet(context, vm)),
+                  ? _StatsView(
+                      selectedHabitId: _selectedHabitId,
+                      onHabitSelected: (id) =>
+                          setState(() => _selectedHabitId = id),
+                    )
+                  : _ListView(
+                      vm: vm,
+                      onAdd: () => showHabitCreateSheet(context, vm),
+                    ),
             ),
           ],
         ),
@@ -180,8 +182,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
   }
 
   // ─── Bottom Sheet: Crear hábito ───
-
-
 }
 
 // ═══════════════════════════════════════════════════════
@@ -364,7 +364,7 @@ class _StatsView extends StatelessWidget {
     final selectedHabit = showGlobal
         ? null
         : (habits.where((h) => h.id == selectedHabitId).firstOrNull ??
-            habits.first);
+              habits.first);
 
     return CustomScrollView(
       slivers: [
@@ -423,10 +423,7 @@ class _StatsView extends StatelessWidget {
 
         if (showGlobal) ...[
           SliverToBoxAdapter(
-            child: _GlobalStatsSection(
-              analytics: analytics,
-              habits: habits,
-            ),
+            child: _GlobalStatsSection(analytics: analytics, habits: habits),
           ),
         ] else ...[
           SliverToBoxAdapter(
@@ -451,9 +448,7 @@ class _StatsView extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 12),
-                  HabitHeatmap(
-                    data: analytics.weeklyHeatmap(selectedHabit.id),
-                  ),
+                  HabitHeatmap(data: analytics.weeklyHeatmap(selectedHabit.id)),
                   SizedBox(height: 28),
                   Text(
                     'TENDENCIA MENSUAL',
@@ -468,10 +463,7 @@ class _StatsView extends StatelessWidget {
                   SizedBox(
                     height: 200,
                     child: _MonthlyTrendChart(
-                      data: analytics.monthlyTrend(
-                        selectedHabit.id,
-                        months: 6,
-                      ),
+                      data: analytics.monthlyTrend(selectedHabit.id, months: 6),
                     ),
                   ),
                   SizedBox(height: 40),
@@ -502,24 +494,26 @@ class _ZenChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return pkg.GlassChip(
-      label: label,
-      selected: active,
-      selectedColor: AppColors.habits.withValues(alpha: 0.15),
+    return GestureDetector(
       onTap: onTap,
-      settings: const pkg.LiquidGlassSettings(
-        thickness: 20,
-        blur: 6,
-        refractiveIndex: 0.6,
-        lightIntensity: 0.7,
-        saturation: 1.2,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.habits.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? AppColors.habits.withValues(alpha: 0.5) : AppColors.textSecondary.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? AppColors.habits : AppColors.textSecondary,
+            fontSize: 11,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
-      labelStyle: TextStyle(
-        color: active ? AppColors.habits : AppColors.textSecondary,
-        fontSize: 11,
-        letterSpacing: 0.5,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     );
   }
 }
@@ -532,10 +526,7 @@ class _GlobalStatsSection extends StatelessWidget {
   final HabitAnalytics analytics;
   final List<HabitEntity> habits;
 
-  const _GlobalStatsSection({
-    required this.analytics,
-    required this.habits,
-  });
+  const _GlobalStatsSection({required this.analytics, required this.habits});
 
   @override
   Widget build(BuildContext context) {
@@ -734,12 +725,8 @@ class _MonthlyTrendChart extends StatelessWidget {
               FlLine(color: AppColors.divider, strokeWidth: 0.5),
         ),
         titlesData: FlTitlesData(
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -747,10 +734,7 @@ class _MonthlyTrendChart extends StatelessWidget {
               interval: 25,
               getTitlesWidget: (value, _) => Text(
                 '${value.toInt()}%',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
               ),
             ),
           ),
@@ -763,8 +747,9 @@ class _MonthlyTrendChart extends StatelessWidget {
                 if (idx < 0 || idx >= entries.length) return SizedBox();
                 final parts = entries[idx].key.split('-');
                 final month = int.tryParse(parts.last) ?? 1;
-                final label =
-                    DateFormat.MMM('es').format(DateTime(2026, month));
+                final label = DateFormat.MMM(
+                  'es',
+                ).format(DateTime(2026, month));
                 return Padding(
                   padding: EdgeInsets.only(top: 6),
                   child: Text(
@@ -842,21 +827,13 @@ class _HabitTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final done = vm.isCompletedToday(habit.id);
     final streak = habit.currentStreak;
-    final streakColor =
-        streak >= 7 ? AppColors.habits : AppColors.textSecondary;
+    final streakColor = streak >= 7
+        ? AppColors.habits
+        : AppColors.textSecondary;
 
     return GestureDetector(
       onLongPress: () => _showContextMenu(context),
-      child: pkg.GlassContainer(
-        settings: const pkg.LiquidGlassSettings(
-          thickness: 20,
-          blur: 8,
-          refractiveIndex: 0.6,
-          lightIntensity: 0.7,
-          saturation: 1.2,
-        ),
-        quality: pkg.GlassQuality.standard,
-        shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
+      child: ZenGlass(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
@@ -884,11 +861,7 @@ class _HabitTile extends StatelessWidget {
                   color: Colors.transparent,
                 ),
                 child: done
-                    ? Icon(
-                        Icons.check,
-                        size: 13,
-                        color: AppColors.habits,
-                      )
+                    ? Icon(Icons.check, size: 13, color: AppColors.habits)
                     : null,
               ),
             ),
@@ -922,22 +895,13 @@ class _HabitTile extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    'd',
-                    style: TextStyle(
-                      color: streakColor,
-                      fontSize: 11,
-                    ),
-                  ),
+                  Text('d', style: TextStyle(color: streakColor, fontSize: 11)),
                 ],
               )
             else
               Text(
                 '—',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
           ],
         ),
@@ -948,15 +912,7 @@ class _HabitTile extends StatelessWidget {
   void _showContextMenu(BuildContext context) {
     showAdaptiveModal<void>(
       context,
-      pkg.GlassSheet(
-        settings: const pkg.LiquidGlassSettings(
-          thickness: 40,
-          blur: 15,
-          refractiveIndex: 0.6,
-          lightIntensity: 0.7,
-          saturation: 1.2,
-        ),
-        quality: pkg.GlassQuality.standard,
+      GlassSheet(
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1079,15 +1035,7 @@ class _HabitTile extends StatelessWidget {
     showAdaptiveModal<void>(
       context,
       StatefulBuilder(
-        builder: (ctx, setSheetState) => pkg.GlassSheet(
-          settings: const pkg.LiquidGlassSettings(
-            thickness: 40,
-            blur: 15,
-            refractiveIndex: 0.6,
-            lightIntensity: 0.7,
-            saturation: 1.2,
-          ),
-          quality: pkg.GlassQuality.standard,
+        builder: (ctx, setSheetState) => GlassSheet(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1101,23 +1049,11 @@ class _HabitTile extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              pkg.GlassContainer(
-                settings: const pkg.LiquidGlassSettings(
-                  thickness: 20,
-                  blur: 6,
-                  refractiveIndex: 0.6,
-                  lightIntensity: 0.5,
-                  saturation: 1.2,
-                ),
-                quality: pkg.GlassQuality.standard,
-                shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
+              ZenGlass(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: TextField(
                   controller: titleCtrl,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                   cursorColor: AppColors.habits,
                   decoration: InputDecoration(
                     hintText: 'Nombre del hábito',
@@ -1179,7 +1115,7 @@ class _HabitTile extends StatelessWidget {
               SizedBox(height: 28),
               Row(
                 children: [
-                  pkg.GlassButton.custom(
+                  InkWell(
                     onTap: () => Navigator.pop(ctx),
                     child: Text(
                       'CANCELAR',
@@ -1192,7 +1128,7 @@ class _HabitTile extends StatelessWidget {
                     ),
                   ),
                   Spacer(),
-                  pkg.GlassButton.custom(
+                  InkWell(
                     onTap: () {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty) return;
@@ -1251,10 +1187,7 @@ class _ContextMenuItem extends StatelessWidget {
           children: [
             Icon(icon, size: 18, color: color),
             SizedBox(width: 16),
-            Text(
-              label,
-              style: TextStyle(color: color, fontSize: 14),
-            ),
+            Text(label, style: TextStyle(color: color, fontSize: 14)),
           ],
         ),
       ),
@@ -1262,169 +1195,144 @@ class _ContextMenuItem extends StatelessWidget {
   }
 }
 
+void showHabitCreateSheet(BuildContext context, HabitsViewModel vm) {
+  final titleCtrl = TextEditingController();
+  const days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
+  final selected = <String>{...days};
 
-  void showHabitCreateSheet(BuildContext context, HabitsViewModel vm) {
-    final titleCtrl = TextEditingController();
-    const days = <String>{'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'};
-    final selected = <String>{...days};
-
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => pkg.GlassSheet(
-          settings: const pkg.LiquidGlassSettings(
-            thickness: 40,
-            blur: 15,
-            refractiveIndex: 0.6,
-            lightIntensity: 0.7,
-            saturation: 1.2,
-          ),
-          quality: pkg.GlassQuality.standard,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Título del sheet
-              Text(
-                'Nuevo ritual',
-                style: GoogleFonts.inter(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+  showAdaptiveModal<void>(
+    context,
+    StatefulBuilder(
+      builder: (ctx, setSheetState) => GlassSheet(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título del sheet
+            Text(
+              'Nuevo ritual',
+              style: GoogleFonts.inter(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 20),
+            // Campo texto
+            ZenGlass(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: TextField(
+                controller: titleCtrl,
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                cursorColor: AppColors.habits,
+                decoration: InputDecoration(
+                  hintText: 'Ej: Beber 2L de agua',
+                  hintStyle: TextStyle(color: AppColors.textSecondary),
+                  border: InputBorder.none,
                 ),
               ),
-              SizedBox(height: 20),
-              // Campo texto
-              pkg.GlassContainer(
-                settings: const pkg.LiquidGlassSettings(
-                  thickness: 20,
-                  blur: 6,
-                  refractiveIndex: 0.6,
-                  lightIntensity: 0.5,
-                  saturation: 1.2,
-                ),
-                quality: pkg.GlassQuality.standard,
-                shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: TextField(
-                  controller: titleCtrl,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                  ),
-                  cursorColor: AppColors.habits,
-                  decoration: InputDecoration(
-                    hintText: 'Ej: Beber 2L de agua',
-                    hintStyle: TextStyle(color: AppColors.textSecondary),
-                    border: InputBorder.none,
-                  ),
-                ),
+            ),
+            SizedBox(height: 24),
+            // Label días
+            Text(
+              'DÍAS ACTIVOS',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 9,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w500,
               ),
-              SizedBox(height: 24),
-              // Label días
-              Text(
-                'DÍAS ACTIVOS',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 9,
-                  letterSpacing: 2.0,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: days.map((d) {
-                  final isActive = selected.contains(d);
-                  return GestureDetector(
-                    onTap: () {
-                      setSheetState(() {
-                        isActive ? selected.remove(d) : selected.add(d);
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 150),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isActive ? AppColors.habits : AppColors.divider,
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        dayLabel(d),
-                        style: TextStyle(
-                          color: isActive
-                              ? AppColors.habits
-                              : AppColors.textSecondary,
-                          fontSize: 11,
-                          letterSpacing: 1.0,
-                        ),
+            ),
+            SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: days.map((d) {
+                final isActive = selected.contains(d);
+                return GestureDetector(
+                  onTap: () {
+                    setSheetState(() {
+                      isActive ? selected.remove(d) : selected.add(d);
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 150),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isActive ? AppColors.habits : AppColors.divider,
+                        width: 1,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 28),
-              // Botones: Cancel + Add
-              Row(
-                children: [
-                  pkg.GlassButton.custom(
-                    onTap: () => Navigator.pop(ctx),
                     child: Text(
-                      'CANCELAR',
+                      dayLabel(d),
                       style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w500,
+                        color: isActive
+                            ? AppColors.habits
+                            : AppColors.textSecondary,
+                        fontSize: 11,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ),
-                  Spacer(),
-                  pkg.GlassButton.custom(
-                    onTap: () {
-                      final title = titleCtrl.text.trim();
-                      if (title.isEmpty) return;
-                      vm.createHabit(
-                        title: title,
-                        frequencyMask: selected.join(','),
-                      );
-                      Navigator.pop(ctx);
-                    },
-                    child: Text(
-                      'CREAR',
-                      style: TextStyle(
-                        color: AppColors.scaffold,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 28),
+            // Botones: Cancel + Add
+            Row(
+              children: [
+                InkWell(
+                  onTap: () => Navigator.pop(ctx),
+                  child: Text(
+                    'CANCELAR',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                Spacer(),
+                InkWell(
+                  onTap: () {
+                    final title = titleCtrl.text.trim();
+                    if (title.isEmpty) return;
+                    vm.createHabit(
+                      title: title,
+                      frequencyMask: selected.join(','),
+                    );
+                    Navigator.pop(ctx);
+                  },
+                  child: Text(
+                    'CREAR',
+                    style: TextStyle(
+                      color: AppColors.scaffold,
+                      fontSize: 10,
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-
-  String dayLabel(String d) {
-    const map = {
-      'Mon': 'LUN',
-      'Tue': 'MAR',
-      'Wed': 'MIÉ',
-      'Thu': 'JUE',
-      'Fri': 'VIE',
-      'Sat': 'SÁB',
-      'Sun': 'DOM',
-    };
-    return map[d] ?? d;
-  }
+String dayLabel(String d) {
+  const map = {
+    'Mon': 'LUN',
+    'Tue': 'MAR',
+    'Wed': 'MIÉ',
+    'Thu': 'JUE',
+    'Fri': 'VIE',
+    'Sat': 'SÁB',
+    'Sun': 'DOM',
+  };
+  return map[d] ?? d;
+}

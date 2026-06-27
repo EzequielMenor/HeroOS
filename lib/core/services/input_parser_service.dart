@@ -25,7 +25,8 @@ class ParsedInput {
 class InputParserService {
   static InputCategory determineCategory(String text) {
     if (text.isEmpty) return InputCategory.note;
-    if (SyntaxPatterns.financePrefix.hasMatch(text)) return InputCategory.finance;
+    if (SyntaxPatterns.financePrefix.hasMatch(text))
+      return InputCategory.finance;
     if (SyntaxPatterns.taskPrefix.hasMatch(text)) return InputCategory.task;
     return InputCategory.note;
   }
@@ -78,13 +79,13 @@ class InputParserService {
       if (match != null) {
         final rawAmountStr = match.group(1)!;
         cleanText = cleanText.replaceFirst(rawAmountStr, '');
-        
+
         // Determine income/expense and parse number
         if (rawAmountStr.contains('+')) {
           isIncome = true;
         } else if (!rawAmountStr.contains('-')) {
           // If no sign, assume expense for simplicity or maybe check logic
-          isIncome = false; 
+          isIncome = false;
         }
 
         final numStr = rawAmountStr.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -101,7 +102,10 @@ class InputParserService {
 
     return ParsedInput(
       category: category,
-      cleanText: cleanText.trim().replaceAll(RegExp(r'\\s+'), ' '), // cleanup extra spaces
+      cleanText: cleanText.trim().replaceAll(
+        RegExp(r'\\s+'),
+        ' ',
+      ), // cleanup extra spaces
       amount: amount,
       isIncome: isIncome,
       date: date,

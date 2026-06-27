@@ -18,8 +18,10 @@ class ResponsiveShell extends StatelessWidget {
     if (context.isWeb) {
       return Shortcuts(
         shortcuts: <LogicalKeySet, Intent>{
-          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK): const OmniboxIntent(),
-          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyB): const ToggleSidebarIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK):
+              const OmniboxIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyB):
+              const ToggleSidebarIntent(),
         },
         child: Actions(
           actions: <Type, Action<Intent>>{
@@ -45,14 +47,18 @@ class ResponsiveShell extends StatelessWidget {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
-                    width: shell.isWriting ? 0 : (shell.isSidebarCollapsed ? 64 : 240),
+                    width: shell.isWriting
+                        ? 0
+                        : (shell.isSidebarCollapsed ? 64 : 240),
                     child: const ZenSidebar(),
                   ),
                   if (!shell.isWriting)
-                    const VerticalDivider(width: 1, thickness: 1, color: AppColors.divider),
-                  Expanded(
-                    child: child,
-                  ),
+                    const VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: AppColors.divider,
+                    ),
+                  Expanded(child: child),
                 ],
               ),
             ),
@@ -61,10 +67,7 @@ class ResponsiveShell extends StatelessWidget {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffold,
-      body: child,
-    );
+    return Scaffold(backgroundColor: AppColors.scaffold, body: child);
   }
 
   void _showGlobalOmnibox(BuildContext context) {
@@ -97,7 +100,10 @@ class _DesktopOmniboxDialog extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF2C2C2E).withOpacity(0.85),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.08), width: 0.5),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.08),
+                width: 0.5,
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

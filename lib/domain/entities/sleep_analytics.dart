@@ -19,9 +19,7 @@ class SleepAnalytics {
   // ─── Helpers privados ───
 
   List<SleepLogEntity> _logsInLastDays(int days) {
-    final cutoff = normalizeDate(
-      DateTime.now().subtract(Duration(days: days)),
-    );
+    final cutoff = normalizeDate(DateTime.now().subtract(Duration(days: days)));
     return logs
         .where((l) => !normalizeDate(l.endTime).isBefore(cutoff))
         .toList();
@@ -39,9 +37,9 @@ class SleepAnalytics {
 
   /// Media de calidad (1-5) en los últimos [days] días.
   double averageQuality({int days = 30}) {
-    final recent = _logsInLastDays(days)
-        .where((l) => l.qualityRating != null)
-        .toList();
+    final recent = _logsInLastDays(
+      days,
+    ).where((l) => l.qualityRating != null).toList();
     if (recent.isEmpty) return 0;
     return recent
             .map((l) => l.qualityRating!.toDouble())
@@ -94,7 +92,7 @@ class SleepAnalytics {
       result[key] = weekLogs.isEmpty
           ? 0.0
           : weekLogs.map((l) => l.totalHours).reduce((a, b) => a + b) /
-              weekLogs.length;
+                weekLogs.length;
     }
     return result;
   }
@@ -146,8 +144,11 @@ class SleepAnalytics {
   // ─── Helpers de semana ISO ───
 
   static DateTime _mondayOf(DateTime d) {
-    return DateTime(d.year, d.month, d.day)
-        .subtract(Duration(days: d.weekday - 1));
+    return DateTime(
+      d.year,
+      d.month,
+      d.day,
+    ).subtract(Duration(days: d.weekday - 1));
   }
 
   static int _isoWeekNumber(DateTime d) {

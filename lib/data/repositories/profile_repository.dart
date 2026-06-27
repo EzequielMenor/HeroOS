@@ -34,10 +34,7 @@ class ProfileRepository {
   }
 
   Future<void> updateAvatarUrl(String userId, String url) async {
-    await _client
-        .from('profiles')
-        .update({'avatar_url': url})
-        .eq('id', userId);
+    await _client.from('profiles').update({'avatar_url': url}).eq('id', userId);
   }
 
   ProfileEntity _modelToEntity(ProfileModel m) => ProfileEntity(

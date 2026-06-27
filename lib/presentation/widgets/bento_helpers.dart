@@ -18,14 +18,14 @@ class BentoKicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.5,
-        ),
-      );
+    text,
+    style: const TextStyle(
+      color: AppColors.textSecondary,
+      fontSize: 10,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 1.5,
+    ),
+  );
 }
 
 /// Serif big-number metric (e.g. "66%", "358,60 €").
@@ -37,15 +37,15 @@ class BentoMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: size,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'serif',
-          letterSpacing: -0.5,
-        ),
-      );
+    text,
+    style: TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: size,
+      fontWeight: FontWeight.w600,
+      fontFamily: 'serif',
+      letterSpacing: -0.5,
+    ),
+  );
 }
 
 /// Muted body subtitle inside a Bento card.
@@ -55,13 +55,13 @@ class BentoMuted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 12,
-          letterSpacing: 0.15,
-        ),
-      );
+    text,
+    style: const TextStyle(
+      color: AppColors.textSecondary,
+      fontSize: 12,
+      letterSpacing: 0.15,
+    ),
+  );
 }
 
 /// Non-interactive chip for stat callouts inside a Bento card.

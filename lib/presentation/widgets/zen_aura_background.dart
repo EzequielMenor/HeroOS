@@ -28,10 +28,10 @@ class ZenAuraBackground extends StatelessWidget {
               gradient: RadialGradient(
                 center: Alignment(-0.4, -0.8),
                 colors: [
-                  Color(0x12D4AF37), // AppColors.gold at 7% opacity
+                  Color(0x20D4AF37), // AppColors.gold at ~12.5% opacity
                   Colors.transparent,
                 ],
-                stops: [0.0, 0.5],
+                stops: [0.0, 0.7],
               ),
             ),
           ),

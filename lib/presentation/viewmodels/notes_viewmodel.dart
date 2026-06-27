@@ -22,17 +22,25 @@ class NotesViewModel extends ChangeNotifier {
   Timer? _debounceTimer;
   bool _isSaving = false;
   NoteEntity? _pendingNoteState;
-  NoteEntity? _lastCreatedNote; // Track created notes to avoid duplicate creates
+  NoteEntity?
+  _lastCreatedNote; // Track created notes to avoid duplicate creates
   Future<void>? _activeSaveFuture;
 
-  NotesViewModel({dynamic repository}) : _repo = repository ?? (AuthRepository.devQuickAccess ? DevRepository() : NoteRepository());
+  NotesViewModel({dynamic repository})
+    : _repo =
+          repository ??
+          (AuthRepository.devQuickAccess ? DevRepository() : NoteRepository());
 
   List<NoteEntity> get notes {
     var result = _notes;
     if (_searchQuery.isNotEmpty) {
-      result = result.where((n) =>
-          n.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          n.content.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+      result = result
+          .where(
+            (n) =>
+                n.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                n.content.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
     }
     if (_selectedTag != null) {
       result = result.where((n) => n.tags.contains(_selectedTag)).toList();
@@ -100,7 +108,9 @@ class NotesViewModel extends ChangeNotifier {
     required String content,
     List<String> tags = const [],
   }) async {
-    final userId = AuthRepository.devQuickAccess ? 'dev-user' : Supabase.instance.client.auth.currentUser?.id;
+    final userId = AuthRepository.devQuickAccess
+        ? 'dev-user'
+        : Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
 
     final note = NoteEntity(
@@ -156,6 +166,38 @@ class NotesViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Returns all notes that link TO the given note (backlinks).
+  List<NoteEntity> getBacklinksFor(NoteEntity targetNote) {
+    final targetId = targetNote.id.toLowerCase();
+    final targetTitle = targetNote.title.toLowerCase();
+    return _notes.where((n) {
+      if (n.id == targetNote.id) return false;
+      return n.getLinkedTargets().any((link) {
+        final clean = link.toLowerCase();
+        return clean == targetId || clean == targetTitle;
+      });
+    }).toList();
+  }
+
+  /// Returns notes matching the query for autocomplete.
+  /// If currentNoteId is provided, excludes that note from suggestions.
+  List<NoteEntity> getAutocompleteSuggestions(
+    String query, {
+    String? currentNoteId,
+  }) {
+    var results = _notes;
+    if (query.isNotEmpty) {
+      final lowerQuery = query.toLowerCase();
+      results = results
+          .where((n) => n.title.toLowerCase().contains(lowerQuery))
+          .toList();
+    }
+    if (currentNoteId != null && currentNoteId.isNotEmpty) {
+      results = results.where((n) => n.id != currentNoteId).toList();
+    }
+    return results;
+  }
+
   /// Queues an autosave with 1.5s debounce.
   /// Handles create (id empty) vs update (id present) automatically.
   void queueAutosave(NoteEntity updatedNote) {
@@ -169,7 +211,7 @@ class NotesViewModel extends ChangeNotifier {
   Future<void> _executeSave() async {
     if (_isSaving) return;
     _isSaving = true;
-    
+
     final completer = Completer<void>();
     _activeSaveFuture = completer.future;
 
@@ -178,20 +220,26 @@ class NotesViewModel extends ChangeNotifier {
       if (noteToSave != null) {
         _error = null;
         if (noteToSave.userId == 'dev-user' && !AuthRepository.devQuickAccess) {
-          _error = 'userId inválido: dev-user (necesitas login o devQuickAccess)';
+          _error =
+              'userId inválido: dev-user (necesitas login o devQuickAccess)';
           notifyListeners();
           return;
         }
 
         if (noteToSave.id.isEmpty) {
           // Nueva nota: crear solo si es contenido nuevo (no duplicar)
-          final isDuplicate = _lastCreatedNote != null &&
+          final isDuplicate =
+              _lastCreatedNote != null &&
               _lastCreatedNote!.content == noteToSave.content;
           if (!isDuplicate) {
             await _repo.createNote(noteToSave);
             await loadNotes();
             final created = _notes
-                .where((n) => n.content == noteToSave.content && n.title == noteToSave.title)
+                .where(
+                  (n) =>
+                      n.content == noteToSave.content &&
+                      n.title == noteToSave.title,
+                )
                 .firstOrNull;
             if (created != null) {
               _lastCreatedNote = created;
@@ -219,7 +267,8 @@ class NotesViewModel extends ChangeNotifier {
           }
         }
 
-        if (_pendingNoteState?.content == noteToSave.content && _pendingNoteState?.title == noteToSave.title) {
+        if (_pendingNoteState?.content == noteToSave.content &&
+            _pendingNoteState?.title == noteToSave.title) {
           _pendingNoteState = null;
         }
       }

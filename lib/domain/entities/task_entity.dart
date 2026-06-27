@@ -5,6 +5,9 @@ import 'sync_status.dart';
 /// XP mechanics removed.
 enum Energy { low, medium, high }
 
+/// Duration for task focus/block time.
+enum FocusDuration { micro, short, deep }
+
 /// Domain entity for tasks (missions).
 class TaskEntity {
   final String id;
@@ -14,6 +17,9 @@ class TaskEntity {
   final DateTime? dueDate;
   final Energy? energy;
   final SyncStatus? syncStatus;
+  final String? noteId;
+  final bool isHighlight;
+  final FocusDuration? duration;
 
   TaskEntity({
     required this.id,
@@ -23,6 +29,9 @@ class TaskEntity {
     this.dueDate,
     this.energy,
     this.syncStatus,
+    this.noteId,
+    this.isHighlight = false,
+    this.duration,
   });
 
   /// Is this task overdue?
@@ -35,6 +44,9 @@ class TaskEntity {
     DateTime? dueDate,
     Energy? energy,
     SyncStatus? syncStatus,
+    String? noteId,
+    bool? isHighlight,
+    FocusDuration? duration,
   }) {
     return TaskEntity(
       id: id,
@@ -44,6 +56,9 @@ class TaskEntity {
       dueDate: dueDate ?? this.dueDate,
       energy: energy ?? this.energy,
       syncStatus: syncStatus ?? this.syncStatus,
+      noteId: noteId ?? this.noteId,
+      isHighlight: isHighlight ?? this.isHighlight,
+      duration: duration ?? this.duration,
     );
   }
 }

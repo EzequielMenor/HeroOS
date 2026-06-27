@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -17,13 +20,10 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Logo placeholder (se sustituirá por asset real)
-            Container(
+            ZenGlass(
               width: 80,
               height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.habits, width: 2),
-              ),
+
               child: Icon(
                 Icons.shield_outlined,
                 size: 40,

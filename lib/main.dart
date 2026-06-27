@@ -25,25 +25,21 @@ import 'presentation/viewmodels/notes_viewmodel.dart';
 import 'presentation/viewmodels/quick_capture_viewmodel.dart';
 import 'presentation/viewmodels/shell_controller.dart';
 
-
-/// — Configuración del router —
-/// redirect: redirige a /login si no hay sesión, a /dashboard si la hay.
+/// — Router configuration —
+/// redirect: redirects to /login if no session, to /dashboard if authenticated.
 GoRouter _buildRouter(AuthViewModel authVm) => GoRouter(
   initialLocation: AppStrings.routeSplash,
-  // Se re-evalúa cada vez que authVm notifica cambios
   refreshListenable: authVm,
   redirect: (context, state) {
     final isLoggedIn = authVm.isAuthenticated;
     final isOnLogin = state.matchedLocation == AppStrings.routeLogin;
     final isOnSplash = state.matchedLocation == AppStrings.routeSplash;
 
-    // Si no está logueado y no está en login → mandar a login
     if (!isLoggedIn && !isOnLogin) return AppStrings.routeLogin;
-    // Si está logueado y sigue en login o splash → mandar a dashboard
     if (isLoggedIn && (isOnLogin || isOnSplash)) {
       return AppStrings.routeDashboard;
     }
-    return null; // no redirect
+    return null;
   },
   routes: [
     GoRoute(
@@ -164,8 +160,8 @@ class _HeroOSAppState extends State<HeroOSApp> {
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
 }

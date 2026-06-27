@@ -1,8 +1,10 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../widgets/zen_glass.dart';
+import '../widgets/zen_solid_card.dart';
+import '../widgets/glass_input.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -11,6 +13,7 @@ import '../../core/utils/responsive.dart';
 import '../../domain/entities/note_entity.dart';
 import '../viewmodels/notes_viewmodel.dart';
 import '../viewmodels/shell_controller.dart';
+import '../widgets/glass_input.dart';
 import 'zen_canvas_screen.dart';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -52,8 +55,9 @@ class _NotesScreenState extends State<NotesScreen> {
 
     if (vm.isLoading) {
       return Scaffold(
-        backgroundColor: _kBg,
-        body: Center(child: CircularProgressIndicator(color: _kAccent, strokeWidth: 1.5)),
+        body: Center(
+          child: CircularProgressIndicator(color: _kAccent, strokeWidth: 1.5),
+        ),
       );
     }
 
@@ -67,7 +71,6 @@ class _NotesScreenState extends State<NotesScreen> {
 
   Widget _buildWebLayout(NotesViewModel vm) {
     return Scaffold(
-      backgroundColor: _kBg,
       body: SafeArea(
         child: Row(
           children: [
@@ -84,7 +87,6 @@ class _NotesScreenState extends State<NotesScreen> {
 
   Widget _buildMobileLayout(NotesViewModel vm) {
     return Scaffold(
-      backgroundColor: _kBg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +127,11 @@ class _NotesScreenState extends State<NotesScreen> {
                             builder: (context) => const ZenCanvasScreen(),
                           ),
                         ),
-                        child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                        child: Icon(
+                          Icons.add,
+                          size: 18,
+                          color: _kTextSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -185,14 +191,14 @@ class _NotesScreenState extends State<NotesScreen> {
                     ),
                     Spacer(),
                     GestureDetector(
-                        onTap: () => Navigator.push<void>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ZenCanvasScreen(),
-                          ),
+                      onTap: () => Navigator.push<void>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ZenCanvasScreen(),
                         ),
-                        child: Icon(Icons.add, size: 18, color: _kTextSecondary),
                       ),
+                      child: Icon(Icons.add, size: 18, color: _kTextSecondary),
+                    ),
                   ],
                 ),
               ],
@@ -221,24 +227,11 @@ class _NotesScreenState extends State<NotesScreen> {
   Widget _buildSearchBar(NotesViewModel vm) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: TextField(
+      child: GlassInput(
         controller: _searchCtrl,
-        style: TextStyle(color: _kTextPrimary, fontSize: 14),
-        cursorColor: _kAccent,
-        decoration: InputDecoration(
-          hintText: 'Buscar notas…',
-          hintStyle: TextStyle(color: _kTextSecondary, fontSize: 14),
-          prefixIcon: Icon(Icons.search, color: _kTextSecondary, size: 18),
-          prefixIconConstraints: BoxConstraints(minWidth: 36, minHeight: 36),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: _kDivider),
-          ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: _kAccent),
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 8),
-        ),
+        hint: 'Buscar notas…',
         onChanged: vm.search,
+        prefixIcon: Icon(Icons.search, color: _kTextSecondary, size: 18),
       ),
     );
   }
@@ -257,11 +250,13 @@ class _NotesScreenState extends State<NotesScreen> {
             isActive: vm.selectedTag == null,
             onTap: () => vm.filterByTag(null),
           ),
-          ...vm.allTags.map((tag) => _ZenTagChip(
-                label: tag,
-                isActive: vm.selectedTag == tag,
-                onTap: () => vm.filterByTag(tag),
-              )),
+          ...vm.allTags.map(
+            (tag) => _ZenTagChip(
+              label: tag,
+              isActive: vm.selectedTag == tag,
+              onTap: () => vm.filterByTag(tag),
+            ),
+          ),
         ],
       ),
     );
@@ -385,7 +380,12 @@ class _NotesScreenState extends State<NotesScreen> {
     );
   }
 
-  Widget _buildNoteTileElement(NoteEntity note, NotesViewModel vm, bool isFirst, bool isLast) {
+  Widget _buildNoteTileElement(
+    NoteEntity note,
+    NotesViewModel vm,
+    bool isFirst,
+    bool isLast,
+  ) {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -421,7 +421,6 @@ class _NotesScreenState extends State<NotesScreen> {
       ),
     );
   }
-
 }
 
 // ─── Timeline elements helper model ──────────────────────────────────────────
@@ -458,16 +457,10 @@ class _TimelineLine extends StatelessWidget {
           Positioned(
             top: isFirst ? indicatorTop : 0,
             bottom: isLast ? indicatorTop : 0,
-            child: Container(
-              width: 1,
-              color: _kDivider,
-            ),
+            child: Container(width: 1, color: _kDivider),
           ),
           if (indicator != null)
-            Positioned(
-              top: indicatorTop,
-              child: indicator!,
-            ),
+            Positioned(top: indicatorTop, child: indicator!),
         ],
       ),
     );
@@ -541,27 +534,14 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
   List<String> _extractTags(String text) {
     final tagRegex = RegExp(r'#([a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ]+)');
     final matches = tagRegex.allMatches(text);
-    return matches
-        .map((m) => m.group(1)!.toLowerCase())
-        .toSet()
-        .toList();
+    return matches.map((m) => m.group(1)!.toLowerCase()).toSet().toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final isNew = widget.note == null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: _kSurface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        border: const Border(
-          top: BorderSide(color: Color(0x14FFFFFF), width: 1),
-        ),
-      ),
+    return ZenGlass(
       padding: EdgeInsets.fromLTRB(
         22,
         20,
@@ -601,7 +581,11 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
               const Spacer(),
               if (!_isEditing && widget.onDelete != null)
                 IconButton(
-                  icon: Icon(Icons.delete_outline, color: AppColors.danger, size: 20),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: AppColors.danger,
+                    size: 20,
+                  ),
                   tooltip: 'Eliminar nota',
                   onPressed: () {
                     widget.onDelete!();
@@ -635,12 +619,20 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                       maxLines: null,
                       minLines: 5,
                       keyboardType: TextInputType.multiline,
-                      style: TextStyle(color: _kTextPrimary, fontSize: 14, height: 1.5),
+                      style: TextStyle(
+                        color: _kTextPrimary,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                       cursorColor: _kAccent,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Escribe tu nota aquí...\nUsa #etiquetas inline para categorizar.',
-                        hintStyle: TextStyle(color: _kTextSecondary, fontSize: 14),
+                        hintText:
+                            'Escribe tu nota aquí...\nUsa #etiquetas inline para categorizar.',
+                        hintStyle: TextStyle(
+                          color: _kTextSecondary,
+                          fontSize: 14,
+                        ),
                         border: InputBorder.none,
                       ),
                     )
@@ -648,23 +640,48 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: MarkdownBody(
                         data: _contentCtrl.text,
-                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                          p: TextStyle(color: _kTextPrimary, fontSize: 14, height: 1.5),
-                          h1: TextStyle(color: _kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold, height: 1.5),
-                          h2: TextStyle(color: _kTextPrimary, fontSize: 18, fontWeight: FontWeight.bold, height: 1.5),
-                          h3: TextStyle(color: _kTextPrimary, fontSize: 16, fontWeight: FontWeight.bold, height: 1.5),
-                          code: TextStyle(
-                            color: _kAccent,
-                            backgroundColor: Colors.white.withOpacity(0.05),
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                          ),
-                          codeblockDecoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
-                          ),
-                        ),
+                        styleSheet:
+                            MarkdownStyleSheet.fromTheme(
+                              Theme.of(context),
+                            ).copyWith(
+                              p: TextStyle(
+                                color: _kTextPrimary,
+                                fontSize: 14,
+                                height: 1.5,
+                              ),
+                              h1: TextStyle(
+                                color: _kTextPrimary,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                height: 1.5,
+                              ),
+                              h2: TextStyle(
+                                color: _kTextPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                height: 1.5,
+                              ),
+                              h3: TextStyle(
+                                color: _kTextPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                height: 1.5,
+                              ),
+                              code: TextStyle(
+                                color: _kAccent,
+                                backgroundColor: Colors.white.withOpacity(0.05),
+                                fontFamily: 'monospace',
+                                fontSize: 12,
+                              ),
+                              codeblockDecoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.03),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.05),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
                       ),
                     ),
             ),
@@ -679,7 +696,9 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                     style: TextButton.styleFrom(
                       foregroundColor: _kTextSecondary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
                     ),
                     onPressed: () {
                       if (isNew) {
@@ -693,7 +712,11 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                     },
                     child: Text(
                       'CANCELAR',
-                      style: const TextStyle(fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 2.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -705,7 +728,9 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                       backgroundColor: AppColors.textPrimary,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
                     ),
                     onPressed: () {
                       final fullText = _contentCtrl.text.trim();
@@ -728,7 +753,10 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                     child: Text(
                       isNew ? 'CREAR' : 'GUARDAR',
                       style: const TextStyle(
-                          fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+                        fontSize: 10,
+                        letterSpacing: 2.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -750,7 +778,11 @@ class _NoteEditorSheetState extends State<NoteEditorSheet> {
                 onPressed: () => Navigator.pop(context),
                 child: const Text(
                   'CERRAR',
-                  style: TextStyle(fontSize: 10, letterSpacing: 2.0, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -816,8 +848,29 @@ class _ZenNoteTile extends StatelessWidget {
   void _showEditSheet(BuildContext context) {
     Navigator.push<void>(
       context,
-      MaterialPageRoute(
-        builder: (context) => ZenCanvasScreen(note: note),
+      MaterialPageRoute(builder: (context) => ZenCanvasScreen(note: note)),
+    );
+  }
+
+  void _showBacklinksSheet(BuildContext context) {
+    final backlinks = vm.getBacklinksFor(note);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => _BacklinksSheet(
+        targetNote: note,
+        backlinks: backlinks,
+        onTapBacklink: (backlink) {
+          Navigator.pop(ctx);
+          Navigator.push<void>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ZenCanvasScreen(note: backlink),
+            ),
+          );
+        },
       ),
     );
   }
@@ -843,94 +896,80 @@ class _ZenNoteTile extends StatelessWidget {
       onDismissed: (_) => vm.deleteNote(note.id),
       child: GestureDetector(
         onTap: () => _showEditSheet(context),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.65, 1.0],
-                colors: [Colors.white, Colors.transparent],
-              ).createShader(bounds),
-              blendMode: BlendMode.dstIn,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 110),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface.withOpacity(0.4),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.05),
-                      width: 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              titleText,
-                              style: TextStyle(
-                                color: _kTextPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            DateFormat('h:mm a', 'es').format(note.date).toLowerCase(),
-                            style: TextStyle(color: _kTextSecondary, fontSize: 10),
-                          ),
-                        ],
+        onLongPress: () => _showBacklinksSheet(context),
+        child: ZenSolidCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      titleText,
+                      style: TextStyle(
+                        color: _kTextPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                      if (bodyText.trim().isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          bodyText.trim(),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _kTextSecondary,
-                            fontSize: 12,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                      if (note.tags.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: note.tags.map((tag) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: _kAccent.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '#$tag',
-                              style: TextStyle(
-                                color: _kAccent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          )).toList(),
-                        ),
-                      ],
-                    ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    DateFormat('HH:mm', 'es').format(note.date),
+                    style: TextStyle(
+                      color: _kTextSecondary,
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+              if (bodyText.trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  bodyText.trim(),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _kTextSecondary,
+                    fontSize: 12,
+                    height: 1.4,
                   ),
                 ),
-              ),
-            ),
+              ],
+              if (note.tags.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: note.tags
+                      .map(
+                        (tag) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _kAccent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '#$tag',
+                            style: TextStyle(
+                              color: _kAccent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -940,7 +979,11 @@ class _ZenNoteTile extends StatelessWidget {
 
 // ─── Modal launcher ──────────────────────────────────────────────────────────
 
-void showNoteEditSheet(BuildContext context, NotesViewModel vm, NoteEntity? note) {
+void showNoteEditSheet(
+  BuildContext context,
+  NotesViewModel vm,
+  NoteEntity? note,
+) {
   showAdaptiveModal<void>(
     context,
     NoteEditorSheet(
@@ -950,10 +993,169 @@ void showNoteEditSheet(BuildContext context, NotesViewModel vm, NoteEntity? note
           vm.createNote(title: title, content: content, tags: tags);
         } else {
           vm.updateNote(
-              note.copyWith(title: title, content: content, date: note.date, tags: tags));
+            note.copyWith(
+              title: title,
+              content: content,
+              date: note.date,
+              tags: tags,
+            ),
+          );
         }
       },
       onDelete: note == null ? null : () => vm.deleteNote(note.id),
     ),
   );
+}
+
+// ─── Backlinks bottom sheet ─────────────────────────────────────────────────
+
+class _BacklinksSheet extends StatelessWidget {
+  final NoteEntity targetNote;
+  final List<NoteEntity> backlinks;
+  final void Function(NoteEntity) onTapBacklink;
+
+  const _BacklinksSheet({
+    required this.targetNote,
+    required this.backlinks,
+    required this.onTapBacklink,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        22,
+        20,
+        22,
+        MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 32,
+              height: 3,
+              decoration: BoxDecoration(
+                color: const Color(0x28FFFFFF),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                'VINCULOS A',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
+                  color: _kTextSecondary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  targetNote.title.isNotEmpty
+                      ? targetNote.title
+                      : '(sin título)',
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: _kAccent,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (backlinks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  'Sin vínculos entrantes',
+                  style: TextStyle(color: _kTextSecondary, fontSize: 13),
+                ),
+              ),
+            )
+          else
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: backlinks.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (ctx, i) {
+                  final note = backlinks[i];
+                  final preview = note.content
+                      .split('\n')
+                      .skip(1)
+                      .take(2)
+                      .join(' ')
+                      .trim();
+                  return InkWell(
+                    onTap: () => onTapBacklink(note),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.06),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            note.title.isNotEmpty ? note.title : '(sin título)',
+                            style: TextStyle(
+                              color: _kTextPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (preview.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              preview,
+                              style: TextStyle(
+                                color: _kTextSecondary,
+                                fontSize: 11,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

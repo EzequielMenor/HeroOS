@@ -4,18 +4,13 @@ import 'responsive.dart';
 
 /// Muestra un Dialog en web y un ModalBottomSheet en móvil.
 /// El [child] debe gestionar su propio scroll si el contenido es largo.
-Future<T?> showAdaptiveModal<T>(
-  BuildContext context,
-  Widget child,
-) {
+Future<T?> showAdaptiveModal<T>(BuildContext context, Widget child) {
   if (context.isWeb) {
     return showDialog<T>(
       context: context,
       builder: (_) => Dialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 520),
           child: child,

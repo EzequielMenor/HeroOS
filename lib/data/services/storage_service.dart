@@ -11,11 +11,11 @@ class StorageService {
   /// Abre la galería y devuelve el archivo seleccionado.
   /// Devuelve null si el usuario cancela.
   Future<XFile?> pickImage() => _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 512,
-        maxHeight: 512,
-      );
+    source: ImageSource.gallery,
+    imageQuality: 80,
+    maxWidth: 512,
+    maxHeight: 512,
+  );
 
   /// Sube [file] al bucket `avatars` bajo la subcarpeta del usuario autenticado.
   /// Devuelve la URL pública del archivo subido.

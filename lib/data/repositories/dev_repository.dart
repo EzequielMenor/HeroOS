@@ -40,14 +40,16 @@ class DevRepository {
   List<HabitEntity> getHabits() => List.from(_habits);
 
   Future<void> createHabit(HabitEntity h) async {
-    _habits.add(HabitEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      title: h.title,
-      frequencyMask: h.frequencyMask,
-      currentStreak: 0,
-      isArchived: false,
-    ));
+    _habits.add(
+      HabitEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        title: h.title,
+        frequencyMask: h.frequencyMask,
+        currentStreak: 0,
+        isArchived: false,
+      ),
+    );
   }
 
   Future<void> updateHabit(HabitEntity h) async {
@@ -66,21 +68,25 @@ class DevRepository {
   // ── Habit Logs ──
   List<String> getCompletedHabitIds(DateTime date) {
     return _habitLogs
-        .where((l) =>
-            l.date.year == date.year &&
-            l.date.month == date.month &&
-            l.date.day == date.day)
+        .where(
+          (l) =>
+              l.date.year == date.year &&
+              l.date.month == date.month &&
+              l.date.day == date.day,
+        )
         .map((l) => l.habitId)
         .toList();
   }
 
   Future<void> logHabitCompletion(String habitId, DateTime date) async {
-    _habitLogs.add(HabitLogEntity(
-      id: _genId(),
-      habitId: habitId,
-      date: date,
-      status: 'completed',
-    ));
+    _habitLogs.add(
+      HabitLogEntity(
+        id: _genId(),
+        habitId: habitId,
+        date: date,
+        status: 'completed',
+      ),
+    );
     final idx = _habits.indexWhere((h) => h.id == habitId);
     if (idx != -1) {
       final h = _habits[idx];
@@ -89,18 +95,22 @@ class DevRepository {
   }
 
   Future<void> uncompleteHabitLog(String habitId, DateTime date) async {
-    _habitLogs.removeWhere((l) =>
-        l.habitId == habitId &&
-        l.date.year == date.year &&
-        l.date.month == date.month &&
-        l.date.day == date.day);
+    _habitLogs.removeWhere(
+      (l) =>
+          l.habitId == habitId &&
+          l.date.year == date.year &&
+          l.date.month == date.month &&
+          l.date.day == date.day,
+    );
   }
 
   List<HabitLogEntity> getHabitLogsInRange(DateTime from, DateTime to) {
     return _habitLogs
-        .where((l) =>
-            l.date.isAfter(from.subtract(Duration(days: 1))) &&
-            l.date.isBefore(to.add(Duration(days: 1))))
+        .where(
+          (l) =>
+              l.date.isAfter(from.subtract(Duration(days: 1))) &&
+              l.date.isBefore(to.add(Duration(days: 1))),
+        )
         .toList();
   }
 
@@ -108,14 +118,19 @@ class DevRepository {
   List<TaskEntity> getTasks() => List.from(_tasks);
 
   Future<void> createTask(TaskEntity t) async {
-    _tasks.add(TaskEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      title: t.title,
-      isDone: false,
-      dueDate: t.dueDate,
-      energy: t.energy,
-    ));
+    _tasks.add(
+      TaskEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        title: t.title,
+        isDone: false,
+        dueDate: t.dueDate,
+        energy: t.energy,
+        noteId: t.noteId,
+        isHighlight: t.isHighlight,
+        duration: t.duration,
+      ),
+    );
   }
 
   Future<void> updateTask(TaskEntity t) async {
@@ -145,14 +160,16 @@ class DevRepository {
   List<AccountEntity> getAccounts() => List.from(_accounts);
 
   Future<void> createAccount(AccountEntity a) async {
-    _accounts.add(AccountEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      name: a.name,
-      type: a.type,
-      currency: a.currency,
-      balance: a.balance,
-    ));
+    _accounts.add(
+      AccountEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        name: a.name,
+        type: a.type,
+        currency: a.currency,
+        balance: a.balance,
+      ),
+    );
   }
 
   Future<void> updateAccount(AccountEntity a) async {
@@ -173,15 +190,17 @@ class DevRepository {
   }
 
   Future<void> createTransaction(TransactionEntity t) async {
-    _transactions.add(TransactionEntity(
-      id: _genId(),
-      accountId: t.accountId,
-      amount: t.amount,
-      category: t.category,
-      note: t.note,
-      date: t.date,
-      userId: 'dev-user',
-    ));
+    _transactions.add(
+      TransactionEntity(
+        id: _genId(),
+        accountId: t.accountId,
+        amount: t.amount,
+        category: t.category,
+        note: t.note,
+        date: t.date,
+        userId: 'dev-user',
+      ),
+    );
     // Update account balance
     final accIdx = _accounts.indexWhere((a) => a.id == t.accountId);
     if (accIdx != -1) {
@@ -227,8 +246,11 @@ class DevRepository {
     if (fromIdx != -1) {
       final acc = _accounts[fromIdx];
       _accounts[fromIdx] = AccountEntity(
-        id: acc.id, userId: acc.userId, name: acc.name,
-        type: acc.type, currency: acc.currency,
+        id: acc.id,
+        userId: acc.userId,
+        name: acc.name,
+        type: acc.type,
+        currency: acc.currency,
         balance: acc.balance - amount,
       );
     }
@@ -237,36 +259,53 @@ class DevRepository {
     if (toIdx != -1) {
       final acc = _accounts[toIdx];
       _accounts[toIdx] = AccountEntity(
-        id: acc.id, userId: acc.userId, name: acc.name,
-        type: acc.type, currency: acc.currency,
+        id: acc.id,
+        userId: acc.userId,
+        name: acc.name,
+        type: acc.type,
+        currency: acc.currency,
         balance: acc.balance + amount,
       );
     }
-    _transactions.add(TransactionEntity(
-      id: _genId(), accountId: fromAccountId, amount: -amount,
-      category: 'Transferencia', note: note ?? 'Transferencia',
-      date: DateTime.now(), userId: 'dev-user',
-    ));
-    _transactions.add(TransactionEntity(
-      id: _genId(), accountId: toAccountId, amount: amount,
-      category: 'Transferencia', note: note ?? 'Transferencia',
-      date: DateTime.now(), userId: 'dev-user',
-    ));
+    _transactions.add(
+      TransactionEntity(
+        id: _genId(),
+        accountId: fromAccountId,
+        amount: -amount,
+        category: 'Transferencia',
+        note: note ?? 'Transferencia',
+        date: DateTime.now(),
+        userId: 'dev-user',
+      ),
+    );
+    _transactions.add(
+      TransactionEntity(
+        id: _genId(),
+        accountId: toAccountId,
+        amount: amount,
+        category: 'Transferencia',
+        note: note ?? 'Transferencia',
+        date: DateTime.now(),
+        userId: 'dev-user',
+      ),
+    );
   }
 
   // ── Finance: Categories ──
   List<CategoryEntity> getCategories() => List.from(_categories);
 
   Future<void> createCategory(CategoryEntity c) async {
-    _categories.add(CategoryEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      name: c.name,
-      icon: c.icon,
-      isExpense: c.isExpense,
-      accountType: c.accountType,
-      isDefault: c.isDefault,
-    ));
+    _categories.add(
+      CategoryEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        name: c.name,
+        icon: c.icon,
+        isExpense: c.isExpense,
+        accountType: c.accountType,
+        isDefault: c.isDefault,
+      ),
+    );
   }
 
   Future<void> updateCategory(CategoryEntity c) async {
@@ -284,29 +323,33 @@ class DevRepository {
   SleepLogEntity? getTodayLog() {
     final today = DateTime.now();
     try {
-      return _sleepLogs.firstWhere((s) =>
-          s.startTime.year == today.year &&
-          s.startTime.month == today.month &&
-          s.startTime.day == today.day);
+      return _sleepLogs.firstWhere(
+        (s) =>
+            s.startTime.year == today.year &&
+            s.startTime.month == today.month &&
+            s.startTime.day == today.day,
+      );
     } catch (_) {
       return null;
     }
   }
 
   Future<void> createSleepLog(SleepLogEntity log) async {
-    _sleepLogs.add(SleepLogEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      startTime: log.startTime,
-      endTime: log.endTime,
-      totalHours: log.totalHours,
-      deepSleepPct: log.deepSleepPct,
-      lightSleepPct: log.lightSleepPct,
-      remSleepPct: log.remSleepPct,
-      qualityRating: log.qualityRating,
-      notes: log.notes,
-      avgHeartRate: log.avgHeartRate,
-    ));
+    _sleepLogs.add(
+      SleepLogEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        startTime: log.startTime,
+        endTime: log.endTime,
+        totalHours: log.totalHours,
+        deepSleepPct: log.deepSleepPct,
+        lightSleepPct: log.lightSleepPct,
+        remSleepPct: log.remSleepPct,
+        qualityRating: log.qualityRating,
+        notes: log.notes,
+        avgHeartRate: log.avgHeartRate,
+      ),
+    );
   }
 
   Future<void> updateSleepLog(SleepLogEntity log) async {
@@ -327,10 +370,7 @@ class DevRepository {
 
   // ── Profile ──
   ProfileEntity getProfile() {
-    _profile ??= ProfileEntity(
-      id: 'dev-user',
-      username: 'Dev User',
-    );
+    _profile ??= ProfileEntity(id: 'dev-user', username: 'Dev User');
     return _profile!;
   }
 
@@ -348,14 +388,16 @@ class DevRepository {
   List<NoteEntity> getNotes() => List.from(_notes);
 
   Future<void> createNote(NoteEntity n) async {
-    _notes.add(NoteEntity(
-      id: _genId(),
-      userId: 'dev-user',
-      title: n.title,
-      content: n.content,
-      date: n.date,
-      tags: n.tags,
-    ));
+    _notes.add(
+      NoteEntity(
+        id: _genId(),
+        userId: 'dev-user',
+        title: n.title,
+        content: n.content,
+        date: n.date,
+        tags: n.tags,
+      ),
+    );
   }
 
   Future<void> updateNote(NoteEntity n) async {

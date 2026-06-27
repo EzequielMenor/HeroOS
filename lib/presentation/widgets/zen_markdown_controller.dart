@@ -1,5 +1,23 @@
 import 'package:flutter/material.dart';
 
+/// Regex for WikiLinks: [[Target]] or [[Target|Label]]
+final wikiLinkRegex = RegExp(r'\[\[([^\]|]+)(?:\|([^\]]+))?\]\]');
+
+/// Represents an inline match (bold, wiki link) within a line.
+class _InlineMatch {
+  final int start;
+  final int end;
+  final String displayText;
+  final String? extra; // For WikiLinks: target vs label
+
+  const _InlineMatch({
+    required this.start,
+    required this.end,
+    required this.displayText,
+    this.extra,
+  });
+}
+
 class LineCache {
   final String text;
   final TextSpan span;
@@ -40,11 +58,13 @@ class ZenMarkdownController extends TextEditingController {
   }
 
   TextSpan _parseLineMarkdown(String line, TextStyle? defaultStyle) {
-    // Basic Markdown matching for headers, bold, list markers, and code
-    final normalStyle = defaultStyle ?? const TextStyle(color: Colors.white, fontSize: 14);
-    
+    final normalStyle =
+        defaultStyle ?? const TextStyle(color: Colors.white, fontSize: 14);
+
+    // Full-line patterns: headers, list markers
     if (line.startsWith('#')) {
-      final headerLevel = RegExp(r'^#+').firstMatch(line)?.group(0)?.length ?? 1;
+      final headerLevel =
+          RegExp(r'^#+').firstMatch(line)?.group(0)?.length ?? 1;
       final size = headerLevel == 1 ? 20.0 : (headerLevel == 2 ? 18.0 : 16.0);
       return TextSpan(
         text: line,
@@ -63,25 +83,104 @@ class ZenMarkdownController extends TextEditingController {
       );
     }
 
+    // Inline pattern matching: bold + WikiLinks
+    final boldPattern = RegExp(r'\*\*(.*?)\*\*');
+    final wikiPattern = wikiLinkRegex;
+
+    // Collect all inline matches and sort by position
+    final allMatches = <_InlineMatch>[];
+
+    for (final match in boldPattern.allMatches(line)) {
+      allMatches.add(
+        _InlineMatch(
+          start: match.start,
+          end: match.end,
+          displayText: match.group(0)!,
+        ),
+      );
+    }
+
+    for (final match in wikiPattern.allMatches(line)) {
+      final target = match.group(1)!;
+      final label = match.group(2);
+      allMatches.add(
+        _InlineMatch(
+          start: match.start,
+          end: match.end,
+          displayText: label ?? target,
+          extra: target,
+        ),
+      );
+    }
+
+    allMatches.sort((a, b) => a.start.compareTo(b.start));
+
+    // Build TextSpans avoiding overlaps
     final children = <TextSpan>[];
-    final boldRegex = RegExp(r'\*\*(.*?)\*\*');
     int currentPos = 0;
 
-    for (final match in boldRegex.allMatches(line)) {
-      if (match.start > currentPos) {
-        children.add(TextSpan(text: line.substring(currentPos, match.start)));
+    for (final m in allMatches) {
+      if (m.start < currentPos) continue; // skip overlapping
+
+      // Plain text before this match
+      if (m.start > currentPos) {
+        children.add(TextSpan(text: line.substring(currentPos, m.start)));
       }
-      children.add(TextSpan(
-        text: line.substring(match.start, match.end),
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-      ));
-      currentPos = match.end;
+
+      // Bold match: **text**
+      if (m.extra == null && m.displayText.startsWith('**')) {
+        children.add(
+          TextSpan(
+            text: m.displayText,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
+      // WikiLink match: [[Target]] or [[Target|Label]]
+      else if (m.extra != null) {
+        final label = m.displayText;
+        final bracketColor = const Color(0xFF7B61FF);
+        children.add(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '[[',
+                style: TextStyle(color: bracketColor),
+              ),
+              TextSpan(
+                text: label,
+                style: TextStyle(
+                  color: const Color(0xFFA0A0A2),
+                  decoration: TextDecoration.underline,
+                  decorationColor: bracketColor,
+                ),
+              ),
+              TextSpan(
+                text: ']]',
+                style: TextStyle(color: bracketColor),
+              ),
+            ],
+          ),
+        );
+      }
+      // Fallback plain text
+      else {
+        children.add(TextSpan(text: m.displayText));
+      }
+
+      currentPos = m.end;
     }
 
     if (currentPos < line.length) {
       children.add(TextSpan(text: line.substring(currentPos)));
     }
 
-    return TextSpan(children: children, style: normalStyle);
+    return TextSpan(
+      children: children.isEmpty ? [TextSpan(text: line)] : children,
+      style: normalStyle,
+    );
   }
 }

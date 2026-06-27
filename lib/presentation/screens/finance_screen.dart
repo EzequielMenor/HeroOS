@@ -24,25 +24,20 @@ InputDecoration _zenInput({
   required String hint,
   String? label,
   Widget? prefixIcon,
-}) =>
-    InputDecoration(
-      hintText: hint,
-      labelText: label,
-      hintStyle: TextStyle(color: _kTextSec, fontSize: 14),
-      labelStyle: TextStyle(color: _kTextSec, fontSize: 13),
-      prefixIcon: prefixIcon,
-      filled: false,
-      contentPadding: EdgeInsets.symmetric(vertical: 10),
-      border: UnderlineInputBorder(
-        borderSide: BorderSide(color: _kDivider),
-      ),
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: _kDivider),
-      ),
-      focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: _kTextPrim.withValues(alpha: 0.5)),
-      ),
-    );
+}) => InputDecoration(
+  hintText: hint,
+  labelText: label,
+  hintStyle: TextStyle(color: _kTextSec, fontSize: 14),
+  labelStyle: TextStyle(color: _kTextSec, fontSize: 13),
+  prefixIcon: prefixIcon,
+  filled: false,
+  contentPadding: EdgeInsets.symmetric(vertical: 10),
+  border: UnderlineInputBorder(borderSide: BorderSide(color: _kDivider)),
+  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _kDivider)),
+  focusedBorder: UnderlineInputBorder(
+    borderSide: BorderSide(color: _kTextPrim.withValues(alpha: 0.5)),
+  ),
+);
 
 /// Pantalla de Finanzas — cuentas, transacciones y balance total.
 /// Sin FloatingActionButton propio: el FAB global lo gestiona el Dashboard.
@@ -103,10 +98,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   Widget _buildEmptyState(BuildContext context, FinanceViewModel vm) {
     return Column(
       children: [
-        _ZenHeader(
-          vm: vm,
-          onAdd: () => showFinanceAddMenu(context, vm),
-        ),
+        _ZenHeader(vm: vm, onAdd: () => showFinanceAddMenu(context, vm)),
         Expanded(
           child: Center(
             child: Column(
@@ -150,7 +142,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _LeftPanel(vm: vm, onAdd: () => showFinanceAddMenu(context, vm))),
+          Expanded(
+            child: _LeftPanel(
+              vm: vm,
+              onAdd: () => showFinanceAddMenu(context, vm),
+            ),
+          ),
           Container(width: 1, color: _kDivider),
           Expanded(
             child: _TransactionPanel(
@@ -169,7 +166,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
       slivers: [
         // Header: label + balance + botón añadir
         SliverToBoxAdapter(
-          child: _ZenHeader(vm: vm, onAdd: () => showFinanceAddMenu(context, vm)),
+          child: _ZenHeader(
+            vm: vm,
+            onAdd: () => showFinanceAddMenu(context, vm),
+          ),
         ),
         // Cuentas
         SliverToBoxAdapter(child: _AccountsSection(vm: vm)),
@@ -197,28 +197,19 @@ class _FinanceScreenState extends State<FinanceScreen> {
           )
         else
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (ctx, i) {
-                final list = _filteredTxns(vm.transactions);
-                return _ZenTransactionTile(txn: list[i], vm: vm);
-              },
-              childCount: _filteredTxns(vm.transactions).length,
-            ),
+            delegate: SliverChildBuilderDelegate((ctx, i) {
+              final list = _filteredTxns(vm.transactions);
+              return _ZenTransactionTile(txn: list[i], vm: vm);
+            }, childCount: _filteredTxns(vm.transactions).length),
           ),
         SliverToBoxAdapter(child: SizedBox(height: 40)),
       ],
     );
   }
 
-
   // ─────────────────────────────────────────────────────────────────────────
   // Modales
   // ─────────────────────────────────────────────────────────────────────────
-
-
-
-
-
 }
 
 // ─── Header Zen ─────────────────────────────────────────────────────────────
@@ -229,7 +220,6 @@ class _ZenHeader extends StatelessWidget {
   final VoidCallback onAdd;
 
   const _ZenHeader({required this.vm, required this.onAdd});
-
 
   bool _isSameMonth(DateTime date) {
     final now = DateTime.now();
@@ -265,11 +255,7 @@ class _ZenHeader extends StatelessWidget {
               // Botón añadir en el header — icono pequeño textSecondary
               GestureDetector(
                 onTap: onAdd,
-                child: Icon(
-                  Icons.add,
-                  size: 18,
-                  color: _kTextSec,
-                ),
+                child: Icon(Icons.add, size: 18, color: _kTextSec),
               ),
             ],
           ),
@@ -395,9 +381,9 @@ class _ZenAccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = switch (account.type) {
-      'Bank'       => Icons.account_balance_outlined,
+      'Bank' => Icons.account_balance_outlined,
       'Investment' => Icons.trending_up,
-      _            => Icons.account_balance_wallet_outlined,
+      _ => Icons.account_balance_wallet_outlined,
     };
     final isNeg = account.balance < 0;
 
@@ -556,10 +542,12 @@ class _ZenTransactionTileState extends State<_ZenTransactionTile> {
         currentCategory: widget.txn.category,
         isExpense: !widget.txn.isIncome,
         categories: widget.vm.categoriesFor(
-          widget.vm.accounts.firstWhere(
-            (a) => a.id == widget.txn.accountId,
-            orElse: () => widget.vm.accounts.first,
-          ).type,
+          widget.vm.accounts
+              .firstWhere(
+                (a) => a.id == widget.txn.accountId,
+                orElse: () => widget.vm.accounts.first,
+              )
+              .type,
           !widget.txn.isIncome,
         ),
         onCategorySelected: (category) {
@@ -586,11 +574,19 @@ class _ZenTransactionTileState extends State<_ZenTransactionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome   = widget.txn.isIncome;
+    final isIncome = widget.txn.isIncome;
     final isTransfer = widget.txn.isTransfer;
 
-    final iconColor   = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
-    final amountColor = isTransfer ? _kTextSec : isIncome ? _kSageGreen : _kDanger;
+    final iconColor = isTransfer
+        ? _kTextSec
+        : isIncome
+        ? _kSageGreen
+        : _kDanger;
+    final amountColor = isTransfer
+        ? _kTextSec
+        : isIncome
+        ? _kSageGreen
+        : _kDanger;
 
     final arrowIcon = isTransfer
         ? Icons.sync_alt
@@ -642,11 +638,7 @@ class _ZenTransactionTileState extends State<_ZenTransactionTile> {
                           ),
                         ),
                         SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: _kTextSec,
-                          size: 16,
-                        ),
+                        Icon(Icons.arrow_drop_down, color: _kTextSec, size: 16),
                       ],
                     ),
                   ),
@@ -655,8 +647,8 @@ class _ZenTransactionTileState extends State<_ZenTransactionTile> {
                     (widget.txn.note != null && widget.txn.note!.isNotEmpty)
                         ? widget.txn.note!.toUpperCase()
                         : '${widget.txn.date.day.toString().padLeft(2, '0')}/'
-                            '${widget.txn.date.month.toString().padLeft(2, '0')}/'
-                            '${widget.txn.date.year}',
+                              '${widget.txn.date.month.toString().padLeft(2, '0')}/'
+                              '${widget.txn.date.year}',
                     style: TextStyle(
                       color: _kTextSec,
                       fontSize: 10,
@@ -667,7 +659,11 @@ class _ZenTransactionTileState extends State<_ZenTransactionTile> {
               ),
             ),
             Text(
-              '${isIncome ? '+' : isTransfer ? '' : '-'}€${widget.txn.amount.abs().toStringAsFixed(2)}',
+              '${isIncome
+                  ? '+'
+                  : isTransfer
+                  ? ''
+                  : '-'}€${widget.txn.amount.abs().toStringAsFixed(2)}',
               style: TextStyle(
                 color: amountColor,
                 fontSize: 14,
@@ -827,8 +823,7 @@ class _CategoryPopover extends StatelessWidget {
                                   final isSelected =
                                       cat.name == currentCategory;
                                   return InkWell(
-                                    onTap: () =>
-                                        onCategorySelected(cat.name),
+                                    onTap: () => onCategorySelected(cat.name),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 16,
@@ -839,14 +834,14 @@ class _CategoryPopover extends StatelessWidget {
                                           Text(
                                             cat.icon,
                                             style: const TextStyle(
-                                                fontSize: 16),
+                                              fontSize: 16,
+                                            ),
                                           ),
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Text(
                                               cat.name,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 color: isSelected
                                                     ? _kSageGreen
@@ -1144,9 +1139,9 @@ class _NewCategoryForm extends StatefulWidget {
 }
 
 class _NewCategoryFormState extends State<_NewCategoryForm> {
-  final nameCtrl  = TextEditingController();
-  final iconCtrl  = TextEditingController(text: '🏷️');
-  bool isExpense  = true;
+  final nameCtrl = TextEditingController();
+  final iconCtrl = TextEditingController(text: '🏷️');
+  bool isExpense = true;
   String? accountType;
 
   @override
@@ -1208,8 +1203,8 @@ class _NewCategoryFormState extends State<_NewCategoryForm> {
           style: TextStyle(color: _kTextPrim, fontSize: 14),
           decoration: _zenInput(hint: ''),
           items: [
-            DropdownMenuItem(value: null,         child: Text('Todas')),
-            DropdownMenuItem(value: 'Bank',       child: Text('Banco')),
+            DropdownMenuItem(value: null, child: Text('Todas')),
+            DropdownMenuItem(value: 'Bank', child: Text('Banco')),
             DropdownMenuItem(value: 'Investment', child: Text('Inversión')),
           ],
           onChanged: (v) => setState(() => accountType = v),
@@ -1221,7 +1216,7 @@ class _NewCategoryFormState extends State<_NewCategoryForm> {
             widget.onAdd(nameCtrl.text, iconCtrl.text, isExpense, accountType);
             nameCtrl.clear();
             setState(() {
-              isExpense   = true;
+              isExpense = true;
               accountType = null;
             });
           },
@@ -1246,458 +1241,449 @@ class _NewCategoryFormState extends State<_NewCategoryForm> {
   }
 }
 
-
-  void showFinanceAddMenu(BuildContext context, FinanceViewModel vm) {
-    showAdaptiveModal<void>(
-      context,
-      SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            color: _kSurface,
-            border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 28),
-              ZenMenuTile(
-                icon: Icons.account_balance_outlined,
-                label: 'NUEVA CUENTA',
-                onTap: () {
-                  Navigator.pop(context);
-                  showCreateAccount(context, vm);
-                },
-              ),
-              if (vm.accounts.isNotEmpty)
-                ZenMenuTile(
-                  icon: Icons.swap_vert,
-                  label: 'NUEVA TRANSACCIÓN',
-                  onTap: () {
-                    Navigator.pop(context);
-                    showCreateTransaction(context, vm);
-                  },
-                ),
-              if (vm.accounts.length >= 2)
-                ZenMenuTile(
-                  icon: Icons.sync_alt,
-                  label: 'TRANSFERIR',
-                  onTap: () {
-                    Navigator.pop(context);
-                    showCreateTransfer(context, vm);
-                  },
-                ),
-              SizedBox(height: 16),
-            ],
-          ),
+void showFinanceAddMenu(BuildContext context, FinanceViewModel vm) {
+  showAdaptiveModal<void>(
+    context,
+    SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: _kSurface,
+          border: Border(top: BorderSide(color: Color(0x14FFFFFF), width: 1)),
         ),
-      ),
-    );
-  }
-
-
-  void showCreateAccount(BuildContext context, FinanceViewModel vm) {
-    final nameCtrl    = TextEditingController();
-    final balanceCtrl = TextEditingController();
-    String type       = 'Cash';
-
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => ZenSheet(
-          title: 'Nueva Cuenta',
-          ctx: ctx,
-          onCancel: () => Navigator.pop(ctx),
-          onConfirm: () {
-            final name = nameCtrl.text.trim();
-            if (name.isEmpty) return;
-            final balance = double.tryParse(balanceCtrl.text.trim()) ?? 0;
-            vm.createAccount(name: name, type: type, initialBalance: balance);
-            Navigator.pop(ctx);
-          },
-          confirmLabel: 'CREAR',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: nameCtrl,
-              style: TextStyle(color: _kTextPrim),
-              decoration: _zenInput(hint: 'Ej: Banco, Cartera'),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: balanceCtrl,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              style: TextStyle(color: _kTextPrim),
-              decoration: _zenInput(hint: 'Saldo inicial (€)'),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'TIPO',
-              style: TextStyle(
-                color: _kTextSec,
-                fontSize: 9,
-                letterSpacing: 2.0,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              children: ['Cash', 'Bank', 'Investment'].map((t) {
-                final isActive = type == t;
-                final label = switch (t) {
-                  'Cash'       => 'EFECTIVO',
-                  'Bank'       => 'BANCO',
-                  'Investment' => 'INVERSIÓN',
-                  _            => t.toUpperCase(),
-                };
-                return GestureDetector(
-                  onTap: () => setSheetState(() => type = t),
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 180),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isActive
-                            ? _kTextPrim.withValues(alpha: 0.35)
-                            : _kDivider,
-                      ),
-                    ),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        color: isActive ? _kTextPrim : _kTextSec,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void showCreateTransaction(BuildContext context, FinanceViewModel vm) {
-    if (vm.accounts.isEmpty) return;
-
-    final amountCtrl      = TextEditingController();
-    final noteCtrl        = TextEditingController();
-    String? selectedAccId = vm.accounts.first.id;
-    bool isExpense        = true;
-
-    List<CategoryEntity> categoriesFor(String? accId, bool isExp) {
-      final acc = vm.accounts.where((a) => a.id == accId).firstOrNull;
-      return vm.categoriesFor(acc?.type, isExp);
-    }
-
-    String category =
-        categoriesFor(selectedAccId, isExpense).firstOrNull?.name ?? 'General';
-
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => ZenSheet(
-          title: 'Nueva Transacción',
-          ctx: ctx,
-          trailing: GestureDetector(
-            onTap: () => showManageCategories(context, vm),
-            child: Text(
-              'GESTIONAR',
-              style: TextStyle(
-                color: _kSageGreen,
-                fontSize: 10,
-                letterSpacing: 1.5,
-              ),
-            ),
-          ),
-          onCancel: () => Navigator.pop(ctx),
-          onConfirm: () {
-            final amount = double.tryParse(amountCtrl.text) ?? 0;
-            if (amount <= 0 || selectedAccId == null) return;
-            vm.addTransaction(
-              accountId: selectedAccId!,
-              amount: isExpense ? -amount : amount,
-              category: category,
-              note: noteCtrl.text.isEmpty ? null : noteCtrl.text,
-            );
-            Navigator.pop(ctx);
-          },
-          confirmLabel: 'AÑADIR',
-          children: [
-            // Tipo
-            Row(
-              children: [
-                _ZenToggleChip(
-                  label: 'GASTO',
-                  selected: isExpense,
-                  activeColor: _kDanger,
-                  onTap: () => setSheetState(() {
-                    isExpense = true;
-                    category = categoriesFor(selectedAccId, isExpense)
-                            .firstOrNull
-                            ?.name ??
-                        'General';
-                  }),
-                ),
-                SizedBox(width: 8),
-                _ZenToggleChip(
-                  label: 'INGRESO',
-                  selected: !isExpense,
-                  activeColor: _kSageGreen,
-                  onTap: () => setSheetState(() {
-                    isExpense = false;
-                    category = categoriesFor(selectedAccId, isExpense)
-                            .firstOrNull
-                            ?.name ??
-                        'General';
-                  }),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // Cantidad
-            TextField(
-              controller: amountCtrl,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: _kTextPrim, fontSize: 22),
-              decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
-            ),
-            SizedBox(height: 16),
-            // Cuenta
-            DropdownButtonFormField<String>(
-              initialValue: selectedAccId,
-              dropdownColor: _kSurface,
-              style: TextStyle(color: _kTextPrim, fontSize: 14),
-              decoration: _zenInput(hint: '', label: 'Cuenta'),
-              items: vm.accounts.map((a) {
-                final typeName = switch (a.type) {
-                  'Bank'       => 'Banco',
-                  'Investment' => 'Inversión',
-                  'Cash'       => 'Efectivo',
-                  _            => a.type,
-                };
-                return DropdownMenuItem(
-                  value: a.id,
-                  child: Text('${a.name} ($typeName)'),
-                );
-              }).toList(),
-              onChanged: (v) => setSheetState(() {
-                selectedAccId = v;
-                category = categoriesFor(v, isExpense).firstOrNull?.name ??
-                    'General';
-              }),
-            ),
-            SizedBox(height: 20),
-            // Categorías
-            Text(
-              'CATEGORÍA',
-              style: TextStyle(
-                color: _kTextSec,
-                fontSize: 9,
-                letterSpacing: 2.0,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: categoriesFor(selectedAccId, isExpense).map((c) {
-                final isSelected = category == c.name;
-                return GestureDetector(
-                  onTap: () => setSheetState(() => category = c.name),
-                  child: AnimatedContainer(
-                    duration: Duration(milliseconds: 180),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isSelected
-                            ? _kTextPrim.withValues(alpha: 0.35)
-                            : _kDivider,
-                      ),
-                    ),
-                    child: Text(
-                      '${c.icon} ${c.name.toUpperCase()}',
-                      style: TextStyle(
-                        color: isSelected ? _kTextPrim : _kTextSec,
-                        fontSize: 10,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 16),
-            // Nota
-            TextField(
-              controller: noteCtrl,
-              style: TextStyle(color: _kTextPrim, fontSize: 14),
-              decoration: _zenInput(hint: 'Nota (opcional)'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void showCreateTransfer(BuildContext context, FinanceViewModel vm) {
-    final amountCtrl = TextEditingController();
-    final noteCtrl   = TextEditingController();
-    String? fromId   = vm.accounts.first.id;
-    String? toId     = vm.accounts.length > 1 ? vm.accounts[1].id : null;
-
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => ZenSheet(
-          title: 'Transferir',
-          ctx: ctx,
-          onCancel: () => Navigator.pop(ctx),
-          onConfirm: () {
-            final raw = double.tryParse(amountCtrl.text.trim());
-            if (raw == null ||
-                raw <= 0 ||
-                fromId == null ||
-                toId == null ||
-                fromId == toId) {
-              return;
-            }
-            vm.transferMoney(
-              fromAccountId: fromId!,
-              toAccountId: toId!,
-              amount: raw,
-              note: noteCtrl.text.trim().isEmpty
-                  ? null
-                  : noteCtrl.text.trim(),
-            );
-            Navigator.pop(ctx);
-          },
-          confirmLabel: 'TRANSFERIR',
-          children: [
-            DropdownButtonFormField<String>(
-              initialValue: fromId,
-              dropdownColor: _kSurface,
-              style: TextStyle(color: _kTextPrim, fontSize: 14),
-              decoration: _zenInput(hint: '', label: 'Desde'),
-              items: vm.accounts.map((a) {
-                final typeName = switch (a.type) {
-                  'Bank'       => 'Banco',
-                  'Investment' => 'Inversión',
-                  'Cash'       => 'Efectivo',
-                  _            => a.type,
-                };
-                return DropdownMenuItem(
-                  value: a.id,
-                  child: Text('${a.name} ($typeName)'),
-                );
-              }).toList(),
-              onChanged: (v) => setSheetState(() => fromId = v),
-            ),
-            SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: toId,
-              dropdownColor: _kSurface,
-              style: TextStyle(color: _kTextPrim, fontSize: 14),
-              decoration: _zenInput(hint: '', label: 'Hacia'),
-              items: vm.accounts.map((a) {
-                final typeName = switch (a.type) {
-                  'Bank'       => 'Banco',
-                  'Investment' => 'Inversión',
-                  'Cash'       => 'Efectivo',
-                  _            => a.type,
-                };
-                return DropdownMenuItem(
-                  value: a.id,
-                  child: Text('${a.name} ($typeName)'),
-                );
-              }).toList(),
-              onChanged: (v) => setSheetState(() => toId = v),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: amountCtrl,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              style: TextStyle(color: _kTextPrim, fontSize: 22),
-              decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: noteCtrl,
-              style: TextStyle(color: _kTextPrim, fontSize: 14),
-              decoration: _zenInput(hint: 'Nota (opcional)'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void showManageCategories(BuildContext context, FinanceViewModel vm) {
-    showAdaptiveModal<void>(
-      context,
-      StatefulBuilder(
-        builder: (ctx, setSheetState) => ZenSheet(
-          title: 'Categorías',
-          ctx: ctx,
-          onCancel: () => Navigator.pop(ctx),
-          children: [
-            SizedBox(
-              height: 260,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: vm.categories.length,
-                itemBuilder: (context, index) {
-                  final cat = vm.categories[index];
-                  return _ZenCategoryRow(
-                    cat: cat,
-                    onDelete: () async {
-                      await vm.deleteCategory(cat.id);
-                      setSheetState(() {});
-                    },
-                  );
-                },
-              ),
-            ),
-            Container(
-              height: 1,
-              color: _kDivider,
-              margin: EdgeInsets.symmetric(vertical: 16),
-            ),
-            Text(
-              'NUEVA CATEGORÍA',
-              style: TextStyle(
-                color: _kTextSec,
-                fontSize: 9,
-                letterSpacing: 2.0,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 12),
-            _NewCategoryForm(
-              onAdd: (name, icon, isExp, accType) async {
-                await vm.addCategory(
-                  name: name,
-                  icon: icon,
-                  isExpense: isExp,
-                  accountType: accType,
-                );
-                setSheetState(() {});
+            SizedBox(height: 28),
+            ZenMenuTile(
+              icon: Icons.account_balance_outlined,
+              label: 'NUEVA CUENTA',
+              onTap: () {
+                Navigator.pop(context);
+                showCreateAccount(context, vm);
               },
             ),
+            if (vm.accounts.isNotEmpty)
+              ZenMenuTile(
+                icon: Icons.swap_vert,
+                label: 'NUEVA TRANSACCIÓN',
+                onTap: () {
+                  Navigator.pop(context);
+                  showCreateTransaction(context, vm);
+                },
+              ),
+            if (vm.accounts.length >= 2)
+              ZenMenuTile(
+                icon: Icons.sync_alt,
+                label: 'TRANSFERIR',
+                onTap: () {
+                  Navigator.pop(context);
+                  showCreateTransfer(context, vm);
+                },
+              ),
+            SizedBox(height: 16),
           ],
         ),
       ),
-    );
+    ),
+  );
+}
+
+void showCreateAccount(BuildContext context, FinanceViewModel vm) {
+  final nameCtrl = TextEditingController();
+  final balanceCtrl = TextEditingController();
+  String type = 'Cash';
+
+  showAdaptiveModal<void>(
+    context,
+    StatefulBuilder(
+      builder: (ctx, setSheetState) => ZenSheet(
+        title: 'Nueva Cuenta',
+        ctx: ctx,
+        onCancel: () => Navigator.pop(ctx),
+        onConfirm: () {
+          final name = nameCtrl.text.trim();
+          if (name.isEmpty) return;
+          final balance = double.tryParse(balanceCtrl.text.trim()) ?? 0;
+          vm.createAccount(name: name, type: type, initialBalance: balance);
+          Navigator.pop(ctx);
+        },
+        confirmLabel: 'CREAR',
+        children: [
+          TextField(
+            controller: nameCtrl,
+            style: TextStyle(color: _kTextPrim),
+            decoration: _zenInput(hint: 'Ej: Banco, Cartera'),
+          ),
+          SizedBox(height: 20),
+          TextField(
+            controller: balanceCtrl,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(color: _kTextPrim),
+            decoration: _zenInput(hint: 'Saldo inicial (€)'),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'TIPO',
+            style: TextStyle(
+              color: _kTextSec,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            children: ['Cash', 'Bank', 'Investment'].map((t) {
+              final isActive = type == t;
+              final label = switch (t) {
+                'Cash' => 'EFECTIVO',
+                'Bank' => 'BANCO',
+                'Investment' => 'INVERSIÓN',
+                _ => t.toUpperCase(),
+              };
+              return GestureDetector(
+                onTap: () => setSheetState(() => type = t),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 180),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isActive
+                          ? _kTextPrim.withValues(alpha: 0.35)
+                          : _kDivider,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isActive ? _kTextPrim : _kTextSec,
+                      fontSize: 10,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showCreateTransaction(BuildContext context, FinanceViewModel vm) {
+  if (vm.accounts.isEmpty) return;
+
+  final amountCtrl = TextEditingController();
+  final noteCtrl = TextEditingController();
+  String? selectedAccId = vm.accounts.first.id;
+  bool isExpense = true;
+
+  List<CategoryEntity> categoriesFor(String? accId, bool isExp) {
+    final acc = vm.accounts.where((a) => a.id == accId).firstOrNull;
+    return vm.categoriesFor(acc?.type, isExp);
   }
+
+  String category =
+      categoriesFor(selectedAccId, isExpense).firstOrNull?.name ?? 'General';
+
+  showAdaptiveModal<void>(
+    context,
+    StatefulBuilder(
+      builder: (ctx, setSheetState) => ZenSheet(
+        title: 'Nueva Transacción',
+        ctx: ctx,
+        trailing: GestureDetector(
+          onTap: () => showManageCategories(context, vm),
+          child: Text(
+            'GESTIONAR',
+            style: TextStyle(
+              color: _kSageGreen,
+              fontSize: 10,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+        onCancel: () => Navigator.pop(ctx),
+        onConfirm: () {
+          final amount = double.tryParse(amountCtrl.text) ?? 0;
+          if (amount <= 0 || selectedAccId == null) return;
+          vm.addTransaction(
+            accountId: selectedAccId!,
+            amount: isExpense ? -amount : amount,
+            category: category,
+            note: noteCtrl.text.isEmpty ? null : noteCtrl.text,
+          );
+          Navigator.pop(ctx);
+        },
+        confirmLabel: 'AÑADIR',
+        children: [
+          // Tipo
+          Row(
+            children: [
+              _ZenToggleChip(
+                label: 'GASTO',
+                selected: isExpense,
+                activeColor: _kDanger,
+                onTap: () => setSheetState(() {
+                  isExpense = true;
+                  category =
+                      categoriesFor(
+                        selectedAccId,
+                        isExpense,
+                      ).firstOrNull?.name ??
+                      'General';
+                }),
+              ),
+              SizedBox(width: 8),
+              _ZenToggleChip(
+                label: 'INGRESO',
+                selected: !isExpense,
+                activeColor: _kSageGreen,
+                onTap: () => setSheetState(() {
+                  isExpense = false;
+                  category =
+                      categoriesFor(
+                        selectedAccId,
+                        isExpense,
+                      ).firstOrNull?.name ??
+                      'General';
+                }),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          // Cantidad
+          TextField(
+            controller: amountCtrl,
+            keyboardType: TextInputType.number,
+            style: TextStyle(color: _kTextPrim, fontSize: 22),
+            decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
+          ),
+          SizedBox(height: 16),
+          // Cuenta
+          DropdownButtonFormField<String>(
+            initialValue: selectedAccId,
+            dropdownColor: _kSurface,
+            style: TextStyle(color: _kTextPrim, fontSize: 14),
+            decoration: _zenInput(hint: '', label: 'Cuenta'),
+            items: vm.accounts.map((a) {
+              final typeName = switch (a.type) {
+                'Bank' => 'Banco',
+                'Investment' => 'Inversión',
+                'Cash' => 'Efectivo',
+                _ => a.type,
+              };
+              return DropdownMenuItem(
+                value: a.id,
+                child: Text('${a.name} ($typeName)'),
+              );
+            }).toList(),
+            onChanged: (v) => setSheetState(() {
+              selectedAccId = v;
+              category =
+                  categoriesFor(v, isExpense).firstOrNull?.name ?? 'General';
+            }),
+          ),
+          SizedBox(height: 20),
+          // Categorías
+          Text(
+            'CATEGORÍA',
+            style: TextStyle(
+              color: _kTextSec,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: categoriesFor(selectedAccId, isExpense).map((c) {
+              final isSelected = category == c.name;
+              return GestureDetector(
+                onTap: () => setSheetState(() => category = c.name),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 180),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isSelected
+                          ? _kTextPrim.withValues(alpha: 0.35)
+                          : _kDivider,
+                    ),
+                  ),
+                  child: Text(
+                    '${c.icon} ${c.name.toUpperCase()}',
+                    style: TextStyle(
+                      color: isSelected ? _kTextPrim : _kTextSec,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 16),
+          // Nota
+          TextField(
+            controller: noteCtrl,
+            style: TextStyle(color: _kTextPrim, fontSize: 14),
+            decoration: _zenInput(hint: 'Nota (opcional)'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showCreateTransfer(BuildContext context, FinanceViewModel vm) {
+  final amountCtrl = TextEditingController();
+  final noteCtrl = TextEditingController();
+  String? fromId = vm.accounts.first.id;
+  String? toId = vm.accounts.length > 1 ? vm.accounts[1].id : null;
+
+  showAdaptiveModal<void>(
+    context,
+    StatefulBuilder(
+      builder: (ctx, setSheetState) => ZenSheet(
+        title: 'Transferir',
+        ctx: ctx,
+        onCancel: () => Navigator.pop(ctx),
+        onConfirm: () {
+          final raw = double.tryParse(amountCtrl.text.trim());
+          if (raw == null ||
+              raw <= 0 ||
+              fromId == null ||
+              toId == null ||
+              fromId == toId) {
+            return;
+          }
+          vm.transferMoney(
+            fromAccountId: fromId!,
+            toAccountId: toId!,
+            amount: raw,
+            note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
+          );
+          Navigator.pop(ctx);
+        },
+        confirmLabel: 'TRANSFERIR',
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: fromId,
+            dropdownColor: _kSurface,
+            style: TextStyle(color: _kTextPrim, fontSize: 14),
+            decoration: _zenInput(hint: '', label: 'Desde'),
+            items: vm.accounts.map((a) {
+              final typeName = switch (a.type) {
+                'Bank' => 'Banco',
+                'Investment' => 'Inversión',
+                'Cash' => 'Efectivo',
+                _ => a.type,
+              };
+              return DropdownMenuItem(
+                value: a.id,
+                child: Text('${a.name} ($typeName)'),
+              );
+            }).toList(),
+            onChanged: (v) => setSheetState(() => fromId = v),
+          ),
+          SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: toId,
+            dropdownColor: _kSurface,
+            style: TextStyle(color: _kTextPrim, fontSize: 14),
+            decoration: _zenInput(hint: '', label: 'Hacia'),
+            items: vm.accounts.map((a) {
+              final typeName = switch (a.type) {
+                'Bank' => 'Banco',
+                'Investment' => 'Inversión',
+                'Cash' => 'Efectivo',
+                _ => a.type,
+              };
+              return DropdownMenuItem(
+                value: a.id,
+                child: Text('${a.name} ($typeName)'),
+              );
+            }).toList(),
+            onChanged: (v) => setSheetState(() => toId = v),
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: amountCtrl,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(color: _kTextPrim, fontSize: 22),
+            decoration: _zenInput(hint: '0.00', label: 'Cantidad (€)'),
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: noteCtrl,
+            style: TextStyle(color: _kTextPrim, fontSize: 14),
+            decoration: _zenInput(hint: 'Nota (opcional)'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showManageCategories(BuildContext context, FinanceViewModel vm) {
+  showAdaptiveModal<void>(
+    context,
+    StatefulBuilder(
+      builder: (ctx, setSheetState) => ZenSheet(
+        title: 'Categorías',
+        ctx: ctx,
+        onCancel: () => Navigator.pop(ctx),
+        children: [
+          SizedBox(
+            height: 260,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: vm.categories.length,
+              itemBuilder: (context, index) {
+                final cat = vm.categories[index];
+                return _ZenCategoryRow(
+                  cat: cat,
+                  onDelete: () async {
+                    await vm.deleteCategory(cat.id);
+                    setSheetState(() {});
+                  },
+                );
+              },
+            ),
+          ),
+          Container(
+            height: 1,
+            color: _kDivider,
+            margin: EdgeInsets.symmetric(vertical: 16),
+          ),
+          Text(
+            'NUEVA CATEGORÍA',
+            style: TextStyle(
+              color: _kTextSec,
+              fontSize: 9,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 12),
+          _NewCategoryForm(
+            onAdd: (name, icon, isExp, accType) async {
+              await vm.addCategory(
+                name: name,
+                icon: icon,
+                isExpense: isExp,
+                accountType: accType,
+              );
+              setSheetState(() {});
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}

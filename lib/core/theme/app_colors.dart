@@ -19,16 +19,22 @@ class AppColors {
   static const Color coral = Color(0xFFFF6B6B);
 
   // Theme control (Forced to Dark Mode always, as requested)
-  static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(ThemeMode.dark);
+  static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(
+    ThemeMode.dark,
+  );
   static bool get isDark => true; // Always dark
 
   // Zen OS Core Colors
   static const Color scaffold = Color(0xFF1C1C1E); // Pitch black
-  static const Color surface = Color(0xFF2C2C2E); // Slightly elevated black for sheets/cards
-  
+  static const Color surface = Color(
+    0xFF2C2C2E,
+  ); // Slightly elevated black for sheets/cards
+
   static const Color textPrimary = Color(0xFFF0EDE8); // Bone white
-  static const Color textSecondary = Color(0x73F0EDE8); // Bone white 45% opacity
-  
+  static const Color textSecondary = Color(
+    0x73F0EDE8,
+  ); // Bone white 45% opacity
+
   static const Color divider = Color(0x0DFFFFFF); // White 5% opacity
-  static const Color accent = habits; 
+  static const Color accent = habits;
 }
