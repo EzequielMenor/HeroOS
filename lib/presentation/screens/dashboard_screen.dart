@@ -17,6 +17,7 @@ import '../widgets/responsive_shell.dart';
 import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import '../widgets/liquid_glass_indicator.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/bento_helpers.dart';
 import 'habits_screen.dart';
 import 'tasks_screen.dart';
 import 'finance_screen.dart';
@@ -466,52 +467,6 @@ class _GreetingSection extends StatelessWidget {
   }
 }
 
-class _BentoKicker extends StatelessWidget {
-  final String text;
-  const _BentoKicker(this.text);
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.5,
-        ),
-      );
-}
-
-class _BentoMetric extends StatelessWidget {
-  final String text;
-  final double size;
-  const _BentoMetric(this.text, {this.size = 20});
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: size,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'serif',
-          letterSpacing: -0.5,
-        ),
-      );
-}
-
-class _BentoMuted extends StatelessWidget {
-  final String text;
-  const _BentoMuted(this.text);
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 12,
-          letterSpacing: 0.15,
-        ),
-      );
-}
-
 void _goToTab(BuildContext context, int index) {
   context.read<ShellController>().setTab(index);
 }
@@ -544,9 +499,9 @@ class _SleepBentoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: const [
-                _BentoKicker('FASES DE SUEÑO'),
+                BentoKicker('FASES DE SUEÑO'),
                 SizedBox(height: 10),
-                _BentoMuted('Sin registro de anoche'),
+                BentoMuted('Sin registro de anoche'),
               ],
             )
           : Column(
@@ -556,7 +511,7 @@ class _SleepBentoCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const _BentoKicker('FASES DE SUEÑO'),
+                    const BentoKicker('FASES DE SUEÑO'),
                     Row(
                       children: List.generate(
                         5,
@@ -574,7 +529,7 @@ class _SleepBentoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    _BentoMetric(_formatHours(log.totalHours)),
+                    BentoMetric(_formatHours(log.totalHours)),
                     const SizedBox(width: 8),
                     Text(
                       '· ${DateFormat.Hm().format(log.startTime)} – ${DateFormat.Hm().format(log.endTime)}',
@@ -651,7 +606,7 @@ class _HabitsBentoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _BentoKicker('HÁBITOS'),
+          const BentoKicker('HÁBITOS'),
           const SizedBox(height: 10),
           SizedBox(
             width: 44,
@@ -681,7 +636,7 @@ class _HabitsBentoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _BentoMuted('$completed de $total completados'),
+          BentoMuted('$completed de $total completados'),
         ],
       ),
     );
@@ -704,11 +659,11 @@ class _TasksBentoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _BentoKicker('TAREAS'),
+          const BentoKicker('TAREAS'),
           const SizedBox(height: 6),
-          _BentoMetric('${pending.length}'),
+          BentoMetric('${pending.length}'),
           const SizedBox(height: 2),
-          const _BentoMuted('Pendientes'),
+          const BentoMuted('Pendientes'),
           if (next != null) ...[
             const SizedBox(height: 10),
             Row(
@@ -767,11 +722,11 @@ class _BalanceBentoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _BentoKicker('BALANCE TOTAL'),
+          const BentoKicker('BALANCE TOTAL'),
           const SizedBox(height: 6),
-          _BentoMetric(_formatEur(balance), size: 30),
+          BentoMetric(_formatEur(balance), size: 30),
           const SizedBox(height: 4),
-          _BentoMuted(
+          BentoMuted(
             '$count cuenta${count == 1 ? '' : 's'} activa${count == 1 ? '' : 's'}',
           ),
         ],

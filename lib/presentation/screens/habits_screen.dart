@@ -3,12 +3,16 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as pkg;
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/adaptive_modal.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/habit_entity.dart';
+import '../../domain/entities/habit_analytics.dart';
 import '../viewmodels/habits_viewmodel.dart';
+import '../widgets/bento_helpers.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/habit_heatmap.dart';
 import '../widgets/habit_stats_card.dart';
 
@@ -85,59 +89,70 @@ class _HabitsScreenState extends State<HabitsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header compartido ──
-            Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Label superior: fecha uppercase
-                  Text(
-                    today.toUpperCase(),
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 9,
-                      letterSpacing: 2.0,
-                      fontWeight: FontWeight.w500,
+            pkg.GlassContainer(
+              settings: const pkg.LiquidGlassSettings(
+                thickness: 30,
+                blur: 12,
+                refractiveIndex: 0.6,
+                lightIntensity: 0.7,
+                saturation: 1.2,
+              ),
+              quality: pkg.GlassQuality.standard,
+              shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 16),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Label superior: fecha uppercase
+                    Text(
+                      today.toUpperCase(),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 9,
+                        letterSpacing: 2.0,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 6),
-                  // Título grande + botón añadir en la misma fila
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Hábitos',
-                        style: GoogleFonts.inter(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
+                    SizedBox(height: 6),
+                    // Título grande + botón añadir en la misma fila
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Hábitos',
+                          style: GoogleFonts.inter(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                            height: 1.0,
+                          ),
                         ),
-                      ),
-                      Spacer(),
-                      // Botón + en el header (no FAB)
-                      GestureDetector(
-                        onTap: () => showHabitCreateSheet(context, vm),
-                        child: Icon(
-                          Icons.add,
-                          size: 18,
-                          color: AppColors.textSecondary,
+                        Spacer(),
+                        // Botón + en el header (no FAB)
+                        GestureDetector(
+                          onTap: () => showHabitCreateSheet(context, vm),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                    // Barra de progreso: 1px justo bajo el título
+                    if (!_showStats) ...[
+                      SizedBox(height: 8),
+                      _DayProgressBar(vm: vm),
                     ],
-                  ),
-                  // Barra de progreso: 1px justo bajo el título
-                  if (!_showStats) ...[
-                    SizedBox(height: 8),
-                    _DayProgressBar(vm: vm),
+                    SizedBox(height: 18),
+                    // Toggle lista/stats
+                    _ViewToggle(
+                      showStats: _showStats,
+                      onToggle: (v) => setState(() => _showStats = v),
+                    ),
                   ],
-                  SizedBox(height: 18),
-                  // Toggle lista/stats
-                  _ViewToggle(
-                    showStats: _showStats,
-                    onToggle: (v) => setState(() => _showStats = v),
-                  ),
-                ],
+                ),
               ),
             ),
             SizedBox(height: 12),
@@ -411,13 +426,8 @@ class _StatsView extends StatelessWidget {
         if (showGlobal) ...[
           SliverToBoxAdapter(
             child: _GlobalStatsSection(
-              overallRate: analytics.overallCompletionRate(),
-              habitCount: habits.length,
-              perHabitRates: {
-                for (final h in habits)
-                  h.title: analytics.completionRate(h.id),
-              },
-              globalTrend: analytics.overallMonthlyTrend(),
+              analytics: analytics,
+              habits: habits,
             ),
           ),
         ] else ...[
@@ -494,29 +504,24 @@ class _ZenChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return pkg.GlassChip(
+      label: label,
+      selected: active,
+      selectedColor: AppColors.habits.withValues(alpha: 0.15),
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 150),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: active ? AppColors.habits : AppColors.divider,
-            width: 1,
-          ),
-          color: active
-              ? AppColors.habits.withValues(alpha: 0.07)
-              : Colors.transparent,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: active ? AppColors.habits : AppColors.textSecondary,
-            fontSize: 11,
-            letterSpacing: 0.5,
-          ),
-        ),
+      settings: const pkg.LiquidGlassSettings(
+        thickness: 20,
+        blur: 6,
+        refractiveIndex: 0.6,
+        lightIntensity: 0.7,
+        saturation: 1.2,
       ),
+      labelStyle: TextStyle(
+        color: active ? AppColors.habits : AppColors.textSecondary,
+        fontSize: 11,
+        letterSpacing: 0.5,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     );
   }
 }
@@ -526,170 +531,167 @@ class _ZenChip extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 
 class _GlobalStatsSection extends StatelessWidget {
-  final double overallRate;
-  final int habitCount;
-  final Map<String, double> perHabitRates;
-  final Map<String, double> globalTrend;
+  final HabitAnalytics analytics;
+  final List<HabitEntity> habits;
 
   const _GlobalStatsSection({
-    required this.overallRate,
-    required this.habitCount,
-    required this.perHabitRates,
-    required this.globalTrend,
+    required this.analytics,
+    required this.habits,
   });
 
   @override
   Widget build(BuildContext context) {
-    final pct = (overallRate * 100).round();
+    final pct = (analytics.overallCompletionRate() * 100).round();
+    final perHabitRates = <String, double>{
+      for (final h in habits) h.title: analytics.completionRate(h.id),
+    };
     final sorted = perHabitRates.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+    final globalTrend = analytics.overallMonthlyTrend();
+
+    // Aggregate streak stats across all habits for the prototype's chips.
+    int bestCurrent = 0;
+    int bestEver = 0;
+    for (final h in habits) {
+      final c = analytics.currentStreak(h.id);
+      final b = analytics.bestStreak(h.id);
+      if (c > bestCurrent) bestCurrent = c;
+      if (b > bestEver) bestEver = b;
+    }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Número grande ──
-          Text(
-            'TASA GLOBAL',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 9,
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$pct',
-                style: GoogleFonts.inter(
-                  fontSize: 64,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                  height: 1.0,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 8, left: 4),
-                child: Text(
-                  '%',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-              Spacer(),
-              Text(
-                '$habitCount rituales',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Stack(
-            children: [
-              Container(height: 1, color: Color(0x12FFFFFF)),
-              FractionallySizedBox(
-                widthFactor: overallRate,
-                child: Container(height: 1, color: AppColors.habits),
-              ),
-            ],
-          ),
-          SizedBox(height: 32),
-
-          // ── Tasa por hábito ──
-          Text(
-            'TASA POR RITUAL — 30 DÍAS',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 9,
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: 14),
-          ...sorted.map((e) {
-            final rate = e.value;
-            final p = (rate * 100).round();
-            return Container(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.divider, width: 1),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      e.key,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
+          // ── Card 1: Resumen de estadísticas (match prototipo HTML) ──
+          GlassCard(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BentoKicker('ESTADÍSTICAS'),
+                const SizedBox(height: 6),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '$pct',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'serif',
+                          letterSpacing: -0.5,
+                          height: 1.0,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      TextSpan(
+                        text: '%',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    flex: 5,
-                    child: Stack(
+                ),
+                const SizedBox(height: 4),
+                const BentoMuted('Tasa de éxito semanal'),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    StatChip('Racha: $bestCurrent días'),
+                    StatChip('Mejor: $bestEver'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // ── Card 2: Tasa por ritual (30 días) ──
+          GlassCard(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BentoKicker('TASA POR RITUAL — 30 DÍAS'),
+                const SizedBox(height: 12),
+                ...sorted.map((e) {
+                  final rate = e.value;
+                  final p = (rate * 100).round();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
                       children: [
-                        Container(height: 1, color: Color(0x12FFFFFF)),
-                        FractionallySizedBox(
-                          widthFactor: rate,
-                          child: Container(
-                            height: 1,
-                            color: rate >= 0.7
-                                ? AppColors.habits
-                                : AppColors.habits.withValues(alpha: 0.4),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            e.key,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 5,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: LinearProgressIndicator(
+                              value: rate,
+                              minHeight: 3,
+                              backgroundColor: AppColors.divider,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                rate >= 0.7
+                                    ? AppColors.habits
+                                    : AppColors.habits.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 36,
+                          child: Text(
+                            '$p%',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.right,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(width: 12),
-                  SizedBox(
-                    width: 36,
-                    child: Text(
-                      '$p%',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          SizedBox(height: 32),
-
-          // ── Tendencia global ──
-          Text(
-            'TENDENCIA GLOBAL MENSUAL',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 9,
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.w500,
+                  );
+                }),
+              ],
             ),
           ),
-          SizedBox(height: 12),
-          SizedBox(
-            height: 200,
-            child: _MonthlyTrendChart(data: globalTrend),
+          const SizedBox(height: 10),
+
+          // ── Card 3: Tendencia global mensual ──
+          GlassCard(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BentoKicker('TENDENCIA GLOBAL MENSUAL'),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 180,
+                  child: _MonthlyTrendChart(data: globalTrend),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -847,12 +849,16 @@ class _HabitTile extends StatelessWidget {
 
     return GestureDetector(
       onLongPress: () => _showContextMenu(context),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: AppColors.divider, width: 1),
-          ),
+      child: pkg.GlassContainer(
+        settings: const pkg.LiquidGlassSettings(
+          thickness: 20,
+          blur: 8,
+          refractiveIndex: 0.6,
+          lightIntensity: 0.7,
+          saturation: 1.2,
         ),
+        quality: pkg.GlassQuality.standard,
+        shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
@@ -944,13 +950,15 @@ class _HabitTile extends StatelessWidget {
   void _showContextMenu(BuildContext context) {
     showAdaptiveModal<void>(
       context,
-      Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            top: BorderSide(color: Color(0x14FFFFFF), width: 1),
-          ),
+      pkg.GlassSheet(
+        settings: const pkg.LiquidGlassSettings(
+          thickness: 40,
+          blur: 15,
+          refractiveIndex: 0.6,
+          lightIntensity: 0.7,
+          saturation: 1.2,
         ),
+        quality: pkg.GlassQuality.standard,
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1073,19 +1081,15 @@ class _HabitTile extends StatelessWidget {
     showAdaptiveModal<void>(
       context,
       StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border(
-              top: BorderSide(color: Color(0x14FFFFFF), width: 1),
-            ),
+        builder: (ctx, setSheetState) => pkg.GlassSheet(
+          settings: const pkg.LiquidGlassSettings(
+            thickness: 40,
+            blur: 15,
+            refractiveIndex: 0.6,
+            lightIntensity: 0.7,
+            saturation: 1.2,
           ),
-          padding: EdgeInsets.fromLTRB(
-            22,
-            26,
-            22,
-            MediaQuery.of(ctx).viewInsets.bottom + 44,
-          ),
+          quality: pkg.GlassQuality.standard,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1099,21 +1103,28 @@ class _HabitTile extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              TextField(
-                controller: titleCtrl,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
+              pkg.GlassContainer(
+                settings: const pkg.LiquidGlassSettings(
+                  thickness: 20,
+                  blur: 6,
+                  refractiveIndex: 0.6,
+                  lightIntensity: 0.5,
+                  saturation: 1.2,
                 ),
-                cursorColor: AppColors.habits,
-                decoration: InputDecoration(
-                  hintText: 'Nombre del hábito',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.divider),
+                quality: pkg.GlassQuality.standard,
+                shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: TextField(
+                  controller: titleCtrl,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
                   ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.habits, width: 1),
+                  cursorColor: AppColors.habits,
+                  decoration: InputDecoration(
+                    hintText: 'Nombre del hábito',
+                    hintStyle: TextStyle(color: AppColors.textSecondary),
+                    border: InputBorder.none,
                   ),
                 ),
               ),
@@ -1170,7 +1181,7 @@ class _HabitTile extends StatelessWidget {
               SizedBox(height: 28),
               Row(
                 children: [
-                  GestureDetector(
+                  pkg.GlassButton.custom(
                     onTap: () => Navigator.pop(ctx),
                     child: Text(
                       'CANCELAR',
@@ -1183,7 +1194,7 @@ class _HabitTile extends StatelessWidget {
                     ),
                   ),
                   Spacer(),
-                  GestureDetector(
+                  pkg.GlassButton.custom(
                     onTap: () {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty) return;
@@ -1195,20 +1206,13 @@ class _HabitTile extends StatelessWidget {
                       );
                       Navigator.pop(ctx);
                     },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      color: AppColors.textPrimary,
-                      child: Text(
-                        'GUARDAR',
-                        style: TextStyle(
-                          color: AppColors.scaffold,
-                          fontSize: 10,
-                          letterSpacing: 1.5,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    child: Text(
+                      'GUARDAR',
+                      style: TextStyle(
+                        color: AppColors.scaffold,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -1269,19 +1273,15 @@ class _ContextMenuItem extends StatelessWidget {
     showAdaptiveModal<void>(
       context,
       StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border(
-              top: BorderSide(color: Color(0x14FFFFFF), width: 1),
-            ),
+        builder: (ctx, setSheetState) => pkg.GlassSheet(
+          settings: const pkg.LiquidGlassSettings(
+            thickness: 40,
+            blur: 15,
+            refractiveIndex: 0.6,
+            lightIntensity: 0.7,
+            saturation: 1.2,
           ),
-          padding: EdgeInsets.fromLTRB(
-            22,
-            26,
-            22,
-            MediaQuery.of(ctx).viewInsets.bottom + 44,
-          ),
+          quality: pkg.GlassQuality.standard,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1297,21 +1297,28 @@ class _ContextMenuItem extends StatelessWidget {
               ),
               SizedBox(height: 20),
               // Campo texto
-              TextField(
-                controller: titleCtrl,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
+              pkg.GlassContainer(
+                settings: const pkg.LiquidGlassSettings(
+                  thickness: 20,
+                  blur: 6,
+                  refractiveIndex: 0.6,
+                  lightIntensity: 0.5,
+                  saturation: 1.2,
                 ),
-                cursorColor: AppColors.habits,
-                decoration: InputDecoration(
-                  hintText: 'Ej: Beber 2L de agua',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.divider),
+                quality: pkg.GlassQuality.standard,
+                shape: const pkg.LiquidRoundedSuperellipse(borderRadius: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: TextField(
+                  controller: titleCtrl,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
                   ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.habits, width: 1),
+                  cursorColor: AppColors.habits,
+                  decoration: InputDecoration(
+                    hintText: 'Ej: Beber 2L de agua',
+                    hintStyle: TextStyle(color: AppColors.textSecondary),
+                    border: InputBorder.none,
                   ),
                 ),
               ),
@@ -1368,7 +1375,7 @@ class _ContextMenuItem extends StatelessWidget {
               // Botones: Cancel + Add
               Row(
                 children: [
-                  GestureDetector(
+                  pkg.GlassButton.custom(
                     onTap: () => Navigator.pop(ctx),
                     child: Text(
                       'CANCELAR',
@@ -1381,7 +1388,7 @@ class _ContextMenuItem extends StatelessWidget {
                     ),
                   ),
                   Spacer(),
-                  GestureDetector(
+                  pkg.GlassButton.custom(
                     onTap: () {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty) return;
@@ -1391,20 +1398,13 @@ class _ContextMenuItem extends StatelessWidget {
                       );
                       Navigator.pop(ctx);
                     },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      color: AppColors.textPrimary,
-                      child: Text(
-                        'CREAR',
-                        style: TextStyle(
-                          color: AppColors.scaffold,
-                          fontSize: 10,
-                          letterSpacing: 1.5,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    child: Text(
+                      'CREAR',
+                      style: TextStyle(
+                        color: AppColors.scaffold,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
