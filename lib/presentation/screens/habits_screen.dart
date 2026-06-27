@@ -52,7 +52,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   Widget _buildWebLayout(HabitsViewModel vm) {
     return Scaffold(
-      backgroundColor: AppColors.scaffold,
       body: vm.isLoading
           ? Center(
               child: CircularProgressIndicator(
@@ -83,7 +82,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
     final today = DateFormat('EEEE, d MMM', 'es').format(DateTime.now());
 
     return Scaffold(
-      backgroundColor: AppColors.scaffold,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

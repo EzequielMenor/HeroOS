@@ -18,6 +18,7 @@ import '../widgets/quick_capture_input.dart'; // QuickCaptureButtons
 import '../widgets/liquid_glass_indicator.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/bento_helpers.dart';
+import '../widgets/zen_aura_background.dart';
 import 'habits_screen.dart';
 import 'tasks_screen.dart';
 import 'finance_screen.dart';
@@ -122,23 +123,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMobileLayout() {
     return Scaffold(
       extendBody: true,
-      body: PageView(
-        controller: _pageController,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          context.read<ShellController>().setTab(index);
-        },
+      body: Stack(
         children: [
-          _TodayOverview(),
-          TasksScreen(),
-          HabitsScreen(),
-          FinanceScreen(),
-          SleepScreen(),
-          NotesScreen(),
-          ProfileScreen(),
+          const ZenAuraBackground(),
+          Theme(
+            data: Theme.of(context).copyWith(
+              scaffoldBackgroundColor: Colors.transparent,
+            ),
+            child: PageView(
+              controller: _pageController,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+                context.read<ShellController>().setTab(index);
+              },
+              children: [
+                _TodayOverview(),
+                TasksScreen(),
+                HabitsScreen(),
+                FinanceScreen(),
+                SleepScreen(),
+                NotesScreen(),
+                ProfileScreen(),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: _LiquidNavBar(
